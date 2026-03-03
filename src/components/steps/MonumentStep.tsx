@@ -1,0 +1,115 @@
+import { IntakeFormData, MonumentType, MaterialType, MONUMENT_PRICES } from "@/lib/pricing";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Square, RectangleHorizontal, Columns2 } from "lucide-react";
+
+interface Props {
+  data: IntakeFormData;
+  update: (d: Partial<IntakeFormData>) => void;
+}
+
+const MONUMENT_ICONS: Record<MonumentType, { icon: typeof Square; style: string }> = {
+  single_marker: { icon: RectangleHorizontal, style: 'rotate-0' },
+  double_marker: { icon: Columns2, style: 'rotate-0' },
+  single_slant: { icon: Square, style: '-rotate-12' },
+  single_upright: { icon: Square, style: 'rotate-0' },
+  double_slant: { icon: Columns2, style: '-rotate-12' },
+  double_upright: { icon: Columns2, style: 'rotate-0' },
+  grave_ledger: { icon: RectangleHorizontal, style: 'rotate-0' },
+};
+
+const MATERIALS: { value: MaterialType; label: string }[] = [
+  { value: 'granite', label: 'Granite' },
+  { value: 'marble', label: 'Marble' },
+  { value: 'bronze', label: 'Bronze' },
+  { value: 'mixed', label: 'Mixed' },
+];
+
+const MonumentStep = ({ data, update }: Props) => {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-8">
+        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 2</span>
+        <h2 className="text-3xl font-display font-bold mb-2 mt-2">Monument Details</h2>
+        <p className="text-muted-foreground">Select your monument type and material</p>
+      </div>
+
+      <div className="max-w-xl mx-auto space-y-6">
+        {/* Monument Type Grid */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Monument Type</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {(Object.entries(MONUMENT_PRICES) as [MonumentType, typeof MONUMENT_PRICES[MonumentType]][]).map(
+              ([key, val]) => {
+                const { icon: Icon, style } = MONUMENT_ICONS[key];
+                const selected = data.monumentType === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => update({ monumentType: key })}
+                    className={`p-4 rounded-lg border text-left transition-all ${
+                      selected
+                        ? "border-primary bg-primary/10 shadow-patina"
+                        : "border-border bg-secondary/50 hover:border-muted-foreground/40"
+                    }`}
+                  >
+                    <Icon className={`w-6 h-6 mb-2 ${style} ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{val.label}</p>
+                    <p className="text-xs text-muted-foreground">{val.description}</p>
+                  </button>
+                );
+              }
+            )}
+          </div>
+        </div>
+
+        {/* Material */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Material</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {MATERIALS.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => update({ material: m.value })}
+                className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
+                  data.material === m.value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-secondary/50 text-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Height */}
+        <div className="space-y-2">
+          <Label htmlFor="height">Approximate Height</Label>
+          <Input
+            id="height"
+            placeholder="e.g. 3 feet"
+            value={data.approximateHeight}
+            onChange={(e) => update({ approximateHeight: e.target.value })}
+            className="bg-secondary border-border max-w-xs"
+          />
+        </div>
+
+        {/* Known damage */}
+        <div className="flex items-center gap-3">
+          <Checkbox
+            id="damage"
+            checked={data.knownDamage}
+            onCheckedChange={(c) => update({ knownDamage: c === true })}
+          />
+          <Label htmlFor="damage" className="text-sm cursor-pointer">
+            Known cracks, leaning, or previous repairs
+          </Label>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MonumentStep;
