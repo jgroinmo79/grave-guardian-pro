@@ -78,8 +78,10 @@ const CheckoutStep = ({ data }: Props) => {
 
           {plan && (
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
-              <span className="font-semibold">{plan.label} Plan:</span>{' '}
-              <span className="text-muted-foreground">${plan.price}/mo recurring (starts after first service)</span>
+              <span className="font-semibold">{plan.label}:</span>{' '}
+              <span className="text-muted-foreground">
+                ${plan.price}{plan.period === 'year' ? '/yr' : ''} {plan.period === 'one-time' ? '(one-time)' : '(annual, starts after first service)'}
+              </span>
             </div>
           )}
         </div>

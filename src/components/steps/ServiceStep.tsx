@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { IntakeFormData, MONUMENT_PRICES, getTravelFee, CARE_PLANS, SEASONAL_BUNDLES, CarePlan } from "@/lib/pricing";
+import { IntakeFormData, MONUMENT_PRICES, getTravelFee, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
-import { Check, Shield, Sparkles, X } from "lucide-react";
+import { Check, Shield, Sparkles, X, Leaf, Flower2 } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
@@ -26,6 +26,11 @@ const ServiceStep = ({ data, update }: Props) => {
   const hasImportantDates = data.importantDates.trim().length > 0;
   const isOutOfState = data.livesLocally === false;
 
+  const formatPlanPrice = (plan: typeof CARE_PLANS[CarePlan]) => {
+    if (plan.period === 'one-time') return `$${plan.price}`;
+    return `$${plan.price}/yr`;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
@@ -48,17 +53,19 @@ const ServiceStep = ({ data, update }: Props) => {
               }`}
             >
               <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offer A</p>
-              <p className="font-display font-bold text-xl mt-1">Standard Clean</p>
+              <p className="font-display font-bold text-xl mt-1">Essential Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerA + travelFee}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {travelFee > 0 && `Includes $${travelFee} travel fee`}
+                {travelFee > 0 ? `Includes $${travelFee} travel fee` : 'No travel fee'}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-primary" /> Professional cleaning</li>
-                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-primary" /> Before & after photos</li>
-                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-primary" /> Surface debris removal</li>
+                {OFFER_A_FEATURES.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> {f}
+                  </li>
+                ))}
               </ul>
             </button>
 
@@ -75,17 +82,22 @@ const ServiceStep = ({ data, update }: Props) => {
                 Best Value
               </span>
               <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offer B</p>
-              <p className="font-display font-bold text-xl mt-1">Deep Clean + Protect</p>
+              <p className="font-display font-bold text-xl mt-1">Full Service Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerB + travelFee}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {travelFee > 0 && `Includes $${travelFee} travel fee`}
+                {travelFee > 0 ? `Includes $${travelFee} travel fee` : 'No travel fee'}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-primary" /> Everything in Offer A</li>
-                <li className="flex items-center gap-2"><Shield className="w-3.5 h-3.5 text-accent" /> Biological growth inhibitor</li>
-                <li className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-accent" /> Extended protection</li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Offer A
+                </li>
+                {OFFER_B_EXTRAS.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Shield className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" /> {f}
+                  </li>
+                ))}
               </ul>
             </button>
           </div>
@@ -102,8 +114,9 @@ const ServiceStep = ({ data, update }: Props) => {
                 </div>
                 <h3 className="font-display font-bold text-xl mb-2">Protect Your Investment</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Add biological growth inhibitor for just <span className="text-accent font-bold">$50 more</span> to 
-                  prevent rapid moss and algae regrowth. Keeps the monument cleaner 3–5× longer.
+                  Add D/2 Biological Solution growth inhibitor, detailed condition report, weeding & edging, 
+                  and groundskeeping damage documentation for just <span className="text-accent font-bold">${monument.offerB - monument.offerA} more</span>. 
+                  Keeps the monument cleaner 3–5× longer.
                 </p>
                 <div className="flex gap-3">
                   <Button variant="hero" className="flex-1" onClick={handleUpgradeToB}>
@@ -120,22 +133,29 @@ const ServiceStep = ({ data, update }: Props) => {
           {/* Seasonal Bundles */}
           {(hasImportantDates || isOutOfState) && (
             <div className="space-y-3">
-              <h3 className="text-lg font-display font-semibold">Seasonal Bundles</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <h3 className="text-lg font-display font-semibold flex items-center gap-2">
+                <Flower2 className="w-5 h-5 text-accent" /> Seasonal & Holiday Bundles
+              </h3>
+              <p className="text-xs text-muted-foreground">Standalone purchases — no annual commitment required.</p>
+              <div className="space-y-3">
                 {SEASONAL_BUNDLES.map((b) => (
                   <button
                     key={b.id}
                     onClick={() => update({ selectedBundle: data.selectedBundle === b.id ? '' : b.id })}
-                    className={`p-4 rounded-lg border text-left transition-all ${
+                    className={`w-full p-4 rounded-lg border text-left transition-all ${
                       data.selectedBundle === b.id
                         ? "border-accent bg-accent/10"
                         : "border-border bg-secondary/30 hover:border-muted-foreground/40"
                     }`}
                   >
-                    <p className="font-semibold text-sm">{b.label}</p>
-                    <p className="text-xl font-bold mt-1">${b.price}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{b.description}</p>
-                    <span className="text-xs text-primary font-semibold">Save {b.savings}</span>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm">{b.label}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{b.description}</p>
+                        {b.savings && <span className="text-xs text-primary font-semibold">{b.savings}</span>}
+                      </div>
+                      <p className="text-xl font-bold ml-4">${b.price}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -144,24 +164,38 @@ const ServiceStep = ({ data, update }: Props) => {
 
           {/* Care Plan Selection */}
           {isOutOfState && (
-            <div className="p-4 rounded-lg border border-primary/30 bg-primary/5">
-              <p className="text-sm font-semibold text-primary mb-1">
-                Since you're out of state, we recommend the Keeper plan
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Get quarterly cleaning, photo updates, and monitoring starting at $29/mo
-              </p>
-              <div className="flex gap-2 mt-3">
-                {(Object.keys(CARE_PLANS) as CarePlan[]).map((key) => (
-                  <Button
-                    key={key}
-                    variant={data.selectedPlan === key ? "hero" : "outline"}
-                    size="sm"
-                    onClick={() => update({ selectedPlan: data.selectedPlan === key ? '' : key })}
-                  >
-                    {CARE_PLANS[key].label} · ${CARE_PLANS[key].price}/mo
-                  </Button>
-                ))}
+            <div className="space-y-3">
+              <div className="p-4 rounded-lg border border-primary/30 bg-primary/5">
+                <p className="text-sm font-semibold text-primary mb-1 flex items-center gap-2">
+                  <Leaf className="w-4 h-4" /> Since you're out of state, we recommend a Care Package
+                </p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Set-it-and-forget-it memorial care — you always know who's at your loved one's grave.
+                </p>
+                <div className="space-y-2">
+                  {(Object.keys(CARE_PLANS) as CarePlan[]).map((key) => {
+                    const plan = CARE_PLANS[key];
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => update({ selectedPlan: data.selectedPlan === key ? '' : key })}
+                        className={`w-full p-3 rounded-lg border text-left transition-all ${
+                          data.selectedPlan === key
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-secondary/20 hover:border-muted-foreground/40"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-bold">{plan.label}</p>
+                            <p className="text-xs text-muted-foreground">{plan.description}</p>
+                          </div>
+                          <p className="text-sm font-bold ml-3 whitespace-nowrap">{formatPlanPrice(plan)}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
