@@ -17,17 +17,24 @@ const AddOnsStep = ({ data, update }: Props) => {
     });
   };
 
+  const formatPrice = (addon: typeof ADD_ONS[number]) => {
+    if (addon.price === 0) return 'Quote';
+    if ('priceMax' in addon && addon.priceMax) return `$${addon.price}–$${addon.priceMax}`;
+    return `$${addon.price}`;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
         <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 6</span>
-        <h2 className="text-3xl font-display font-bold mb-2 mt-2">Enhance Your Service</h2>
-        <p className="text-muted-foreground">Optional add-ons to complete the care</p>
+        <h2 className="text-3xl font-display font-bold mb-2 mt-2">Available Add-Ons</h2>
+        <p className="text-muted-foreground">Enhance any service with these options</p>
       </div>
 
       <div className="max-w-md mx-auto space-y-3">
         {ADD_ONS.map((addon) => {
           const selected = data.addOns.includes(addon.id);
+          const isQuoteOnly = addon.price === 0;
           return (
             <div
               key={addon.id}
@@ -43,7 +50,9 @@ const AddOnsStep = ({ data, update }: Props) => {
                 <p className="text-sm font-medium">{addon.label}</p>
                 <p className="text-xs text-muted-foreground">{addon.description}</p>
               </div>
-              <span className="text-sm font-bold text-accent">${addon.price}</span>
+              <span className={`text-sm font-bold ${isQuoteOnly ? 'text-muted-foreground' : 'text-accent'}`}>
+                {formatPrice(addon)}
+              </span>
             </div>
           );
         })}
@@ -54,12 +63,12 @@ const AddOnsStep = ({ data, update }: Props) => {
             <Medal className="w-5 h-5 text-accent" />
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <Label className="text-sm font-semibold cursor-pointer">Veteran Discount (10% off)</Label>
+                <Label className="text-sm font-semibold cursor-pointer">Veteran Discount</Label>
                 <Badge variant="outline" className="text-[10px] border-accent text-accent">
-                  Verification Required
+                  Applied at Checkout
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Upload DD214 or equivalent during checkout</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Discount applied at checkout with verification</p>
             </div>
             <Checkbox
               checked={data.isVeteran}
@@ -67,6 +76,11 @@ const AddOnsStep = ({ data, update }: Props) => {
             />
           </div>
         </div>
+
+        {/* Note about care plan inclusion */}
+        <p className="text-xs text-muted-foreground text-center mt-4 italic">
+          On all recurring Care Packages, the Damage Documentation Report is auto-generated at no extra charge if damage is found.
+        </p>
       </div>
     </div>
   );
