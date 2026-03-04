@@ -145,20 +145,19 @@ serve(async (req) => {
       });
     }
 
-    // Veteran discount as a coupon line
+    // Apply veteran discount by reducing each line item by 10%
     if (isVeteran) {
-      // Calculate total before discount
-      const preDiscountTotal = lineItems.reduce(
-        (sum, item) => sum + (item.price_data?.unit_amount ?? 0),
-        0
-      );
-      const discountAmount = Math.round(preDiscountTotal * 0.1);
-
+      for (const item of lineItems) {
+        if (item.price_data) {
+          item.price_data.unit_amount = Math.round((item.price_data.unit_amount ?? 0) * 0.9);
+        }
+      }
+      // Add a $0 line showing the discount was applied
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: "Veteran Discount (10%)" },
-          unit_amount: -discountAmount, // negative not allowed in Stripe
+          product_data: { name: "Veteran Discount (10% applied)" },
+          unit_amount: 0,
         },
         quantity: 1,
       });
@@ -178,25 +177,7 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
-    // For veteran discount, use Stripe coupons instead of negative line items
-    let discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
-    if (isVeteran) {
-      // Remove the negative line item we added
-      const vetIdx = lineItems.findIndex(
-        (li) => li.price_data?.product_data?.name === "Veteran Discount (10%)"
-      );
-      if (vetIdx !== -1) lineItems.splice(vetIdx, 1);
-
-      // Create an inline coupon
-      const coupon = await stripe.coupons.create({
-        percent_off: 10,
-        duration: "once",
-        name: "Veteran Discount (10%)",
-      });
-      discounts = [{ coupon: coupon.id }];
-    }
-
-    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+    const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : email,
       line_items: lineItems,
@@ -210,13 +191,7 @@ serve(async (req) => {
         is_veteran: String(isVeteran),
         user_id: userId || "",
       },
-    };
-
-    if (discounts) {
-      sessionParams.discounts = discounts;
-    }
-
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
