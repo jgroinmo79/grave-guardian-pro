@@ -1,15 +1,120 @@
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IntakeFormData, getTravelFee } from "@/lib/pricing";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Prediction {
+  place_id: string;
+  description: string;
+}
 
 interface Props {
   data: IntakeFormData;
   update: (d: Partial<IntakeFormData>) => void;
 }
 
+function useDebounce(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
 const CemeteryStep = ({ data, update }: Props) => {
   const zone = getTravelFee(data.estimatedMiles);
+  const [query, setQuery] = useState(data.cemeteryName);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [distLoading, setDistLoading] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const debouncedQuery = useDebounce(query, 350);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Fetch autocomplete predictions
+  useEffect(() => {
+    if (debouncedQuery.length < 3) {
+      setPredictions([]);
+      return;
+    }
+
+    const fetchPredictions = async () => {
+      setLoading(true);
+      try {
+        const { data: result, error } = await supabase.functions.invoke("google-maps", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          body: undefined,
+        });
+
+        // supabase.functions.invoke doesn't support query params well for GET,
+        // so let's use fetch directly
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const url = `https://${projectId}.supabase.co/functions/v1/google-maps?action=autocomplete&input=${encodeURIComponent(debouncedQuery)}`;
+
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${anonKey}`,
+            apikey: anonKey,
+          },
+        });
+        const json = await res.json();
+        setPredictions(json.predictions || []);
+        setIsOpen((json.predictions || []).length > 0);
+      } catch (err) {
+        console.error("Autocomplete error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPredictions();
+  }, [debouncedQuery]);
+
+  const selectPlace = useCallback(async (prediction: Prediction) => {
+    setQuery(prediction.description);
+    update({ cemeteryName: prediction.description });
+    setIsOpen(false);
+    setPredictions([]);
+
+    // Get distance
+    setDistLoading(true);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const url = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance&place_id=${encodeURIComponent(prediction.place_id)}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
+        },
+      });
+      const json = await res.json();
+      if (json.miles !== undefined) {
+        update({ estimatedMiles: json.miles });
+      }
+    } catch (err) {
+      console.error("Distance error:", err);
+    } finally {
+      setDistLoading(false);
+    }
+  }, [update]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -23,16 +128,45 @@ const CemeteryStep = ({ data, update }: Props) => {
       </div>
 
       <div className="max-w-md mx-auto space-y-5">
-        <div className="space-y-2">
+        {/* Autocomplete Cemetery Search */}
+        <div className="space-y-2" ref={wrapperRef}>
           <Label htmlFor="cemetery" className="text-sm font-medium">Cemetery Name</Label>
-          <Input
-            id="cemetery"
-            placeholder="e.g. Cape County Memorial Park"
-            value={data.cemeteryName}
-            onChange={(e) => update({ cemeteryName: e.target.value })}
-            className="bg-secondary border-border"
-          />
-          <p className="text-xs text-muted-foreground">Google Maps autocomplete coming soon</p>
+          <div className="relative">
+            <Input
+              id="cemetery"
+              placeholder="Start typing a cemetery name..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                update({ cemeteryName: e.target.value });
+              }}
+              className="bg-secondary border-border"
+              autoComplete="off"
+            />
+            {loading && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
+
+          {/* Dropdown */}
+          {isOpen && predictions.length > 0 && (
+            <div className="rounded-lg border border-border bg-popover shadow-lg overflow-hidden z-50 relative">
+              {predictions.map((p) => (
+                <button
+                  key={p.place_id}
+                  type="button"
+                  onClick={() => selectPlace(p)}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-accent/10 transition-colors border-b border-border last:border-0"
+                >
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>{p.description}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">Powered by Google Maps</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -60,15 +194,23 @@ const CemeteryStep = ({ data, update }: Props) => {
 
         <div className="space-y-2">
           <Label htmlFor="miles">Estimated Distance from Cape Girardeau (miles)</Label>
-          <Input
-            id="miles"
-            type="number"
-            min={0}
-            placeholder="e.g. 30"
-            value={data.estimatedMiles || ''}
-            onChange={(e) => update({ estimatedMiles: Number(e.target.value) })}
-            className="bg-secondary border-border"
-          />
+          <div className="relative">
+            <Input
+              id="miles"
+              type="number"
+              min={0}
+              placeholder="Auto-calculated or enter manually"
+              value={data.estimatedMiles || ''}
+              onChange={(e) => update({ estimatedMiles: Number(e.target.value) })}
+              className="bg-secondary border-border"
+            />
+            {distLoading && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {distLoading ? 'Calculating distance...' : 'Auto-calculated when you select a cemetery above'}
+          </p>
         </div>
 
         {data.estimatedMiles > 0 && (
