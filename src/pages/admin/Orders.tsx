@@ -134,15 +134,21 @@ const AdminOrders = () => {
                     </Select>
                   </div>
 
-                  {order.scheduled_date && (
-                    <p className="text-xs text-muted-foreground">
-                      📅 {new Date(order.scheduled_date).toLocaleDateString()}
-                    </p>
-                  )}
+                   {order.scheduled_date && (
+                     <p className="text-xs text-muted-foreground">
+                       📅 {new Date(order.scheduled_date).toLocaleDateString()}
+                     </p>
+                   )}
 
-                  <p className="text-xs text-muted-foreground ml-auto">
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </p>
+                   <Button variant="outline" size="sm" className="text-xs gap-1.5 ml-auto" asChild>
+                     <Link to={`/admin/orders/${order.id}`}>
+                       <ExternalLink className="w-3 h-3" /> Edit
+                     </Link>
+                   </Button>
+
+                   <p className="text-xs text-muted-foreground">
+                     {new Date(order.created_at).toLocaleDateString()}
+                   </p>
                 </div>
 
                 {/* Conditions */}
