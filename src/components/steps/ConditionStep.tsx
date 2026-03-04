@@ -181,7 +181,7 @@ const ConditionStep = ({ data, update }: Props) => {
           />
 
           <p className="text-xs text-muted-foreground">
-            Photos help Joshua assess the monument before arrival. Front, back, and close-up of any damage recommended.
+            Photos help Josh assess the monument before arrival. Front, back, and close-up of any damage recommended.
           </p>
         </div>
       </div>
