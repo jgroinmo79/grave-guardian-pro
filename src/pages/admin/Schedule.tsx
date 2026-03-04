@@ -1,8 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CalendarDays } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { useState } from "react";
 
 const AdminSchedule = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
+
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-scheduled-orders"],
     queryFn: async () => {
@@ -34,6 +44,53 @@ const AdminSchedule = () => {
       return data;
     },
   });
+
+  const scheduleOrder = useMutation({
+    mutationFn: async ({ id, date }: { id: string; date: Date }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          scheduled_date: format(date, "yyyy-MM-dd"),
+          status: "scheduled" as const,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-scheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-unscheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      toast({ title: "Order scheduled" });
+      setOpenPopover(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const DatePickerButton = ({ orderId, currentDate }: { orderId: string; currentDate?: string | null }) => (
+    <Popover open={openPopover === orderId} onOpenChange={(open) => setOpenPopover(open ? orderId : null)}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="text-xs gap-1.5">
+          <CalendarDays className="w-3 h-3" />
+          {currentDate
+            ? format(new Date(currentDate), "MMM d")
+            : "Schedule"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        <Calendar
+          mode="single"
+          selected={currentDate ? new Date(currentDate) : undefined}
+          onSelect={(date) => {
+            if (date) scheduleOrder.mutate({ id: orderId, date });
+          }}
+          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
 
   if (isLoading) {
     return (
@@ -75,19 +132,11 @@ const AdminSchedule = () => {
                       {m?.lot_number ? `, Lot ${m.lot_number}` : ""}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
                       {o.status.replace(/_/g, " ")}
                     </span>
-                    {o.scheduled_date && (
-                      <span className="text-sm font-medium">
-                        {new Date(o.scheduled_date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    )}
+                    <DatePickerButton orderId={o.id} currentDate={o.scheduled_date} />
                     <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
                   </div>
                 </div>
@@ -116,8 +165,9 @@ const AdminSchedule = () => {
                       {m?.monument_type?.replace(/_/g, " ")} · {m?.estimated_miles ?? 0} mi
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">pending</span>
+                    <DatePickerButton orderId={o.id} currentDate={null} />
                     <span className="text-xs text-muted-foreground">
                       {new Date(o.created_at).toLocaleDateString()}
                     </span>
