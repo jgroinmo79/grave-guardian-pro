@@ -47,6 +47,18 @@ const CheckoutStep = ({ data }: Props) => {
           selectedBundle: data.selectedBundle,
           isVeteran: data.isVeteran,
           customerEmail: email,
+          // Monument & form data for DB persistence
+          cemeteryName: data.cemeteryName,
+          section: data.section,
+          lotNumber: data.lotNumber,
+          material: data.material,
+          approximateHeight: data.approximateHeight,
+          knownDamage: data.knownDamage,
+          conditions: data.conditions,
+          // Consent
+          consentBiological: data.consentBiological,
+          consentAuthorize: data.consentAuthorize,
+          consentPhotos: data.consentPhotos,
         },
       });
 

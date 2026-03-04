@@ -8,7 +8,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Replicate server-side pricing to prevent client-side tampering
 const MONUMENT_PRICES: Record<string, { offerA: number; offerB: number; label: string }> = {
   single_marker: { label: "Single Marker", offerA: 175, offerB: 225 },
   double_marker: { label: "Double Marker", offerA: 200, offerB: 250 },
@@ -51,13 +50,19 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Use service role to bypass RLS for creating pending records
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
   );
 
   try {
-    // Auth - optional for this service (guest checkout supported)
+    // Auth - optional for guest checkout
     const authHeader = req.headers.get("Authorization");
     let userEmail: string | undefined;
     let userId: string | undefined;
@@ -80,13 +85,23 @@ serve(async (req) => {
       selectedBundle,
       isVeteran,
       customerEmail,
+      // Monument/form data for saving to DB
+      cemeteryName,
+      section,
+      lotNumber,
+      material,
+      approximateHeight,
+      knownDamage,
+      conditions,
+      // Consent
+      consentBiological,
+      consentAuthorize,
+      consentPhotos,
     } = body;
 
-    // Use authenticated email or provided email
     const email = userEmail || customerEmail;
     if (!email) throw new Error("Email is required for checkout");
 
-    // Validate monument type
     const monument = MONUMENT_PRICES[monumentType];
     if (!monument) throw new Error("Invalid monument type");
 
@@ -94,7 +109,82 @@ serve(async (req) => {
     const basePrice = offer === "B" ? monument.offerB : monument.offerA;
     const travelFee = getTravelFee(estimatedMiles || 0);
 
-    // Build line items
+    // Calculate add-ons total
+    let addOnTotal = 0;
+    for (const addonId of addOns) {
+      const addon = ADD_ONS[addonId];
+      if (addon) addOnTotal += addon.price;
+    }
+
+    const bundlePrice = selectedBundle && BUNDLES[selectedBundle] ? BUNDLES[selectedBundle].price : 0;
+
+    let subtotal = basePrice + travelFee + addOnTotal + bundlePrice;
+    if (isVeteran) subtotal = Math.round(subtotal * 0.9);
+
+    // --- Save pending monument & order to DB ---
+    // We need a user_id. For guest checkout, we'll use a placeholder approach.
+    // For now, require auth or create a temporary record.
+    const effectiveUserId = userId;
+    if (!effectiveUserId) {
+      throw new Error("Please sign in to complete your order");
+    }
+
+    // 1. Create monument record
+    const { data: monumentRecord, error: monumentError } = await supabaseAdmin
+      .from("monuments")
+      .insert({
+        user_id: effectiveUserId,
+        cemetery_name: cemeteryName || "Unknown",
+        section: section || null,
+        lot_number: lotNumber || null,
+        monument_type: monumentType,
+        material: material || "granite",
+        approximate_height: approximateHeight || null,
+        estimated_miles: estimatedMiles || 0,
+        known_damage: knownDamage || false,
+        condition_moss_algae: conditions?.mossAlgae || false,
+        condition_not_cleaned: conditions?.notCleanedRecently || false,
+        condition_faded_inscription: conditions?.fadedInscription || false,
+        condition_chipping: conditions?.chipping || false,
+        condition_leaning: conditions?.leaning || false,
+      })
+      .select("id")
+      .single();
+
+    if (monumentError) {
+      console.error("[create-checkout] Monument insert error:", monumentError);
+      throw new Error("Failed to save monument data");
+    }
+
+    // 2. Create pending order
+    const { data: orderRecord, error: orderError } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        user_id: effectiveUserId,
+        monument_id: monumentRecord.id,
+        offer: offer as "A" | "B",
+        base_price: basePrice,
+        travel_fee: travelFee,
+        add_ons: addOns,
+        add_ons_total: addOnTotal,
+        bundle_id: selectedBundle || null,
+        bundle_price: bundlePrice,
+        total_price: subtotal,
+        is_veteran: isVeteran || false,
+        consent_biological: consentBiological || false,
+        consent_authorize: consentAuthorize || false,
+        consent_photos: consentPhotos || false,
+        status: "pending",
+      })
+      .select("id")
+      .single();
+
+    if (orderError) {
+      console.error("[create-checkout] Order insert error:", orderError);
+      throw new Error("Failed to save order data");
+    }
+
+    // --- Build Stripe line items ---
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
       {
         price_data: {
@@ -117,7 +207,6 @@ serve(async (req) => {
       });
     }
 
-    // Add-ons
     for (const addonId of addOns) {
       const addon = ADD_ONS[addonId];
       if (addon && addon.price > 0) {
@@ -132,7 +221,6 @@ serve(async (req) => {
       }
     }
 
-    // Bundle
     if (selectedBundle && BUNDLES[selectedBundle]) {
       const bundle = BUNDLES[selectedBundle];
       lineItems.push({
@@ -145,14 +233,12 @@ serve(async (req) => {
       });
     }
 
-    // Apply veteran discount by reducing each line item by 10%
     if (isVeteran) {
       for (const item of lineItems) {
         if (item.price_data) {
           item.price_data.unit_amount = Math.round((item.price_data.unit_amount ?? 0) * 0.9);
         }
       }
-      // Add a $0 line showing the discount was applied
       lineItems.push({
         price_data: {
           currency: "usd",
@@ -163,12 +249,11 @@ serve(async (req) => {
       });
     }
 
-    // Initialize Stripe
+    // --- Create Stripe session ---
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email, limit: 1 });
     let customerId: string | undefined;
     if (customers.data.length > 0) {
@@ -185,13 +270,17 @@ serve(async (req) => {
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment-canceled`,
       metadata: {
-        monument_type: monumentType,
-        offer,
-        estimated_miles: String(estimatedMiles || 0),
-        is_veteran: String(isVeteran),
-        user_id: userId || "",
+        order_id: orderRecord.id,
+        monument_id: monumentRecord.id,
+        user_id: effectiveUserId,
       },
     });
+
+    // Save stripe session ID to the order
+    await supabaseAdmin
+      .from("orders")
+      .update({ stripe_payment_intent_id: session.id })
+      .eq("id", orderRecord.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
