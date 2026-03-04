@@ -55,14 +55,6 @@ const CemeteryStep = ({ data, update }: Props) => {
     const fetchPredictions = async () => {
       setLoading(true);
       try {
-        const { data: result, error } = await supabase.functions.invoke("google-maps", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          body: undefined,
-        });
-
-        // supabase.functions.invoke doesn't support query params well for GET,
-        // so let's use fetch directly
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
         const url = `https://${projectId}.supabase.co/functions/v1/google-maps?action=autocomplete&input=${encodeURIComponent(debouncedQuery)}`;
