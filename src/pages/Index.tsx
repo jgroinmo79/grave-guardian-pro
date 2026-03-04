@@ -37,6 +37,11 @@ const Index = () => {
           <User className="w-3 h-3" />
           {user?.email}
         </span>
+        {isAdmin && (
+          <Link to="/admin" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Settings className="w-3 h-3" /> Admin
+          </Link>
+        )}
         <Button variant="outline" size="sm" onClick={signOut} className="h-8 text-xs">
           <LogOut className="w-3 h-3 mr-1" /> Sign Out
         </Button>
