@@ -45,7 +45,7 @@ export function AdminSidebar() {
           </div>
         )}
 
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel>Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
