@@ -1,13 +1,31 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import IntakeFlow from "@/components/IntakeFlow";
-import { Shield, Star, Clock, ChevronRight, LogOut, User } from "lucide-react";
+import { Shield, Star, Clock, ChevronRight, LogOut, User, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [showIntake, setShowIntake] = useState(false);
   const { user, signOut } = useAuth();
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["admin-role", user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   if (showIntake) return <IntakeFlow />;
 
@@ -19,6 +37,11 @@ const Index = () => {
           <User className="w-3 h-3" />
           {user?.email}
         </span>
+        {isAdmin && (
+          <Link to="/admin" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Settings className="w-3 h-3" /> Admin
+          </Link>
+        )}
         <Button variant="outline" size="sm" onClick={signOut} className="h-8 text-xs">
           <LogOut className="w-3 h-3 mr-1" /> Sign Out
         </Button>
