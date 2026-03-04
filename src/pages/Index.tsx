@@ -108,6 +108,61 @@ const Index = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* About Us */}
+      <section className="relative px-4 py-24 sm:py-32">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-10 text-center">
+              About <span className="text-gradient-patina">Us</span>
+            </h2>
+
+            <div className="space-y-6 text-muted-foreground leading-relaxed text-base sm:text-lg">
+              <p>
+                Grave Detail Cleaning &amp; Preservation was founded by Josh Grogan after the loss of a close family member. Like many families, he began visiting the gravesite regularly and quickly noticed something that most people overlook until they see it firsthand — how quickly monuments become covered in biological growth, staining, and weathering, and how many of them remain that way for years or even decades.
+              </p>
+              <p>
+                What began as a personal effort to care for one memorial turned into a deeper realization: countless graves are neglected not because families do not care, but because they live far away, lack the proper knowledge, or simply do not know how to safely care for stone monuments. Headstones are not just pieces of stone; they are historical records, family markers, and lasting tributes to lives that mattered.
+              </p>
+              <p>
+                In 2024, Josh began studying cemetery conservation and preservation methods, attending training and researching best practices used by professional gravestone conservators. One principle guided everything from the start — "Do No Harm." Preservation work must always protect the original stone, use the gentlest methods possible, and avoid shortcuts that cause long-term damage. Modern conservation standards emphasize minimal intervention and careful documentation of treatments so the integrity of the monument is preserved for future generations.
+              </p>
+              <p>
+                Grave Detail Cleaning &amp; Preservation was built around those standards. Every service is performed using preservation-based methods designed to remove biological growth, improve readability, and extend the life of the monument without harming the stone. Soft-wash techniques, non-ionic cleaners, and professional conservation products are used instead of pressure washing, harsh chemicals, or abrasive cleaning methods that can permanently damage historic markers.
+              </p>
+
+              <p className="text-foreground font-semibold text-lg sm:text-xl mt-10">
+                But this work is about more than stone.
+              </p>
+              <p className="text-foreground font-semibold text-lg sm:text-xl">
+                It is about respect.
+              </p>
+              <p className="text-foreground font-semibold text-lg sm:text-xl">
+                It is about family history.
+              </p>
+              <p className="text-foreground font-semibold text-lg sm:text-xl">
+                It is about making sure someone's name and memory are not slowly erased by time.
+              </p>
+
+              <p>
+                Many families cannot regularly visit the resting places of their loved ones. Some live across the country. Others simply need help maintaining the site properly. Our role is to step in with care, professionalism, and the understanding that every grave we work on belongs to someone's story.
+              </p>
+              <p>
+                Grave Detail Cleaning &amp; Preservation exists to ensure those stories remain visible, dignified, and preserved for generations to come.
+              </p>
+
+              <p className="text-gradient-patina font-display text-2xl sm:text-3xl font-bold text-center mt-12">
+                Time Takes a Toll. We Take It Back.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 };
