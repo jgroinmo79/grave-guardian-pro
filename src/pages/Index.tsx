@@ -1,16 +1,29 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import IntakeFlow from "@/components/IntakeFlow";
-import { Shield, Star, Clock, ChevronRight } from "lucide-react";
+import { Shield, Star, Clock, ChevronRight, LogOut, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const [showIntake, setShowIntake] = useState(false);
+  const { user, signOut } = useAuth();
 
   if (showIntake) return <IntakeFlow />;
 
   return (
     <div className="min-h-screen gradient-dark overflow-hidden">
+      {/* User bar */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-3">
+        <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <User className="w-3 h-3" />
+          {user?.email}
+        </span>
+        <Button variant="outline" size="sm" onClick={signOut} className="h-8 text-xs">
+          <LogOut className="w-3 h-3 mr-1" /> Sign Out
+        </Button>
+      </div>
+
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center px-4">
         {/* Subtle texture overlay */}
