@@ -1,12 +1,20 @@
+import { useState } from "react";
 import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, CARE_PLANS, SEASONAL_BUNDLES } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Lock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CreditCard, Lock, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Props {
   data: IntakeFormData;
 }
 
 const CheckoutStep = ({ data }: Props) => {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
   const travelFee = getTravelFee(data.estimatedMiles).fee;
   const basePrice = monument
@@ -22,6 +30,40 @@ const CheckoutStep = ({ data }: Props) => {
   let subtotal = basePrice + travelFee + addOnTotal + (bundle?.price ?? 0);
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
+  const handleCheckout = async () => {
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          monumentType: data.monumentType,
+          selectedOffer: data.selectedOffer,
+          estimatedMiles: data.estimatedMiles,
+          addOns: data.addOns,
+          selectedBundle: data.selectedBundle,
+          isVeteran: data.isVeteran,
+          customerEmail: email,
+        },
+      });
+
+      if (error) throw error;
+      if (result?.url) {
+        window.location.href = result.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      toast.error(err.message || "Failed to start checkout. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
@@ -33,7 +75,6 @@ const CheckoutStep = ({ data }: Props) => {
 
       <div className="max-w-md mx-auto">
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-          {/* Line items */}
           {monument && (
             <div className="flex justify-between text-sm">
               <span>{monument.label} — Offer {data.selectedOffer || 'A'}</span>
@@ -86,13 +127,37 @@ const CheckoutStep = ({ data }: Props) => {
           )}
         </div>
 
-        <Button variant="hero" size="lg" className="w-full mt-6 h-12 text-base" disabled>
-          <Lock className="w-4 h-4 mr-2" />
-          Proceed to Payment
-        </Button>
-        <p className="text-xs text-center text-muted-foreground mt-3">
-          Stripe checkout will be enabled after backend setup. Your data is secure.
-        </p>
+        <div className="mt-6 space-y-3">
+          <div>
+            <Label htmlFor="checkout-email" className="text-sm">Email for receipt & communication</Label>
+            <Input
+              id="checkout-email"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+
+          <Button
+            variant="hero"
+            size="lg"
+            className="w-full h-12 text-base"
+            onClick={handleCheckout}
+            disabled={loading || !email.trim()}
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Lock className="w-4 h-4 mr-2" />
+            )}
+            {loading ? "Redirecting to Stripe…" : "Proceed to Payment"}
+          </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            Secure payment powered by Stripe. You'll be redirected to complete checkout.
+          </p>
+        </div>
       </div>
     </div>
   );
