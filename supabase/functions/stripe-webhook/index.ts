@@ -208,6 +208,14 @@ serve(async (req) => {
       } else {
         console.warn("[stripe-webhook] No customer email found, skipping confirmation email");
       }
+
+      // Send admin notification
+      await sendAdminNotificationEmail(
+        orderData as unknown as Record<string, unknown>,
+        (orderData.monuments ?? {}) as Record<string, unknown>,
+        customerEmail || "unknown",
+        profile?.full_name || "Unknown Customer"
+      );
     }
   }
 
