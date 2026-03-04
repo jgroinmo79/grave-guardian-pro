@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -132,15 +134,21 @@ const AdminOrders = () => {
                     </Select>
                   </div>
 
-                  {order.scheduled_date && (
-                    <p className="text-xs text-muted-foreground">
-                      📅 {new Date(order.scheduled_date).toLocaleDateString()}
-                    </p>
-                  )}
+                   {order.scheduled_date && (
+                     <p className="text-xs text-muted-foreground">
+                       📅 {new Date(order.scheduled_date).toLocaleDateString()}
+                     </p>
+                   )}
 
-                  <p className="text-xs text-muted-foreground ml-auto">
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </p>
+                   <Button variant="outline" size="sm" className="text-xs gap-1.5 ml-auto" asChild>
+                     <Link to={`/admin/orders/${order.id}`}>
+                       <ExternalLink className="w-3 h-3" /> Edit
+                     </Link>
+                   </Button>
+
+                   <p className="text-xs text-muted-foreground">
+                     {new Date(order.created_at).toLocaleDateString()}
+                   </p>
                 </div>
 
                 {/* Conditions */}
