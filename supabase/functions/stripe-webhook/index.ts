@@ -111,6 +111,71 @@ async function sendOrderConfirmationEmail(
   }
 }
 
+const ADMIN_EMAIL = Deno.env.get("ADMIN_NOTIFICATION_EMAIL") || "josh@resend.dev";
+
+async function sendAdminNotificationEmail(
+  order: Record<string, unknown>,
+  monument: Record<string, unknown>,
+  customerEmail: string,
+  customerName: string
+) {
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendApiKey) return;
+
+  const formatType = (t: string) =>
+    t?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const orderId = (order.id as string).slice(0, 8);
+  const totalPrice = Number(order.total_price).toFixed(2);
+  const cemeteryName = monument.cemetery_name as string;
+  const monumentType = formatType(monument.monument_type as string);
+  const material = formatType(monument.material as string);
+  const offer = order.offer as string;
+  const isVeteran = order.is_veteran as boolean;
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; padding: 40px 24px;">
+      <h1 style="margin: 0 0 8px; font-size: 20px; color: #111;">🔔 New Order Received</h1>
+      <p style="color: #666; margin: 0 0 24px; font-size: 14px;">Order #${orderId} — $${totalPrice}</p>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+        <tr><td style="padding: 6px 0; color: #666; width: 140px;">Customer</td><td style="padding: 6px 0; color: #111; font-weight: 500;">${customerName} (${customerEmail})</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Cemetery</td><td style="padding: 6px 0; color: #111;">${cemeteryName}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Monument</td><td style="padding: 6px 0; color: #111;">${monumentType} · ${material}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Offer</td><td style="padding: 6px 0; color: #111;">Offer ${offer}</td></tr>
+        <tr><td style="padding: 6px 0; color: #666;">Veteran</td><td style="padding: 6px 0; color: #111;">${isVeteran ? "Yes (10% discount)" : "No"}</td></tr>
+        <tr style="border-top: 1px solid #e5e7eb;"><td style="padding: 10px 0 0; color: #111; font-weight: 700;">Total</td><td style="padding: 10px 0 0; color: #111; font-weight: 700;">$${totalPrice}</td></tr>
+      </table>
+
+      <p style="font-size: 13px; color: #666;">Please reach out to the customer within 24 hours to schedule their service.</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "orders@resend.dev",
+        to: [ADMIN_EMAIL],
+        subject: `🔔 New Order #${orderId} — $${totalPrice} — ${customerName}`,
+        html,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("[stripe-webhook] Admin email error:", res.status, err);
+    } else {
+      console.log(`[stripe-webhook] Admin notification sent to ${ADMIN_EMAIL}`);
+    }
+  } catch (err) {
+    console.error("[stripe-webhook] Failed to send admin email:", err);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
