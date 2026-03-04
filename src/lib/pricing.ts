@@ -176,6 +176,8 @@ export interface IntakeFormData {
     chipping: boolean;
     leaning: boolean;
   };
+  // Photos
+  photos: string[];
   // Step 4
   livesLocally: boolean | null;
   importantDates: string;
@@ -209,6 +211,7 @@ export const initialFormData: IntakeFormData = {
     chipping: false,
     leaning: false,
   },
+  photos: [],
   livesLocally: null,
   importantDates: '',
   wantsMonitoring: null,
