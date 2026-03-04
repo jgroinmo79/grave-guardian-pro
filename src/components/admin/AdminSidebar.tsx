@@ -39,7 +39,7 @@ export function AdminSidebar() {
         {!collapsed && (
           <div className="px-4 py-4">
             <h2 className="font-display text-lg font-bold">
-              <span className="text-gradient-patina">Joshua's Portal</span>
+              <span className="text-gradient-patina">Josh's Portal</span>
             </h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Admin</p>
           </div>

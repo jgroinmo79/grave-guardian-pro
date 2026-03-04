@@ -75,7 +75,7 @@ const PaymentSuccess = () => {
           <CheckCircle className="w-16 h-16 text-primary mx-auto" />
           <h1 className="text-3xl font-display font-bold">Payment Successful!</h1>
           <p className="text-muted-foreground">
-            Thank you for your order. Joshua will be in touch within 24 hours to confirm your service date.
+            Thank you for your order. Josh will be in touch within 24 hours to confirm your service date.
           </p>
         </div>
 
