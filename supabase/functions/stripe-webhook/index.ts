@@ -8,6 +8,109 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function sendOrderConfirmationEmail(
+  order: Record<string, unknown>,
+  monument: Record<string, unknown>,
+  customerEmail: string,
+  customerName: string
+) {
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendApiKey) {
+    console.error("[stripe-webhook] RESEND_API_KEY not configured, skipping email");
+    return;
+  }
+
+  const formatType = (t: string) =>
+    t?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const orderId = (order.id as string).slice(0, 8);
+  const totalPrice = Number(order.total_price).toFixed(2);
+  const basePrice = Number(order.base_price).toFixed(2);
+  const travelFee = Number(order.travel_fee).toFixed(2);
+  const addOnsTotal = Number(order.add_ons_total ?? 0).toFixed(2);
+  const bundlePrice = Number(order.bundle_price ?? 0).toFixed(2);
+  const isVeteran = order.is_veteran as boolean;
+  const offer = order.offer as string;
+  const cemeteryName = monument.cemetery_name as string;
+  const monumentType = formatType(monument.monument_type as string);
+  const material = formatType(monument.material as string);
+  const section = monument.section as string | null;
+  const lotNumber = monument.lot_number as string | null;
+
+  const locationLine = section
+    ? `Section ${section}${lotNumber ? `, Lot ${lotNumber}` : ""}`
+    : "";
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; padding: 40px 24px;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="width: 48px; height: 48px; background: #16a34a; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <span style="color: white; font-size: 24px;">✓</span>
+        </div>
+        <h1 style="margin: 0; font-size: 24px; color: #111;">Order Confirmed</h1>
+        <p style="color: #666; margin-top: 8px;">Thank you for your order, ${customerName || "there"}!</p>
+      </div>
+
+      <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+        <p style="margin: 0 0 4px; font-size: 12px; color: #999; font-family: monospace;">Order #${orderId}</p>
+        <p style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #111;">${cemeteryName}</p>
+        ${locationLine ? `<p style="margin: 0 0 4px; font-size: 13px; color: #666;">${locationLine}</p>` : ""}
+        <p style="margin: 0; font-size: 13px; color: #666;">${monumentType} · ${material} · Offer ${offer}</p>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+        <tr>
+          <td style="padding: 8px 0; color: #666;">Base Price (Offer ${offer})</td>
+          <td style="padding: 8px 0; text-align: right; color: #111;">$${basePrice}</td>
+        </tr>
+        ${Number(travelFee) > 0 ? `<tr><td style="padding: 8px 0; color: #666;">Travel Fee</td><td style="padding: 8px 0; text-align: right; color: #111;">$${travelFee}</td></tr>` : ""}
+        ${Number(addOnsTotal) > 0 ? `<tr><td style="padding: 8px 0; color: #666;">Add-Ons</td><td style="padding: 8px 0; text-align: right; color: #111;">$${addOnsTotal}</td></tr>` : ""}
+        ${Number(bundlePrice) > 0 ? `<tr><td style="padding: 8px 0; color: #666;">Bundle</td><td style="padding: 8px 0; text-align: right; color: #111;">$${bundlePrice}</td></tr>` : ""}
+        ${isVeteran ? `<tr><td style="padding: 8px 0; color: #16a34a;">Veteran Discount (10%)</td><td style="padding: 8px 0; text-align: right; color: #16a34a;">Applied</td></tr>` : ""}
+        <tr style="border-top: 1px solid #e5e7eb;">
+          <td style="padding: 12px 0 0; font-weight: 700; font-size: 16px; color: #111;">Total Paid</td>
+          <td style="padding: 12px 0 0; text-align: right; font-weight: 700; font-size: 16px; color: #111;">$${totalPrice}</td>
+        </tr>
+      </table>
+
+      <div style="background: #f0fdf4; border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 14px; color: #166534;">
+          Joshua will be in touch within 24 hours to confirm your service date.
+        </p>
+      </div>
+
+      <p style="font-size: 12px; color: #999; text-align: center;">
+        If you have any questions, simply reply to this email.
+      </p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "orders@resend.dev",
+        to: [customerEmail],
+        subject: `Order Confirmed — #${orderId}`,
+        html,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("[stripe-webhook] Resend API error:", res.status, err);
+    } else {
+      console.log(`[stripe-webhook] Confirmation email sent to ${customerEmail}`);
+    }
+  } catch (err) {
+    console.error("[stripe-webhook] Failed to send email:", err);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -75,6 +178,37 @@ serve(async (req) => {
     }
 
     console.log(`[stripe-webhook] Order ${orderId} confirmed successfully`);
+
+    // Fetch full order + monument + customer profile for email
+    const { data: orderData } = await supabaseAdmin
+      .from("orders")
+      .select(`
+        id, offer, status, total_price, base_price, travel_fee,
+        add_ons_total, bundle_price, is_veteran, user_id,
+        monuments (cemetery_name, monument_type, material, section, lot_number)
+      `)
+      .eq("id", orderId)
+      .single();
+
+    if (orderData) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("email, full_name")
+        .eq("user_id", orderData.user_id)
+        .single();
+
+      const customerEmail = profile?.email || session.customer_email || session.customer_details?.email;
+      if (customerEmail) {
+        await sendOrderConfirmationEmail(
+          orderData as unknown as Record<string, unknown>,
+          (orderData.monuments ?? {}) as Record<string, unknown>,
+          customerEmail,
+          profile?.full_name || ""
+        );
+      } else {
+        console.warn("[stripe-webhook] No customer email found, skipping confirmation email");
+      }
+    }
   }
 
   return new Response(JSON.stringify({ received: true }), {
