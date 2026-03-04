@@ -64,7 +64,7 @@ const CheckoutStep = ({ data }: Props) => {
 
       if (error) throw error;
       if (result?.url) {
-        window.location.href = result.url;
+        window.open(result.url, "_blank");
       } else {
         throw new Error("No checkout URL returned");
       }
