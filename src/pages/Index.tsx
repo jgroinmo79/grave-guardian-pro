@@ -30,7 +30,7 @@ const Index = () => {
   if (showIntake) return <IntakeFlow />;
 
   return (
-    <div className="min-h-screen gradient-dark overflow-hidden">
+    <div className="min-h-screen overflow-hidden">
       {/* User bar */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-3">
         <span className="text-xs text-muted-foreground flex items-center gap-1">
