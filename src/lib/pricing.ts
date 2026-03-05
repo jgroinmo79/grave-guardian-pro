@@ -182,6 +182,7 @@ export interface IntakeFormData {
   livesLocally: boolean | null;
   importantDates: string;
   wantsMonitoring: boolean | null;
+  wantsFlowerPlacement: boolean | null;
   // Step 5
   selectedOffer: 'A' | 'B' | '';
   selectedPlan: CarePlan | '';
@@ -215,6 +216,7 @@ export const initialFormData: IntakeFormData = {
   livesLocally: null,
   importantDates: '',
   wantsMonitoring: null,
+  wantsFlowerPlacement: null,
   selectedOffer: '',
   selectedPlan: '',
   selectedBundle: '',

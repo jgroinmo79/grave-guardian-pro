@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { IntakeFormData, MONUMENT_PRICES, getTravelFee, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
-import { Check, Shield, Sparkles, X, Leaf, Flower2 } from "lucide-react";
+import { Check, Shield, Sparkles, X, Leaf, Flower2, Star } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
@@ -23,8 +23,24 @@ const ServiceStep = ({ data, update }: Props) => {
     setShowUpsell(false);
   };
 
-  const hasImportantDates = data.importantDates.trim().length > 0;
   const isOutOfState = data.livesLocally === false;
+  const wantsFlowers = data.wantsFlowerPlacement === true;
+  const wantsMonitoring = data.wantsMonitoring === true;
+  const hasImportantDates = data.importantDates.trim().length > 0;
+  const hasSelectedOffer = data.selectedOffer !== '';
+
+  // Determine which care plans to recommend based on intent
+  const getRecommendedPlan = (): CarePlan | null => {
+    if (wantsFlowers && (isOutOfState || wantsMonitoring)) return 'legacy';
+    if (wantsMonitoring && isOutOfState) return 'sentinel';
+    if (wantsMonitoring) return 'keeper';
+    if (isOutOfState) return 'keeper';
+    return null;
+  };
+
+  const recommendedPlan = getRecommendedPlan();
+  const showCarePlans = hasSelectedOffer && (isOutOfState || wantsMonitoring);
+  const showBundles = hasSelectedOffer && (wantsFlowers || hasImportantDates);
 
   const formatPlanPrice = (plan: typeof CARE_PLANS[CarePlan]) => {
     if (plan.period === 'one-time') return `$${plan.price}`;
@@ -130,13 +146,17 @@ const ServiceStep = ({ data, update }: Props) => {
             </div>
           )}
 
-          {/* Seasonal Bundles */}
-          {(hasImportantDates || isOutOfState) && (
+          {/* Contextual Seasonal Bundles — shown when user wants flowers or has important dates */}
+          {showBundles && (
             <div className="space-y-3">
               <h3 className="text-lg font-display font-semibold flex items-center gap-2">
-                <Flower2 className="w-5 h-5 text-accent" /> Seasonal & Holiday Bundles
+                <Flower2 className="w-5 h-5 text-accent" /> Flower & Holiday Bundles
               </h3>
-              <p className="text-xs text-muted-foreground">Standalone purchases — no annual commitment required.</p>
+              <p className="text-xs text-muted-foreground">
+                {wantsFlowers
+                  ? "Since you're interested in flower placements, these bundles are a great fit."
+                  : "Add seasonal flower placements for your important dates."}
+              </p>
               <div className="space-y-3">
                 {SEASONAL_BUNDLES.map((b) => (
                   <button
@@ -162,12 +182,17 @@ const ServiceStep = ({ data, update }: Props) => {
             </div>
           )}
 
-          {/* Care Plan Selection */}
-          {isOutOfState && (
+          {/* Contextual Care Plans — shown when user is out of state or wants monitoring */}
+          {showCarePlans && (
             <div className="space-y-3">
               <div className="p-4 rounded-lg border border-primary/30 bg-primary/5">
                 <p className="text-sm font-semibold text-primary mb-1 flex items-center gap-2">
-                  <Leaf className="w-4 h-4" /> Since you're out of state, we recommend a Care Package
+                  <Leaf className="w-4 h-4" />
+                  {isOutOfState && wantsMonitoring
+                    ? "You're out of state and want monitoring — a Care Plan is perfect for you"
+                    : isOutOfState
+                    ? "Since you're out of state, a Care Plan keeps your loved one's memorial maintained"
+                    : "Ongoing monitoring with a Care Plan gives you year-round peace of mind"}
                 </p>
                 <p className="text-xs text-muted-foreground mb-3">
                   Set-it-and-forget-it memorial care — you always know who's at your loved one's grave.
@@ -175,16 +200,24 @@ const ServiceStep = ({ data, update }: Props) => {
                 <div className="space-y-2">
                   {(Object.keys(CARE_PLANS) as CarePlan[]).map((key) => {
                     const plan = CARE_PLANS[key];
+                    const isRecommended = key === recommendedPlan;
                     return (
                       <button
                         key={key}
                         onClick={() => update({ selectedPlan: data.selectedPlan === key ? '' : key })}
-                        className={`w-full p-3 rounded-lg border text-left transition-all ${
+                        className={`w-full p-3 rounded-lg border text-left transition-all relative ${
                           data.selectedPlan === key
                             ? "border-primary bg-primary/10"
+                            : isRecommended
+                            ? "border-primary/50 bg-primary/5"
                             : "border-border bg-secondary/20 hover:border-muted-foreground/40"
                         }`}
                       >
+                        {isRecommended && (
+                          <span className="absolute -top-2 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <Star className="w-2.5 h-2.5" /> Recommended
+                          </span>
+                        )}
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-bold">{plan.label}</p>
