@@ -52,7 +52,7 @@ const Index = () => {
       <section className="relative min-h-screen flex items-center justify-center px-4">
         {/* Hero background image */}
         <div className="absolute inset-0">
-          <img src={heroImage} alt="Grave Detail Cleaning and Preservation monument" className="w-full h-full object-cover" />
+          <img src={heroImage} alt="Grave Detail Cleaning and Preservation monument" className="w-full h-full object-cover scale-75" />
           <div className="absolute inset-0 bg-background/70" />
         </div>
 
