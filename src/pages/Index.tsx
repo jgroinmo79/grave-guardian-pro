@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import IntakeFlow from "@/components/IntakeFlow";
 import { Shield, Star, Clock, ChevronRight, LogOut, User, Settings } from "lucide-react";
-import heroImage from "@/assets/hero-monument.png";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
