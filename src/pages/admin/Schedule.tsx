@@ -81,6 +81,7 @@ const AdminSchedule = () => {
       <PopoverContent className="w-auto p-0" align="end">
         <Calendar
           mode="single"
+          required
           selected={currentDate ? new Date(currentDate) : undefined}
           onSelect={(date) => {
             if (date) scheduleOrder.mutate({ id: orderId, date });
