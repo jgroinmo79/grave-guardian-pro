@@ -60,12 +60,12 @@ const Index = () => {
               Cape Girardeau, Missouri
             </p>
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.1] mb-6">
-              Honor Their Memory.{" "}
-              <span className="text-gradient-patina">Preserve Their Stone.</span>
+              Grave Detail{" "}
+              <span className="text-gradient-patina">Cleaning &amp; Preservation</span>
+              <span className="block text-lg sm:text-xl font-semibold text-muted-foreground mt-2 tracking-wide">LLC</span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto mb-10 leading-relaxed">
-              Professional monument cleaning and long-term preservation 
-              so your loved one's resting place reflects the respect they deserve.
+            <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-10 leading-relaxed">
+              Time Takes a Toll. We Take It Back.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
