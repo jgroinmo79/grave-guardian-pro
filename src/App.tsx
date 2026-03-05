@@ -17,10 +17,22 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetail from "./pages/admin/OrderDetail";
 import AdminSchedule from "./pages/admin/Schedule";
 import NotFound from "./pages/NotFound";
+import cemeteryBg from "./assets/cemetery-bg.jpg";
 
 const queryClient = new QueryClient();
 
 const App = () => (
+  <div className="min-h-screen relative">
+    <div
+      className="fixed inset-0 -z-10"
+      style={{
+        backgroundImage: `url(${cemeteryBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    />
+    <div className="fixed inset-0 -z-10 bg-background/75" />
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -48,6 +60,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </div>
 );
 
 export default App;
