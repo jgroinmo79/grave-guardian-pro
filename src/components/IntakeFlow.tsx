@@ -94,7 +94,7 @@ const IntakeFlow = () => {
           {step < TOTAL_STEPS - 1 ? (
             <Button
               variant="hero"
-              onClick={() => setStep((s) => Math.min(TOTAL_STEPS - 1, s + 1))}
+              onClick={() => goToStep(Math.min(TOTAL_STEPS - 1, step + 1))}
               disabled={!canProceed()}
             >
               Continue <ArrowRight className="w-4 h-4 ml-1" />
