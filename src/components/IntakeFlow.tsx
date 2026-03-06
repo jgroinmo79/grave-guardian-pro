@@ -23,6 +23,11 @@ const IntakeFlow = () => {
     setData((prev) => ({ ...prev, ...partial }));
   };
 
+  const goToStep = (nextStep: number) => {
+    setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const canProceed = (): boolean => {
     switch (step) {
       case 0: return data.cemeteryName.trim().length > 0;
@@ -80,7 +85,7 @@ const IntakeFlow = () => {
         <div className="flex justify-between mt-10 max-w-md mx-auto">
           <Button
             variant="outline"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            onClick={() => goToStep(Math.max(0, step - 1))}
             disabled={step === 0}
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Back
@@ -89,7 +94,7 @@ const IntakeFlow = () => {
           {step < TOTAL_STEPS - 1 ? (
             <Button
               variant="hero"
-              onClick={() => setStep((s) => Math.min(TOTAL_STEPS - 1, s + 1))}
+              onClick={() => goToStep(Math.min(TOTAL_STEPS - 1, step + 1))}
               disabled={!canProceed()}
             >
               Continue <ArrowRight className="w-4 h-4 ml-1" />
