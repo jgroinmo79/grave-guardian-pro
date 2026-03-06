@@ -23,6 +23,11 @@ const IntakeFlow = () => {
     setData((prev) => ({ ...prev, ...partial }));
   };
 
+  const goToStep = (nextStep: number) => {
+    setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const canProceed = (): boolean => {
     switch (step) {
       case 0: return data.cemeteryName.trim().length > 0;
