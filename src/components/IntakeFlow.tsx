@@ -85,7 +85,7 @@ const IntakeFlow = () => {
         <div className="flex justify-between mt-10 max-w-md mx-auto">
           <Button
             variant="outline"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            onClick={() => goToStep(Math.max(0, step - 1))}
             disabled={step === 0}
           >
             <ArrowLeft className="w-4 h-4 mr-1" /> Back
