@@ -100,7 +100,41 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use 'autocomplete' or 'distance'" }), {
+    // Get place details (lat/lng) from place_id
+    if (action === "place_details") {
+      const placeId = url.searchParams.get("place_id");
+      if (!placeId) {
+        return new Response(JSON.stringify({ error: "place_id required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const params = new URLSearchParams({
+        place_id: placeId,
+        fields: "geometry",
+        key: apiKey,
+      });
+
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?${params}`
+      );
+      const detailData = await res.json();
+      const loc = detailData.result?.geometry?.location;
+
+      if (!loc) {
+        return new Response(JSON.stringify({ error: "Could not get location" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Invalid action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

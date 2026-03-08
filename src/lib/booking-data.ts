@@ -157,6 +157,8 @@ export interface BookingFormData {
   // Step 3
   preferredDate: Date | null;
   cemeteryAddress: string;
+  cemeteryLat: number | null;
+  cemeteryLng: number | null;
   notes: string;
 }
 
@@ -172,5 +174,7 @@ export const initialBookingData: BookingFormData = {
   isMinor: false,
   preferredDate: null,
   cemeteryAddress: '',
+  cemeteryLat: null,
+  cemeteryLng: null,
   notes: '',
 };
