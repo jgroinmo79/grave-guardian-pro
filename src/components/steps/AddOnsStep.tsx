@@ -2,7 +2,6 @@ import { IntakeFormData, ADD_ONS } from "@/lib/pricing";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Medal } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
@@ -57,25 +56,7 @@ const AddOnsStep = ({ data, update }: Props) => {
           );
         })}
 
-        {/* Veteran Discount */}
-        <div className="mt-6 p-4 rounded-lg border border-accent/30 bg-accent/5">
-          <div className="flex items-center gap-3">
-            <Medal className="w-5 h-5 text-accent" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm font-semibold cursor-pointer">Veteran Discount</Label>
-                <Badge variant="outline" className="text-[10px] border-accent text-accent">
-                  Applied at Checkout
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Discount applied at checkout with verification</p>
-            </div>
-            <Checkbox
-              checked={data.isVeteran}
-              onCheckedChange={(c) => update({ isVeteran: c === true })}
-            />
-          </div>
-        </div>
+
 
         {/* Note about care plan inclusion */}
         <p className="text-xs text-muted-foreground text-center mt-4 italic">

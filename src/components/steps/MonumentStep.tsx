@@ -1,8 +1,8 @@
-import { IntakeFormData, MonumentType, MaterialType, MONUMENT_PRICES } from "@/lib/pricing";
+import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType, MONUMENT_PRICES } from "@/lib/pricing";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Square, RectangleHorizontal, Columns2 } from "lucide-react";
+import { Square, RectangleHorizontal, Columns2, Medal } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
@@ -26,63 +26,165 @@ const MATERIALS: { value: MaterialType; label: string }[] = [
   { value: 'mixed', label: 'Mixed' },
 ];
 
+const VA_MONUMENT_TYPES: { value: VeteranMonumentType; label: string; description: string }[] = [
+  { value: 'va_upright', label: 'Upright', description: 'Standard VA upright headstone' },
+  { value: 'va_flat', label: 'Flat', description: 'Ground-level flat marker' },
+  { value: 'va_niche', label: 'Niche', description: 'Columbarium niche cover' },
+];
+
+const VA_MATERIALS: { value: VeteranMaterialType; label: string }[] = [
+  { value: 'marble', label: 'Marble' },
+  { value: 'granite', label: 'Granite' },
+  { value: 'bronze', label: 'Bronze' },
+];
+
 const MonumentStep = ({ data, update }: Props) => {
+  const handleVeteranToggle = (isVet: boolean) => {
+    update({
+      isVeteran: isVet,
+      // Reset type/material selections when toggling
+      veteranMonumentType: '',
+      veteranMaterial: '',
+      monumentType: '',
+      material: '',
+    });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
         <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 2</span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Monument Details</h2>
-        <p className="text-muted-foreground">Select your monument type and material</p>
+        <p className="text-muted-foreground">Tell us about the monument</p>
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
-        {/* Monument Type Grid */}
+        {/* Veteran Question */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Monument Type</Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {(Object.entries(MONUMENT_PRICES) as [MonumentType, typeof MONUMENT_PRICES[MonumentType]][]).map(
-              ([key, val]) => {
-                const { icon: Icon, style } = MONUMENT_ICONS[key];
-                const selected = data.monumentType === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => update({ monumentType: key })}
-                    className={`p-4 rounded-lg border text-left transition-all ${
-                      selected
-                        ? "border-primary bg-primary/10 shadow-patina"
-                        : "border-border bg-secondary/50 hover:border-muted-foreground/40"
-                    }`}
-                  >
-                    <Icon className={`w-6 h-6 mb-2 ${style} ${selected ? "text-primary" : "text-muted-foreground"}`} />
-                    <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{val.label}</p>
-                    <p className="text-xs text-muted-foreground">{val.description}</p>
-                  </button>
-                );
-              }
-            )}
-          </div>
-        </div>
-
-        {/* Material */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Material</Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {MATERIALS.map((m) => (
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <Medal className="w-4 h-4 text-accent" />
+            Does this monument belong to a veteran?
+          </Label>
+          <div className="grid grid-cols-2 gap-3 max-w-xs">
+            {[true, false].map((val) => (
               <button
-                key={m.value}
-                onClick={() => update({ material: m.value })}
+                key={String(val)}
+                onClick={() => handleVeteranToggle(val)}
                 className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
-                  data.material === m.value
+                  data.isVeteran === val
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-secondary/50 text-foreground hover:border-muted-foreground/40"
                 }`}
               >
-                {m.label}
+                {val ? 'Yes' : 'No'}
               </button>
             ))}
           </div>
         </div>
+
+        {/* Veteran flow */}
+        {data.isVeteran && (
+          <>
+            {/* VA Monument Type */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Monument Type</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {VA_MONUMENT_TYPES.map((t) => {
+                  const selected = data.veteranMonumentType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      onClick={() => update({ veteranMonumentType: t.value })}
+                      className={`p-4 rounded-lg border text-left transition-all ${
+                        selected
+                          ? "border-primary bg-primary/10 shadow-patina"
+                          : "border-border bg-secondary/50 hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{t.label}</p>
+                      <p className="text-xs text-muted-foreground">{t.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* VA Material */}
+            {data.veteranMonumentType && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Material</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {VA_MATERIALS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => update({ veteranMaterial: m.value })}
+                      className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
+                        data.veteranMaterial === m.value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-secondary/50 text-foreground hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Non-veteran flow */}
+        {!data.isVeteran && (
+          <>
+            {/* Monument Type Grid */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Monument Type</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {(Object.entries(MONUMENT_PRICES) as [MonumentType, typeof MONUMENT_PRICES[MonumentType]][]).map(
+                  ([key, val]) => {
+                    const { icon: Icon, style } = MONUMENT_ICONS[key];
+                    const selected = data.monumentType === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => update({ monumentType: key })}
+                        className={`p-4 rounded-lg border text-left transition-all ${
+                          selected
+                            ? "border-primary bg-primary/10 shadow-patina"
+                            : "border-border bg-secondary/50 hover:border-muted-foreground/40"
+                        }`}
+                      >
+                        <Icon className={`w-6 h-6 mb-2 ${style} ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                        <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{val.label}</p>
+                        <p className="text-xs text-muted-foreground">{val.description}</p>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+
+            {/* Material */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Material</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {MATERIALS.map((m) => (
+                  <button
+                    key={m.value}
+                    onClick={() => update({ material: m.value })}
+                    className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
+                      data.material === m.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-secondary/50 text-foreground hover:border-muted-foreground/40"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Height */}
         <div className="space-y-2">
