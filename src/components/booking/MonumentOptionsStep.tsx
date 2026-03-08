@@ -119,40 +119,62 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
   };
 
   const renderAnnualPlan = () => (
-    <div className="space-y-4">
-      {CARE_PLANS_BOOKING.map((plan) => {
-        const selected = data.carePlan === plan.id;
-        return (
-          <button
-            key={plan.id}
-            onClick={() => update({ carePlan: selected ? '' : plan.id })}
-            className={`w-full p-5 rounded-lg border text-left transition-all relative ${
-              selected
-                ? "border-[#C9A84C] bg-[#C9A84C]/10"
-                : "border-border bg-secondary/30 hover:border-muted-foreground/40"
-            }`}
-          >
-            {plan.id === 'sentinel' && (
-              <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider bg-[#8B6914] text-white px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Star className="w-2.5 h-2.5" /> Popular
-              </span>
-            )}
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="font-display font-bold text-lg">{plan.label}</p>
-                <p className="text-xl font-bold text-[#C9A84C] mt-1">${plan.price}{plan.period}</p>
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {CARE_PLANS_BOOKING.map((plan) => {
+          const selected = data.carePlan === plan.id;
+          const isBestValue = plan.id === 'sentinel';
+          return (
+            <div
+              key={plan.id}
+              className={`relative flex flex-col rounded-xl border bg-card text-card-foreground transition-all ${
+                selected
+                  ? "border-[#C9A84C] shadow-lg ring-1 ring-[#C9A84C]/30"
+                  : "border-border hover:border-muted-foreground/40"
+              }`}
+            >
+              {isBestValue && (
+                <span className="absolute -top-3 right-4 text-xs font-bold tracking-wide bg-[#8B6914] text-white px-3 py-1 rounded-md">
+                  Best Value
+                </span>
+              )}
+
+              <div className="p-6 flex-1 flex flex-col">
+                <h3 className="font-display text-xl font-bold">{plan.label}</h3>
+                <p className="mt-2">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  <span className="text-sm text-muted-foreground">{plan.period}</span>
+                </p>
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+                  {plan.features[0]}. Includes cleaning and seasonal photos.
+                </p>
+
+                <ul className="mt-5 space-y-2.5 flex-1">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm">
+                      <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => update({ carePlan: selected ? '' : plan.id })}
+                  className={`w-full mt-6 py-3 rounded-lg text-sm font-semibold transition-all ${
+                    selected
+                      ? "bg-[#8B6914] text-white hover:bg-[#C9A84C]"
+                      : isBestValue
+                        ? "bg-foreground text-background hover:bg-foreground/90"
+                        : "border border-border text-foreground hover:bg-secondary/50"
+                  }`}
+                >
+                  {selected ? "✓ Selected" : "Choose Plan"}
+                </button>
               </div>
             </div>
-            <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-              {plan.features.map((f, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-[#C9A84C] mt-0.5 shrink-0" /> {f}
-                </li>
-              ))}
-            </ul>
-          </button>
-        );
-      })}
+          );
+        })}
+      </div>
       <p className="text-xs text-muted-foreground p-3 rounded-lg bg-secondary/30 border border-border">
         All plan prices are based on a single upright headstone. Multi-stone or monument-with-base plans are quoted individually — pricing typically 20–30% above single-stone rate.
       </p>
@@ -201,7 +223,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
         <p className="text-muted-foreground">Select the option that fits your needs</p>
       </div>
 
-      <div className="max-w-lg mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6">
         {data.serviceType === 'one_time' && renderOneTimeCleaning()}
         {data.serviceType === 'annual_plan' && renderAnnualPlan()}
         {data.serviceType === 'flower_placement' && renderFlowerPlacement()}
