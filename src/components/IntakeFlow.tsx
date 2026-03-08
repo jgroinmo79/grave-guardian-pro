@@ -25,7 +25,9 @@ const IntakeFlow = () => {
 
   const goToStep = (nextStep: number) => {
     setStep(nextStep);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   const canProceed = (): boolean => {
