@@ -2,7 +2,6 @@ import { IntakeFormData, ADD_ONS } from "@/lib/pricing";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Medal } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
