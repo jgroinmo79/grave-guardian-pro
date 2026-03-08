@@ -33,7 +33,9 @@ const IntakeFlow = () => {
   const canProceed = (): boolean => {
     switch (step) {
       case 0: return data.cemeteryName.trim().length > 0;
-      case 1: return data.monumentType !== '' && data.material !== '';
+      case 1: return data.isVeteran 
+        ? (data.veteranMonumentType !== '' && data.veteranMaterial !== '')
+        : (data.monumentType !== '' && data.material !== '');
       case 2: return true;
       case 3: return true;
       case 4: return data.selectedOffer !== '';
