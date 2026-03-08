@@ -2,6 +2,10 @@ export type MonumentType =
   | 'single_marker' | 'double_marker' | 'single_slant' 
   | 'single_upright' | 'double_slant' | 'double_upright' | 'grave_ledger';
 
+export type VeteranMonumentType = 'va_upright' | 'va_flat' | 'va_niche';
+
+export type VeteranMaterialType = 'granite' | 'marble' | 'bronze';
+
 export type MaterialType = 'granite' | 'marble' | 'bronze' | 'mixed';
 
 export type CarePlan = 'guardian' | 'keeper' | 'sentinel' | 'legacy';
@@ -164,6 +168,9 @@ export interface IntakeFormData {
   lotNumber: string;
   estimatedMiles: number;
   // Step 2
+  isVeteran: boolean;
+  veteranMonumentType: VeteranMonumentType | '';
+  veteranMaterial: VeteranMaterialType | '';
   monumentType: MonumentType | '';
   material: MaterialType | '';
   approximateHeight: string;
@@ -189,7 +196,6 @@ export interface IntakeFormData {
   selectedBundle: string;
   // Step 6
   addOns: string[];
-  isVeteran: boolean;
   // Step 7
   consentBiological: boolean;
   consentAuthorize: boolean;
@@ -201,6 +207,9 @@ export const initialFormData: IntakeFormData = {
   section: '',
   lotNumber: '',
   estimatedMiles: 0,
+  isVeteran: false,
+  veteranMonumentType: '',
+  veteranMaterial: '',
   monumentType: '',
   material: '',
   approximateHeight: '',
@@ -221,7 +230,6 @@ export const initialFormData: IntakeFormData = {
   selectedPlan: '',
   selectedBundle: '',
   addOns: [],
-  isVeteran: false,
   consentBiological: false,
   consentAuthorize: false,
   consentPhotos: false,
