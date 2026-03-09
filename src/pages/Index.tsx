@@ -75,7 +75,7 @@ const Index = () => {
                 className="h-14 px-10 text-base"
                 onClick={() => setShowIntake(true)}
               >
-                Get Your Free Quote <ChevronRight className="w-5 h-5 ml-1" />
+                Book Your Service <ChevronRight className="w-5 h-5 ml-1" />
               </Button>
               <Button variant="outline" size="lg" className="h-14 px-8 text-base">
                 View Our Work

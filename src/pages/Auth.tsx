@@ -106,7 +106,7 @@ const Auth = () => {
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {mode === "login" && "Sign in to manage your orders"}
-              {mode === "signup" && "Get started with a free quote"}
+              {mode === "signup" && "Create an account to book services"}
               {mode === "forgot" && "We'll send you a reset link"}
             </p>
           </div>
