@@ -1,7 +1,6 @@
-import { BookingFormData, MONUMENT_OPTIONS, STANDARD_PRICES, PREMIUM_PRICES, STANDARD_INCLUDES, PREMIUM_INCLUDES, CARE_PLANS_BOOKING, FLOWER_OPTIONS, TRAVEL_ZONES_BOOKING, BookingMonumentType } from "@/lib/booking-data";
-import { Check, ChevronDown, ChevronUp, Shield, Flower2, Star } from "lucide-react";
+import { BookingFormData, MONUMENT_OPTIONS, STANDARD_PRICES, PREMIUM_PRICES, STANDARD_INCLUDES, PREMIUM_INCLUDES, CARE_PLANS_BOOKING, FLOWER_OPTIONS, BookingMonumentType } from "@/lib/booking-data";
+import { Check, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
 
 interface Props {
   data: BookingFormData;
@@ -9,8 +8,6 @@ interface Props {
 }
 
 const MonumentOptionsStep = ({ data, update }: Props) => {
-  const [travelOpen, setTravelOpen] = useState(false);
-
   const renderOneTimeCleaning = () => {
     const mt = data.monumentType as BookingMonumentType;
     const standardPrice = mt ? STANDARD_PRICES[mt] : null;
@@ -227,35 +224,6 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
         {data.serviceType === 'one_time' && renderOneTimeCleaning()}
         {data.serviceType === 'annual_plan' && renderAnnualPlan()}
         {data.serviceType === 'flower_placement' && renderFlowerPlacement()}
-
-        {/* Travel Fee collapsible */}
-        <div className="border border-border rounded-lg overflow-hidden">
-          <button
-            onClick={() => setTravelOpen(!travelOpen)}
-            className="w-full flex items-center justify-between p-4 text-sm font-semibold hover:bg-secondary/30 transition-colors"
-          >
-            Travel Fee
-            {travelOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-          {travelOpen && (
-            <div className="px-4 pb-4 space-y-2">
-              <table className="w-full text-sm">
-                <tbody>
-                  {TRAVEL_ZONES_BOOKING.map((z) => (
-                    <tr key={z.label} className="border-b border-border/50 last:border-0">
-                      <td className="py-1.5 font-medium text-muted-foreground">{z.label}</td>
-                      <td className="py-1.5 text-muted-foreground">{z.range}</td>
-                      <td className="py-1.5 text-right font-semibold">{z.fee}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="text-xs text-muted-foreground mt-2">
-                Zone is calculated automatically from the cemetery address entered at booking.
-              </p>
-            </div>
-          )}
-        </div>
 
         {/* Veteran checkbox */}
         <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-border bg-secondary/20">

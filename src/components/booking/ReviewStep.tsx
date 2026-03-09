@@ -87,7 +87,7 @@ const ReviewStep = ({ data }: Props) => {
   const estimatedTotal = subtotal - discount;
 
   const handleSubmit = () => {
-    toast.success("Booking request submitted! Joshua will reach out shortly.");
+    toast.success("Booking request submitted! Josh will reach out shortly.");
   };
 
   return (
