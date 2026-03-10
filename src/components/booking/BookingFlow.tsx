@@ -3,19 +3,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import BookingProgress from "./BookingProgress";
-import ServiceTypeStep from "./ServiceTypeStep";
-import MonumentOptionsStep from "./MonumentOptionsStep";
-import ScheduleStep from "./ScheduleStep";
-import ReviewStep from "./ReviewStep";
-import { BookingFormData, initialBookingData } from "@/lib/booking-data";
+import CemeteryStep from "@/components/steps/CemeteryStep";
+import MonumentStep from "@/components/steps/MonumentStep";
+import ConditionStep from "@/components/steps/ConditionStep";
+import IntentStep from "@/components/steps/IntentStep";
+import ServiceStep from "@/components/steps/ServiceStep";
+import AddOnsStep from "@/components/steps/AddOnsStep";
+import ConsentStep from "@/components/steps/ConsentStep";
+import CheckoutStep from "@/components/steps/CheckoutStep";
+import { IntakeFormData, initialFormData } from "@/lib/pricing";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 8;
 
 const BookingFlow = () => {
   const [step, setStep] = useState(0);
-  const [data, setData] = useState<BookingFormData>(initialBookingData);
+  const [data, setData] = useState<IntakeFormData>(initialFormData);
 
-  const update = (partial: Partial<BookingFormData>) => {
+  const update = (partial: Partial<IntakeFormData>) => {
     setData((prev) => ({ ...prev, ...partial }));
   };
 
@@ -28,16 +32,23 @@ const BookingFlow = () => {
 
   const canProceed = (): boolean => {
     switch (step) {
-      case 0:
-        return data.serviceType !== '';
-      case 1: {
-        if (data.serviceType === 'one_time') return data.monumentType !== '' && data.cleaningTier !== '';
-        if (data.serviceType === 'annual_plan') return data.carePlan !== '';
-        if (data.serviceType === 'flower_placement') return data.flowerOption !== '';
-        return false;
-      }
-      case 2:
-        return data.cemeteryAddress.trim().length > 0;
+      case 0: // Cemetery
+        return data.cemeteryName.trim().length > 0;
+      case 1: // Monument
+        if (data.isVeteran) return data.veteranMonumentType !== '' && data.veteranMaterial !== '';
+        return data.monumentType !== '' && data.material !== '';
+      case 2: // Condition
+        return true; // Optional checkboxes
+      case 3: // Intent
+        return true; // Optional preferences
+      case 4: // Service Selection
+        return data.selectedOffer !== '';
+      case 5: // Add-Ons
+        return true; // Optional
+      case 6: // Consent
+        return data.consentBiological && data.consentAuthorize;
+      case 7: // Checkout
+        return true;
       default:
         return true;
     }
@@ -45,10 +56,14 @@ const BookingFlow = () => {
 
   const renderStep = () => {
     switch (step) {
-      case 0: return <ServiceTypeStep data={data} update={update} />;
-      case 1: return <MonumentOptionsStep data={data} update={update} />;
-      case 2: return <ScheduleStep data={data} update={update} />;
-      case 3: return <ReviewStep data={data} />;
+      case 0: return <CemeteryStep data={data} update={update} />;
+      case 1: return <MonumentStep data={data} update={update} />;
+      case 2: return <ConditionStep data={data} update={update} />;
+      case 3: return <IntentStep data={data} update={update} />;
+      case 4: return <ServiceStep data={data} update={update} />;
+      case 5: return <AddOnsStep data={data} update={update} />;
+      case 6: return <ConsentStep data={data} update={update} />;
+      case 7: return <CheckoutStep data={data} />;
       default: return null;
     }
   };
