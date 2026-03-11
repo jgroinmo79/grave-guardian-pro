@@ -171,12 +171,13 @@ const Portal = () => {
         </motion.div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-5 gap-2">
           {[
             { icon: MapPin, label: "Monuments", value: monuments?.length ?? 0 },
             { icon: Clock, label: "Orders", value: orders?.length ?? 0 },
-            { icon: Shield, label: "Active Plans", value: activePlans },
+            { icon: Shield, label: "Plans", value: activePlans },
             { icon: FileText, label: "Invoices", value: invoices?.length ?? 0 },
+            { icon: MessageSquare, label: "Requests", value: "—" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl border border-border bg-card p-3 text-center space-y-1">
               <stat.icon className="w-4 h-4 text-primary mx-auto" />
