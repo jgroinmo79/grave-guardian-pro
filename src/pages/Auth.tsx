@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Mail } from "lucide-react";
 
-type AuthMode = "login" | "signup" | "forgot";
+type AuthMode = "login" | "signup" | "forgot" | "magic-link";
 
 const Auth = () => {
   const { user, loading } = useAuth();
@@ -86,6 +86,26 @@ const Auth = () => {
     }
   };
 
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({
+        title: "Magic link sent!",
+        description: "Check your email for a sign-in link. No password needed.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-dark flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
@@ -103,11 +123,13 @@ const Auth = () => {
               {mode === "login" && "Welcome Back"}
               {mode === "signup" && "Create Account"}
               {mode === "forgot" && "Reset Password"}
+              {mode === "magic-link" && "Magic Link Sign In"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               {mode === "login" && "Sign in to manage your orders"}
               {mode === "signup" && "Create an account to book services"}
               {mode === "forgot" && "We'll send you a reset link"}
+              {mode === "magic-link" && "We'll email you a passwordless sign-in link"}
             </p>
           </div>
 
@@ -141,6 +163,17 @@ const Auth = () => {
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Sign In
               </Button>
+
+              {/* Magic link option */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2 text-sm"
+                onClick={() => setMode("magic-link")}
+              >
+                <Mail className="w-4 h-4" /> Sign in with email link
+              </Button>
+
               <div className="flex justify-between text-sm">
                 <button type="button" onClick={() => setMode("forgot")} className="text-primary hover:underline">
                   Forgot password?
@@ -220,6 +253,34 @@ const Auth = () => {
               <Button type="submit" variant="hero" className="w-full" disabled={submitting}>
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Send Reset Link
+              </Button>
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="flex items-center gap-1 text-sm text-primary hover:underline mx-auto"
+              >
+                <ArrowLeft className="w-3 h-3" /> Back to sign in
+              </button>
+            </form>
+          )}
+
+          {mode === "magic-link" && (
+            <form onSubmit={handleMagicLink} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="magic-email">Email</Label>
+                <Input
+                  id="magic-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="bg-secondary border-border"
+                />
+              </div>
+              <Button type="submit" variant="hero" className="w-full gap-2" disabled={submitting}>
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4" />}
+                Send Magic Link
               </Button>
               <button
                 type="button"
