@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, MapPin, Camera, Clock, ChevronRight, Shield, ArrowLeft, Download, FileText } from "lucide-react";
+import { LogOut, User, MapPin, Clock, ChevronRight, Shield, ArrowLeft, FileText, MessageSquare, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
