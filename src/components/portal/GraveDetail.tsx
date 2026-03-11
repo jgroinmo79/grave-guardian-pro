@@ -53,6 +53,7 @@ const GraveDetail = ({ monumentId }: GraveDetailProps) => {
         .select("*")
         .eq("monument_id", monumentId)
         .eq("user_id", user!.id)
+        .eq("client_visible", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
