@@ -86,6 +86,16 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
     },
   });
 
+  const toggleVisibility = useMutation({
+    mutationFn: async ({ photoId, visible }: { photoId: string; visible: boolean }) => {
+      const { error } = await supabase.from("photo_records").update({ client_visible: visible } as any).eq("id", photoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-monument-photos", monumentId] });
+    },
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-end gap-3">
