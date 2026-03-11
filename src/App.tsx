@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetail from "./pages/admin/OrderDetail";
 import AdminSchedule from "./pages/admin/Schedule";
+import AdminInvoices from "./pages/admin/Invoices";
 import NotFound from "./pages/NotFound";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
