@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MONUMENT_PRICES, ADD_ONS, CARE_PLANS, SEASONAL_BUNDLES } from "@/lib/pricing";
+import PhotoUpload from "@/components/admin/PhotoUpload";
+import ServiceLogForm from "@/components/admin/ServiceLogForm";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
