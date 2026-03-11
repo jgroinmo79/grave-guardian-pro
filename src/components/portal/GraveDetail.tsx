@@ -6,6 +6,8 @@ import { MONUMENT_PRICES } from "@/lib/pricing";
 import type { MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface GraveDetailProps {
   monumentId: string;
