@@ -1,12 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ClipboardList, Users, DollarSign, CalendarDays } from "lucide-react";
+import { ClipboardList, Users, DollarSign, CalendarDays, TrendingUp, Shield, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const now = new Date();
+  const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
+  const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
+
   const { data: orders } = useQuery({
     queryKey: ["admin-orders-count"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("orders").select("id, status, total_price");
+      const { data, error } = await supabase.from("orders").select("id, status, total_price, created_at, scheduled_date");
       if (error) throw error;
       return data;
     },
@@ -21,15 +28,53 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: activeClients } = useQuery({
+    queryKey: ["admin-active-clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("user_id");
+      if (error) throw error;
+      return data?.length ?? 0;
+    },
+  });
+
+  const { data: activePlans } = useQuery({
+    queryKey: ["admin-active-plans"],
+    queryFn: async () => {
+      const { count, error } = await supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: invoiceStats } = useQuery({
+    queryKey: ["admin-invoice-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invoices").select("id, status, total");
+      if (error) throw error;
+      const outstanding = data?.filter((i) => i.status === "sent" || i.status === "overdue").reduce((s, i) => s + Number(i.total), 0) ?? 0;
+      const paid = data?.filter((i) => i.status === "paid").reduce((s, i) => s + Number(i.total), 0) ?? 0;
+      return { outstanding, paid, total: data?.length ?? 0 };
+    },
+  });
+
   const totalOrders = orders?.length ?? 0;
   const pendingOrders = orders?.filter((o) => o.status === "pending").length ?? 0;
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) ?? 0;
+  const upcomingJobs = orders?.filter((o) => o.scheduled_date && o.scheduled_date >= format(now, "yyyy-MM-dd") && o.status !== "completed" && o.status !== "cancelled").length ?? 0;
+  const servicedThisMonth = orders?.filter((o) => o.status === "completed" && o.created_at >= monthStart && o.created_at <= monthEnd + "T23:59:59").length ?? 0;
 
   const stats = [
     { label: "Total Orders", value: totalOrders, icon: ClipboardList, color: "text-primary" },
     { label: "Pending", value: pendingOrders, icon: CalendarDays, color: "text-accent" },
-    { label: "Monuments", value: monuments ?? 0, icon: Users, color: "text-primary" },
+    { label: "Active Clients", value: activeClients ?? 0, icon: Users, color: "text-primary" },
     { label: "Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: "text-accent" },
+  ];
+
+  const stats2 = [
+    { label: "Active Plans", value: activePlans ?? 0, icon: Shield, color: "text-primary" },
+    { label: "Upcoming Jobs", value: upcomingJobs, icon: CalendarDays, color: "text-accent" },
+    { label: "Serviced This Month", value: servicedThisMonth, icon: TrendingUp, color: "text-primary" },
+    { label: "Outstanding Invoices", value: `$${(invoiceStats?.outstanding ?? 0).toLocaleString()}`, icon: FileText, color: "text-accent" },
   ];
 
   return (
@@ -51,6 +96,18 @@ const AdminDashboard = () => {
         ))}
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats2.map((s) => (
+          <div key={s.label} className="rounded-xl border border-border bg-card p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
+              <s.icon className={`w-4 h-4 ${s.color}`} />
+            </div>
+            <p className="text-2xl font-display font-bold">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="text-lg font-display font-semibold mb-4">Recent Orders</h2>
         <RecentOrdersTable />
@@ -60,6 +117,7 @@ const AdminDashboard = () => {
 };
 
 function RecentOrdersTable() {
+  const navigate = useNavigate();
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-recent-orders"],
     queryFn: async () => {
@@ -99,7 +157,11 @@ function RecentOrdersTable() {
         </thead>
         <tbody>
           {orders.map((o) => (
-            <tr key={o.id} className="border-b border-border/50 last:border-0">
+            <tr
+              key={o.id}
+              className="border-b border-border/50 last:border-0 hover:bg-muted/30 cursor-pointer transition-colors"
+              onClick={() => navigate(`/admin/orders/${o.id}`)}
+            >
               <td className="py-3 font-mono text-xs">{o.id.slice(0, 8)}…</td>
               <td className="py-3">Offer {o.offer}</td>
               <td className="py-3">
