@@ -292,6 +292,7 @@ export type Database = {
       }
       photo_records: {
         Row: {
+          client_visible: boolean
           created_at: string
           description: string | null
           gps_lat: number | null
@@ -304,6 +305,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_visible?: boolean
           created_at?: string
           description?: string | null
           gps_lat?: number | null
@@ -316,6 +318,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_visible?: boolean
           created_at?: string
           description?: string | null
           gps_lat?: number | null
@@ -396,6 +399,7 @@ export type Database = {
           public_notes: string | null
           service_date: string
           services_performed: string[]
+          share_token: string | null
           time_spent_minutes: number | null
           updated_at: string
           user_id: string
@@ -409,6 +413,7 @@ export type Database = {
           public_notes?: string | null
           service_date?: string
           services_performed?: string[]
+          share_token?: string | null
           time_spent_minutes?: number | null
           updated_at?: string
           user_id: string
@@ -422,6 +427,7 @@ export type Database = {
           public_notes?: string | null
           service_date?: string
           services_performed?: string[]
+          share_token?: string | null
           time_spent_minutes?: number | null
           updated_at?: string
           user_id?: string
