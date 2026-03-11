@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Camera, Clock, FileText, Download, Shield } from "lucide-react";
+import { MapPin, Camera, Clock, FileText, Download, Shield, Share2, Copy, Check } from "lucide-react";
 import { MONUMENT_PRICES } from "@/lib/pricing";
 import type { MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
