@@ -3,6 +3,7 @@ import {
   ClipboardList,
   CalendarDays,
   FileText,
+  Users,
   LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
