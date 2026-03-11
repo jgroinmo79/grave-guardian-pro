@@ -59,6 +59,94 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          created_at: string
+          discount: number
+          due_date: string | null
+          id: string
+          invoice_number: string
+          line_items: Json
+          monument_id: string | null
+          notes: string | null
+          order_id: string | null
+          paid_at: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_payment_link: string | null
+          subscription_id: string | null
+          subtotal: number
+          total: number
+          travel_fee: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount?: number
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          line_items?: Json
+          monument_id?: string | null
+          notes?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_payment_link?: string | null
+          subscription_id?: string | null
+          subtotal?: number
+          total?: number
+          travel_fee?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount?: number
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          line_items?: Json
+          monument_id?: string | null
+          notes?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_payment_link?: string | null
+          subscription_id?: string | null
+          subtotal?: number
+          total?: number
+          travel_fee?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_monument_id_fkey"
+            columns: ["monument_id"]
+            isOneToOne: false
+            referencedRelation: "monuments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monuments: {
         Row: {
           approximate_height: string | null

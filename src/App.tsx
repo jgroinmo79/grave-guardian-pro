@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetail from "./pages/admin/OrderDetail";
 import AdminSchedule from "./pages/admin/Schedule";
+import AdminInvoices from "./pages/admin/Invoices";
 import NotFound from "./pages/NotFound";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
               <Route path="schedule" element={<AdminSchedule />} />
+              <Route path="invoices" element={<AdminInvoices />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
