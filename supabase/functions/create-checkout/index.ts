@@ -99,6 +99,7 @@ serve(async (req) => {
       consentBiological,
       consentAuthorize,
       consentPhotos,
+      photos = [],
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
@@ -186,6 +187,26 @@ serve(async (req) => {
     if (orderError) {
       console.error("[create-checkout] Order insert error:", orderError);
       throw new Error("Failed to save order data");
+    }
+
+    // 3. Save client-uploaded photos as photo_records
+    if (photos && photos.length > 0) {
+      const photoRows = photos.map((url: string) => ({
+        monument_id: monumentRecord.id,
+        order_id: orderRecord.id,
+        user_id: effectiveUserId,
+        photo_url: url,
+        description: "Client upload — intake",
+        client_visible: false,
+        taken_at: new Date().toISOString(),
+      }));
+      const { error: photoError } = await supabaseAdmin
+        .from("photo_records")
+        .insert(photoRows);
+      if (photoError) {
+        console.error("[create-checkout] Photo insert error:", photoError);
+        // Non-fatal — don't block checkout
+      }
     }
 
     // --- Build Stripe line items ---

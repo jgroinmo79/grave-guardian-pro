@@ -57,6 +57,8 @@ const CheckoutStep = ({ data }: Props) => {
           shopperName: data.shopperName,
           shopperPhone: data.shopperPhone,
           shopperEmail: data.shopperEmail,
+          // Photos from condition step
+          photos: data.photos,
           // Consent
           consentBiological: data.consentBiological,
           consentAuthorize: data.consentAuthorize,
