@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MONUMENT_PRICES, ADD_ONS, CARE_PLANS, SEASONAL_BUNDLES } from "@/lib/pricing";
+import PhotoUpload from "@/components/admin/PhotoUpload";
+import ServiceLogForm from "@/components/admin/ServiceLogForm";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -438,8 +440,73 @@ const AdminOrderDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* PHOTOS */}
+      {(order.monuments as any)?.id && (
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <h2 className="font-display font-semibold text-lg">Photos</h2>
+          <PhotoUpload
+            monumentId={(order.monuments as any).id}
+            orderId={order.id}
+            userId={order.user_id}
+          />
+        </section>
+      )}
+
+      {/* SERVICE LOG */}
+      {(order.monuments as any)?.id && (
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <h2 className="font-display font-semibold text-lg">Add Service Log</h2>
+          <ServiceLogForm
+            monumentId={(order.monuments as any).id}
+            orderId={order.id}
+            userId={order.user_id}
+          />
+          <AdminServiceLogsList monumentId={(order.monuments as any).id} />
+        </section>
+      )}
     </div>
   );
 };
+
+function AdminServiceLogsList({ monumentId }: { monumentId: string }) {
+  const { data: logs } = useQuery({
+    queryKey: ["admin-service-logs", monumentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_logs")
+        .select("*")
+        .eq("monument_id", monumentId)
+        .order("service_date", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!logs?.length) return null;
+
+  return (
+    <div className="space-y-3 pt-4 border-t border-border">
+      <h3 className="text-sm font-semibold text-muted-foreground">Previous Service Logs</h3>
+      {logs.map((log) => (
+        <div key={log.id} className="rounded-lg border border-border/50 bg-secondary/30 p-3 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold">{new Date(log.service_date).toLocaleDateString()}</p>
+            {log.time_spent_minutes && <p className="text-[10px] text-muted-foreground">{log.time_spent_minutes} min</p>}
+          </div>
+          {(log.services_performed as string[])?.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {(log.services_performed as string[]).map((s: string) => (
+                <span key={s} className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">{s}</span>
+              ))}
+            </div>
+          )}
+          {log.public_notes && <p className="text-[10px] text-muted-foreground">Public: {log.public_notes}</p>}
+          {log.private_notes && <p className="text-[10px] text-accent italic">Private: {log.private_notes}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default AdminOrderDetail;
