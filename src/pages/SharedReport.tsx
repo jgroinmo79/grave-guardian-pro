@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { MapPin, Clock, Download, Wrench } from "lucide-react";
 import { MONUMENT_PRICES } from "@/lib/pricing";
 import type { MonumentType } from "@/lib/pricing";
