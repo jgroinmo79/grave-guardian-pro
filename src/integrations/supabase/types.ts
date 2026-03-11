@@ -150,6 +150,8 @@ export type Database = {
       monuments: {
         Row: {
           approximate_height: string | null
+          cemetery_lat: number | null
+          cemetery_lng: number | null
           cemetery_name: string
           condition_chipping: boolean | null
           condition_faded_inscription: boolean | null
@@ -169,6 +171,8 @@ export type Database = {
         }
         Insert: {
           approximate_height?: string | null
+          cemetery_lat?: number | null
+          cemetery_lng?: number | null
           cemetery_name: string
           condition_chipping?: boolean | null
           condition_faded_inscription?: boolean | null
@@ -188,6 +192,8 @@ export type Database = {
         }
         Update: {
           approximate_height?: string | null
+          cemetery_lat?: number | null
+          cemetery_lng?: number | null
           cemetery_name?: string
           condition_chipping?: boolean | null
           condition_faded_inscription?: boolean | null
@@ -218,12 +224,16 @@ export type Database = {
           consent_biological: boolean | null
           consent_photos: boolean | null
           created_at: string
+          deceased_name: string | null
           id: string
           is_veteran: boolean | null
           monument_id: string
           notes: string | null
           offer: Database["public"]["Enums"]["offer_type"]
           scheduled_date: string | null
+          shopper_email: string | null
+          shopper_name: string | null
+          shopper_phone: string | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_payment_intent_id: string | null
           stripe_payment_status: string | null
@@ -242,12 +252,16 @@ export type Database = {
           consent_biological?: boolean | null
           consent_photos?: boolean | null
           created_at?: string
+          deceased_name?: string | null
           id?: string
           is_veteran?: boolean | null
           monument_id: string
           notes?: string | null
           offer: Database["public"]["Enums"]["offer_type"]
           scheduled_date?: string | null
+          shopper_email?: string | null
+          shopper_name?: string | null
+          shopper_phone?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_payment_intent_id?: string | null
           stripe_payment_status?: string | null
@@ -266,12 +280,16 @@ export type Database = {
           consent_biological?: boolean | null
           consent_photos?: boolean | null
           created_at?: string
+          deceased_name?: string | null
           id?: string
           is_veteran?: boolean | null
           monument_id?: string
           notes?: string | null
           offer?: Database["public"]["Enums"]["offer_type"]
           scheduled_date?: string | null
+          shopper_email?: string | null
+          shopper_name?: string | null
+          shopper_phone?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_payment_intent_id?: string | null
           stripe_payment_status?: string | null
