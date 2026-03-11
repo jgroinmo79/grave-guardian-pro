@@ -30,6 +30,7 @@ const items = [
   { title: "Schedule", url: "/admin/schedule", icon: CalendarDays },
   { title: "Invoices", url: "/admin/invoices", icon: FileText },
   { title: "Clients", url: "/admin/clients", icon: Users },
+  { title: "Tickets", url: "/admin/tickets", icon: MessageSquare },
 ];
 
 export function AdminSidebar() {
