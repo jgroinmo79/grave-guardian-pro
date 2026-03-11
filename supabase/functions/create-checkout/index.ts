@@ -99,6 +99,7 @@ serve(async (req) => {
       consentBiological,
       consentAuthorize,
       consentPhotos,
+      photos = [],
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
