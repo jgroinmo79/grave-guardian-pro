@@ -26,6 +26,7 @@ const items = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Orders", url: "/admin/orders", icon: ClipboardList },
   { title: "Schedule", url: "/admin/schedule", icon: CalendarDays },
+  { title: "Invoices", url: "/admin/invoices", icon: FileText },
 ];
 
 export function AdminSidebar() {
