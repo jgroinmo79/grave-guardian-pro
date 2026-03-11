@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Camera, Clock, FileText, Download, Shield } from "lucide-react";
+import { MapPin, Camera, Clock, FileText, Download, Shield, Share2, Copy, Check } from "lucide-react";
 import { MONUMENT_PRICES } from "@/lib/pricing";
 import type { MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface GraveDetailProps {
   monumentId: string;
@@ -13,7 +15,8 @@ interface GraveDetailProps {
 
 const GraveDetail = ({ monumentId }: GraveDetailProps) => {
   const { user } = useAuth();
-
+  const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { data: monument } = useQuery({
     queryKey: ["monument-detail", monumentId],
     queryFn: async () => {
@@ -50,6 +53,7 @@ const GraveDetail = ({ monumentId }: GraveDetailProps) => {
         .select("*")
         .eq("monument_id", monumentId)
         .eq("user_id", user!.id)
+        .eq("client_visible", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -205,12 +209,31 @@ const GraveDetail = ({ monumentId }: GraveDetailProps) => {
                   {/* Timeline dot */}
                   <div className="absolute -left-4 top-1 w-3 h-3 rounded-full bg-primary border-2 border-card" />
 
-                  <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                    <div className="rounded-xl border border-border bg-card p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold">{new Date(log.service_date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</p>
-                      {log.time_spent_minutes && (
-                        <p className="text-xs text-muted-foreground">{log.time_spent_minutes} min</p>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {log.time_spent_minutes && (
+                          <p className="text-xs text-muted-foreground">{log.time_spent_minutes} min</p>
+                        )}
+                        {(log as any).share_token && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-[10px] gap-1 px-2"
+                            onClick={() => {
+                              const url = `${window.location.origin}/report/${(log as any).share_token}`;
+                              navigator.clipboard.writeText(url);
+                              setCopiedId(log.id);
+                              toast({ title: "Share link copied — send it to family members" });
+                              setTimeout(() => setCopiedId(null), 2000);
+                            }}
+                          >
+                            {copiedId === log.id ? <Check className="w-3 h-3" /> : <Share2 className="w-3 h-3" />}
+                            {copiedId === log.id ? "Copied" : "Share"}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     {(log.services_performed as string[])?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">

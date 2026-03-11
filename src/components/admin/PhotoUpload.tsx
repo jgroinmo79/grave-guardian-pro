@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Loader2, Trash2 } from "lucide-react";
+import { Upload, Loader2, Trash2, Eye, EyeOff } from "lucide-react";
 
 interface PhotoUploadProps {
   monumentId: string;
@@ -86,6 +86,16 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
     },
   });
 
+  const toggleVisibility = useMutation({
+    mutationFn: async ({ photoId, visible }: { photoId: string; visible: boolean }) => {
+      const { error } = await supabase.from("photo_records").update({ client_visible: visible } as any).eq("id", photoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-monument-photos", monumentId] });
+    },
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-end gap-3">
@@ -123,15 +133,31 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
                 {photo.description && (
                   <p className="text-[10px] text-center text-foreground">{photo.description}</p>
                 )}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="h-6 text-[10px] gap-1"
-                  onClick={() => deletePhoto.mutate(photo.id)}
-                >
-                  <Trash2 className="w-3 h-3" /> Delete
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] gap-1"
+                    onClick={() => toggleVisibility.mutate({ photoId: photo.id, visible: !(photo as any).client_visible })}
+                  >
+                    {(photo as any).client_visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {(photo as any).client_visible ? "Visible" : "Hidden"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-6 text-[10px] gap-1"
+                    onClick={() => deletePhoto.mutate(photo.id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
+              {(photo as any).client_visible && (
+                <div className="absolute top-1 left-1 bg-primary/90 text-primary-foreground text-[8px] px-1.5 py-0.5 rounded-full font-semibold">
+                  <Eye className="w-2.5 h-2.5 inline mr-0.5" />Client
+                </div>
+              )}
             </div>
           ))}
         </div>
