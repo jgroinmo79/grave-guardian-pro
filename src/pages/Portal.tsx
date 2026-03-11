@@ -2,11 +2,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, MapPin, Camera, Clock, ChevronRight, Shield, ArrowLeft, Download, FileText } from "lucide-react";
+import { LogOut, User, MapPin, Clock, ChevronRight, Shield, ArrowLeft, FileText, MessageSquare, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import GraveDetail from "@/components/portal/GraveDetail";
+import PlanDetail from "@/components/portal/PlanDetail";
+import SupportForm from "@/components/portal/SupportForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Portal = () => {
@@ -169,12 +171,13 @@ const Portal = () => {
         </motion.div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-5 gap-2">
           {[
             { icon: MapPin, label: "Monuments", value: monuments?.length ?? 0 },
             { icon: Clock, label: "Orders", value: orders?.length ?? 0 },
-            { icon: Shield, label: "Active Plans", value: activePlans },
+            { icon: Shield, label: "Plans", value: activePlans },
             { icon: FileText, label: "Invoices", value: invoices?.length ?? 0 },
+            { icon: MessageSquare, label: "Requests", value: "—" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl border border-border bg-card p-3 text-center space-y-1">
               <stat.icon className="w-4 h-4 text-primary mx-auto" />
@@ -186,11 +189,12 @@ const Portal = () => {
 
         {/* Tabbed content */}
         <Tabs defaultValue="graves" className="space-y-4">
-          <TabsList className="bg-secondary w-full grid grid-cols-4">
-            <TabsTrigger value="graves" className="text-xs">My Graves</TabsTrigger>
-            <TabsTrigger value="history" className="text-xs">History</TabsTrigger>
+          <TabsList className="bg-secondary w-full grid grid-cols-5">
+            <TabsTrigger value="graves" className="text-xs">Graves</TabsTrigger>
             <TabsTrigger value="plans" className="text-xs">Plans</TabsTrigger>
             <TabsTrigger value="invoices" className="text-xs">Invoices</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs">History</TabsTrigger>
+            <TabsTrigger value="support" className="text-xs">Support</TabsTrigger>
           </TabsList>
 
           {/* My Graves */}
@@ -240,6 +244,74 @@ const Portal = () => {
             )}
           </TabsContent>
 
+          {/* Plans */}
+          <TabsContent value="plans" className="space-y-4">
+            {!subscriptions?.length ? (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <Shield className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground text-sm">No care plans yet.</p>
+                <p className="text-xs text-muted-foreground mt-1">Care plans are set up after your first service.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {subscriptions.map((s: any) => (
+                  <PlanDetail key={s.id} subscription={s} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Invoices */}
+          <TabsContent value="invoices" className="space-y-4">
+            {!invoices?.length ? (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground text-sm">No invoices yet.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {invoices.map((inv: any) => (
+                  <div key={inv.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-semibold text-sm">#{inv.invoice_number}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(inv.created_at).toLocaleDateString()}
+                          {inv.due_date && ` · Due ${new Date(inv.due_date).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${invoiceStatusColors[inv.status] ?? ""}`}>
+                          {inv.status}
+                        </span>
+                        <p className="font-display font-bold">${Number(inv.total).toFixed(2)}</p>
+                      </div>
+                    </div>
+                    {/* Payment action */}
+                    {inv.status !== "paid" && inv.status !== "draft" && (
+                      <div className="pt-1">
+                        {inv.stripe_payment_link ? (
+                          <a href={inv.stripe_payment_link} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="hero" className="text-xs h-7 gap-1">
+                              <CreditCard className="w-3 h-3" /> Pay Now
+                            </Button>
+                          </a>
+                        ) : (
+                          <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
+                            💳 To pay, please contact us or mail a check to the address on your invoice.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {inv.paid_at && (
+                      <p className="text-[10px] text-primary">Paid {new Date(inv.paid_at).toLocaleDateString()}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           {/* Order History */}
           <TabsContent value="history" className="space-y-4">
             {!orders?.length ? (
@@ -267,74 +339,9 @@ const Portal = () => {
             )}
           </TabsContent>
 
-          {/* Plans */}
-          <TabsContent value="plans" className="space-y-4">
-            {!subscriptions?.length ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center">
-                <Shield className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">No care plans yet.</p>
-                <p className="text-xs text-muted-foreground mt-1">Care plans are set up after your first service.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {subscriptions.map((s: any) => (
-                  <div key={s.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-sm capitalize">{s.plan} Plan</p>
-                        <p className="text-xs text-muted-foreground">{s.monuments?.cemetery_name}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${planStatusColors[s.status] ?? ""}`}>
-                        {s.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>${Number(s.price).toFixed(0)}/{s.period}</span>
-                      <span>Since {new Date(s.start_date).toLocaleDateString()}</span>
-                      {s.end_date && <span>Until {new Date(s.end_date).toLocaleDateString()}</span>}
-                    </div>
-                    {s.important_dates && (
-                      <p className="text-xs text-muted-foreground">Important dates: {s.important_dates}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Invoices */}
-          <TabsContent value="invoices" className="space-y-4">
-            {!invoices?.length ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center">
-                <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">No invoices yet.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {invoices.map((inv: any) => (
-                  <div key={inv.id} className="rounded-xl border border-border bg-card p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-sm">#{inv.invoice_number}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(inv.created_at).toLocaleDateString()}
-                        {inv.due_date && ` · Due ${new Date(inv.due_date).toLocaleDateString()}`}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${invoiceStatusColors[inv.status] ?? ""}`}>
-                        {inv.status}
-                      </span>
-                      <p className="font-display font-bold">${Number(inv.total).toFixed(2)}</p>
-                      {inv.stripe_payment_link && inv.status !== "paid" && (
-                        <a href={inv.stripe_payment_link} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" variant="hero" className="text-xs h-7">Pay Now</Button>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Support */}
+          <TabsContent value="support">
+            <SupportForm />
           </TabsContent>
         </Tabs>
 
