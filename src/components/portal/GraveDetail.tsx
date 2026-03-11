@@ -15,7 +15,8 @@ interface GraveDetailProps {
 
 const GraveDetail = ({ monumentId }: GraveDetailProps) => {
   const { user } = useAuth();
-
+  const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { data: monument } = useQuery({
     queryKey: ["monument-detail", monumentId],
     queryFn: async () => {
