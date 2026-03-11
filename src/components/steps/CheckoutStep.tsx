@@ -12,11 +12,11 @@ interface Props {
 }
 
 const CheckoutStep = ({ data }: Props) => {
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
   const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
-  const travelFee = getTravelFee(data.estimatedMiles).fee;
+  const travelZone = getTravelFee(data.estimatedMiles);
+  const travelFee = travelZone.fee;
   const basePrice = monument
     ? (data.selectedOffer === 'B' ? monument.offerB : monument.offerA)
     : 0;
@@ -31,11 +31,6 @@ const CheckoutStep = ({ data }: Props) => {
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
   const handleCheckout = async () => {
-    if (!email.trim()) {
-      toast.error("Please enter your email address");
-      return;
-    }
-
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("create-checkout", {
@@ -46,15 +41,22 @@ const CheckoutStep = ({ data }: Props) => {
           addOns: data.addOns,
           selectedBundle: data.selectedBundle,
           isVeteran: data.isVeteran,
-          customerEmail: email,
+          customerEmail: data.shopperEmail,
           // Monument & form data for DB persistence
           cemeteryName: data.cemeteryName,
+          cemeteryLat: data.cemeteryLat,
+          cemeteryLng: data.cemeteryLng,
           section: data.section,
           lotNumber: data.lotNumber,
           material: data.material,
           approximateHeight: data.approximateHeight,
           knownDamage: data.knownDamage,
           conditions: data.conditions,
+          // Person info
+          deceasedName: data.deceasedName,
+          shopperName: data.shopperName,
+          shopperPhone: data.shopperPhone,
+          shopperEmail: data.shopperEmail,
           // Consent
           consentBiological: data.consentBiological,
           consentAuthorize: data.consentAuthorize,
@@ -96,7 +98,7 @@ const CheckoutStep = ({ data }: Props) => {
 
           {travelFee > 0 && (
             <div className="flex justify-between text-sm">
-              <span>Travel Fee</span>
+              <span>Travel Fee ({travelZone.label})</span>
               <span className="font-semibold">${travelFee}</span>
             </div>
           )}
@@ -139,25 +141,23 @@ const CheckoutStep = ({ data }: Props) => {
           )}
         </div>
 
-        <div className="mt-6 space-y-3">
-          <div>
-            <Label htmlFor="checkout-email" className="text-sm">Email for receipt & communication</Label>
-            <Input
-              id="checkout-email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
-            />
+        {/* Shopper info summary */}
+        {(data.shopperName || data.deceasedName) && (
+          <div className="mt-4 rounded-lg bg-secondary/50 border border-border p-4 space-y-1 text-sm">
+            {data.deceasedName && <p><span className="text-muted-foreground">Memorial for:</span> {data.deceasedName}</p>}
+            {data.shopperName && <p><span className="text-muted-foreground">Ordered by:</span> {data.shopperName}</p>}
+            {data.shopperPhone && <p><span className="text-muted-foreground">Phone:</span> {data.shopperPhone}</p>}
+            {data.shopperEmail && <p><span className="text-muted-foreground">Email:</span> {data.shopperEmail}</p>}
           </div>
+        )}
 
+        <div className="mt-6 space-y-3">
           <Button
             variant="hero"
             size="lg"
             className="w-full h-12 text-base"
             onClick={handleCheckout}
-            disabled={loading || !email.trim()}
+            disabled={loading || !data.shopperEmail?.trim()}
           >
             {loading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -166,6 +166,11 @@ const CheckoutStep = ({ data }: Props) => {
             )}
             {loading ? "Redirecting to Stripe…" : "Proceed to Payment"}
           </Button>
+          {!data.shopperEmail?.trim() && (
+            <p className="text-xs text-center text-destructive">
+              Please go back and enter your email in the Contact Info step.
+            </p>
+          )}
           <p className="text-xs text-center text-muted-foreground">
             Secure payment powered by Stripe. You'll be redirected to complete checkout.
           </p>

@@ -244,12 +244,12 @@ serve(async (req) => {
 
     console.log(`[stripe-webhook] Order ${orderId} confirmed successfully`);
 
-    // Fetch full order + monument + customer profile for email
+    // Fetch full order + monument + customer profile for email & invoice
     const { data: orderData } = await supabaseAdmin
       .from("orders")
       .select(`
         id, offer, status, total_price, base_price, travel_fee,
-        add_ons_total, bundle_price, is_veteran, user_id,
+        add_ons_total, bundle_price, is_veteran, user_id, monument_id,
         monuments (cemetery_name, monument_type, material, section, lot_number)
       `)
       .eq("id", orderId)
@@ -263,6 +263,51 @@ serve(async (req) => {
         .single();
 
       const customerEmail = profile?.email || session.customer_email || session.customer_details?.email;
+
+      // --- Auto-generate invoice for admin approval ---
+      try {
+        const invoiceNumber = `GD-${Date.now().toString(36).toUpperCase()}`;
+        const lineItems = [];
+        
+        lineItems.push({
+          description: `${(orderData.monuments as any)?.monument_type?.replace(/_/g, ' ')} — Offer ${orderData.offer}`,
+          amount: Number(orderData.base_price),
+        });
+
+        if (Number(orderData.travel_fee) > 0) {
+          lineItems.push({ description: "Travel Fee", amount: Number(orderData.travel_fee) });
+        }
+        if (Number(orderData.add_ons_total) > 0) {
+          lineItems.push({ description: "Add-Ons", amount: Number(orderData.add_ons_total) });
+        }
+        if (Number(orderData.bundle_price) > 0) {
+          lineItems.push({ description: "Seasonal Bundle", amount: Number(orderData.bundle_price) });
+        }
+
+        const { error: invErr } = await supabaseAdmin.from("invoices").insert({
+          user_id: orderData.user_id,
+          order_id: orderData.id,
+          monument_id: orderData.monument_id,
+          invoice_number: invoiceNumber,
+          subtotal: Number(orderData.total_price),
+          travel_fee: Number(orderData.travel_fee),
+          total: Number(orderData.total_price),
+          line_items: lineItems,
+          status: "draft", // Admin reviews and sends
+          due_date: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+          stripe_payment_intent_id: paymentIntentId || session.id,
+        });
+
+        if (invErr) {
+          console.error("[stripe-webhook] Failed to create invoice:", invErr);
+        } else {
+          console.log(`[stripe-webhook] Invoice ${invoiceNumber} created for order ${orderId}`);
+        }
+      } catch (invError) {
+        console.error("[stripe-webhook] Invoice creation error:", invError);
+      }
+
+      // Send emails
       if (customerEmail) {
         await sendOrderConfirmationEmail(
           orderData as unknown as Record<string, unknown>,
