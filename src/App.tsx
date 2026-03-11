@@ -51,6 +51,7 @@ const App = () => (
             <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
+            <Route path="/report/:token" element={<SharedReport />} />
 
             {/* Admin routes */}
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
