@@ -470,6 +470,10 @@ const AdminOrderDetail = () => {
 };
 
 function AdminServiceLogsList({ monumentId }: { monumentId: string }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const { data: logs } = useQuery({
     queryKey: ["admin-service-logs", monumentId],
     queryFn: async () => {
@@ -483,6 +487,35 @@ function AdminServiceLogsList({ monumentId }: { monumentId: string }) {
     },
   });
 
+  const generateShareLink = useMutation({
+    mutationFn: async (logId: string) => {
+      const token = crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+      const { error } = await supabase
+        .from("service_logs")
+        .update({ share_token: token } as any)
+        .eq("id", logId);
+      if (error) throw error;
+      return token;
+    },
+    onSuccess: (token) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-service-logs", monumentId] });
+      const url = `${window.location.origin}/report/${token}`;
+      navigator.clipboard.writeText(url);
+      toast({ title: "Share link copied to clipboard" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error generating link", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const copyLink = (token: string, logId: string) => {
+    const url = `${window.location.origin}/report/${token}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(logId);
+    toast({ title: "Link copied" });
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   if (!logs?.length) return null;
 
   return (
@@ -492,7 +525,30 @@ function AdminServiceLogsList({ monumentId }: { monumentId: string }) {
         <div key={log.id} className="rounded-lg border border-border/50 bg-secondary/30 p-3 space-y-1.5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold">{new Date(log.service_date).toLocaleDateString()}</p>
-            {log.time_spent_minutes && <p className="text-[10px] text-muted-foreground">{log.time_spent_minutes} min</p>}
+            <div className="flex items-center gap-1.5">
+              {log.time_spent_minutes && <p className="text-[10px] text-muted-foreground">{log.time_spent_minutes} min</p>}
+              {(log as any).share_token ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] gap-1 px-2"
+                  onClick={() => copyLink((log as any).share_token, log.id)}
+                >
+                  {copiedId === log.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copiedId === log.id ? "Copied" : "Copy Link"}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] gap-1 px-2"
+                  onClick={() => generateShareLink.mutate(log.id)}
+                  disabled={generateShareLink.isPending}
+                >
+                  <Share2 className="w-3 h-3" /> Share
+                </Button>
+              )}
+            </div>
           </div>
           {(log.services_performed as string[])?.length > 0 && (
             <div className="flex flex-wrap gap-1">
