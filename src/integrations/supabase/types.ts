@@ -298,6 +298,63 @@ export type Database = {
         }
         Relationships: []
       }
+      service_logs: {
+        Row: {
+          created_at: string
+          id: string
+          monument_id: string
+          order_id: string | null
+          private_notes: string | null
+          public_notes: string | null
+          service_date: string
+          services_performed: string[]
+          time_spent_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          monument_id: string
+          order_id?: string | null
+          private_notes?: string | null
+          public_notes?: string | null
+          service_date?: string
+          services_performed?: string[]
+          time_spent_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          monument_id?: string
+          order_id?: string | null
+          private_notes?: string | null
+          public_notes?: string | null
+          service_date?: string
+          services_performed?: string[]
+          time_spent_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_logs_monument_id_fkey"
+            columns: ["monument_id"]
+            isOneToOne: false
+            referencedRelation: "monuments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
