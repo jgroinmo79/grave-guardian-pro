@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import GraveDetail from "@/components/portal/GraveDetail";
+import PlanDetail from "@/components/portal/PlanDetail";
+import SupportForm from "@/components/portal/SupportForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Portal = () => {
