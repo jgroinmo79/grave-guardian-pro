@@ -50,7 +50,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Use service role to bypass RLS for creating pending records
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -62,7 +61,6 @@ serve(async (req) => {
   );
 
   try {
-    // Auth - optional for guest checkout
     const authHeader = req.headers.get("Authorization");
     let userEmail: string | undefined;
     let userId: string | undefined;
@@ -85,21 +83,25 @@ serve(async (req) => {
       selectedBundle,
       isVeteran,
       customerEmail,
-      // Monument/form data for saving to DB
       cemeteryName,
+      cemeteryLat,
+      cemeteryLng,
       section,
       lotNumber,
       material,
       approximateHeight,
       knownDamage,
       conditions,
-      // Consent
+      deceasedName,
+      shopperName,
+      shopperPhone,
+      shopperEmail,
       consentBiological,
       consentAuthorize,
       consentPhotos,
     } = body;
 
-    const email = userEmail || customerEmail;
+    const email = userEmail || customerEmail || shopperEmail;
     if (!email) throw new Error("Email is required for checkout");
 
     const monument = MONUMENT_PRICES[monumentType];
@@ -109,7 +111,6 @@ serve(async (req) => {
     const basePrice = offer === "B" ? monument.offerB : monument.offerA;
     const travelFee = getTravelFee(estimatedMiles || 0);
 
-    // Calculate add-ons total
     let addOnTotal = 0;
     for (const addonId of addOns) {
       const addon = ADD_ONS[addonId];
@@ -121,15 +122,12 @@ serve(async (req) => {
     let subtotal = basePrice + travelFee + addOnTotal + bundlePrice;
     if (isVeteran) subtotal = Math.round(subtotal * 0.9);
 
-    // --- Save pending monument & order to DB ---
-    // We need a user_id. For guest checkout, we'll use a placeholder approach.
-    // For now, require auth or create a temporary record.
     const effectiveUserId = userId;
     if (!effectiveUserId) {
       throw new Error("Please sign in to complete your order");
     }
 
-    // 1. Create monument record
+    // 1. Create monument record with lat/lng
     const { data: monumentRecord, error: monumentError } = await supabaseAdmin
       .from("monuments")
       .insert({
@@ -147,6 +145,8 @@ serve(async (req) => {
         condition_faded_inscription: conditions?.fadedInscription || false,
         condition_chipping: conditions?.chipping || false,
         condition_leaning: conditions?.leaning || false,
+        cemetery_lat: cemeteryLat || null,
+        cemetery_lng: cemeteryLng || null,
       })
       .select("id")
       .single();
@@ -156,7 +156,7 @@ serve(async (req) => {
       throw new Error("Failed to save monument data");
     }
 
-    // 2. Create pending order
+    // 2. Create pending order with person info
     const { data: orderRecord, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -175,6 +175,10 @@ serve(async (req) => {
         consent_authorize: consentAuthorize || false,
         consent_photos: consentPhotos || false,
         status: "pending",
+        deceased_name: deceasedName || null,
+        shopper_name: shopperName || null,
+        shopper_phone: shopperPhone || null,
+        shopper_email: shopperEmail || email || null,
       })
       .select("id")
       .single();
@@ -249,7 +253,6 @@ serve(async (req) => {
       });
     }
 
-    // --- Create Stripe session ---
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
@@ -276,7 +279,6 @@ serve(async (req) => {
       },
     });
 
-    // Save stripe session ID to the order
     await supabaseAdmin
       .from("orders")
       .update({ stripe_payment_intent_id: session.id })

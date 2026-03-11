@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import BookingProgress from "./BookingProgress";
 import CemeteryStep from "@/components/steps/CemeteryStep";
+import ContactStep from "@/components/steps/ContactStep";
 import MonumentStep from "@/components/steps/MonumentStep";
 import ConditionStep from "@/components/steps/ConditionStep";
 import IntentStep from "@/components/steps/IntentStep";
@@ -13,7 +14,7 @@ import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
 import { IntakeFormData, initialFormData } from "@/lib/pricing";
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 const BookingFlow = () => {
   const [step, setStep] = useState(0);
@@ -34,20 +35,22 @@ const BookingFlow = () => {
     switch (step) {
       case 0: // Cemetery
         return data.cemeteryName.trim().length > 0;
-      case 1: // Monument
+      case 1: // Contact Info
+        return data.shopperName.trim().length > 0 && data.shopperEmail.trim().length > 0;
+      case 2: // Monument
         if (data.isVeteran) return data.veteranMonumentType !== '' && data.veteranMaterial !== '';
         return data.monumentType !== '' && data.material !== '';
-      case 2: // Condition
-        return true; // Optional checkboxes
-      case 3: // Intent
-        return true; // Optional preferences
-      case 4: // Service Selection
+      case 3: // Condition
+        return true;
+      case 4: // Intent
+        return true;
+      case 5: // Service Selection
         return data.selectedOffer !== '';
-      case 5: // Add-Ons
-        return true; // Optional
-      case 6: // Consent
+      case 6: // Add-Ons
+        return true;
+      case 7: // Consent
         return data.consentBiological && data.consentAuthorize;
-      case 7: // Checkout
+      case 8: // Checkout
         return true;
       default:
         return true;
@@ -57,13 +60,14 @@ const BookingFlow = () => {
   const renderStep = () => {
     switch (step) {
       case 0: return <CemeteryStep data={data} update={update} />;
-      case 1: return <MonumentStep data={data} update={update} />;
-      case 2: return <ConditionStep data={data} update={update} />;
-      case 3: return <IntentStep data={data} update={update} />;
-      case 4: return <ServiceStep data={data} update={update} />;
-      case 5: return <AddOnsStep data={data} update={update} />;
-      case 6: return <ConsentStep data={data} update={update} />;
-      case 7: return <CheckoutStep data={data} />;
+      case 1: return <ContactStep data={data} update={update} />;
+      case 2: return <MonumentStep data={data} update={update} />;
+      case 3: return <ConditionStep data={data} update={update} />;
+      case 4: return <IntentStep data={data} update={update} />;
+      case 5: return <ServiceStep data={data} update={update} />;
+      case 6: return <AddOnsStep data={data} update={update} />;
+      case 7: return <ConsentStep data={data} update={update} />;
+      case 8: return <CheckoutStep data={data} />;
       default: return null;
     }
   };
@@ -78,7 +82,7 @@ const BookingFlow = () => {
           <p className="text-xs text-muted-foreground">Cleaning & Preservation</p>
         </div>
 
-        <BookingProgress currentStep={step} />
+        <BookingProgress currentStep={step} totalSteps={TOTAL_STEPS} />
 
         <AnimatePresence mode="wait">
           <motion.div

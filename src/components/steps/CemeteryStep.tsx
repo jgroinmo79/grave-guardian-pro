@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IntakeFormData, getTravelFee } from "@/lib/pricing";
-import { MapPin, Navigation, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { IntakeFormData } from "@/lib/pricing";
+import { MapPin, Loader2 } from "lucide-react";
+import CemeteryMap from "@/components/booking/CemeteryMap";
 
 interface Prediction {
   place_id: string;
@@ -25,12 +25,10 @@ function useDebounce(value: string, delay: number) {
 }
 
 const CemeteryStep = ({ data, update }: Props) => {
-  const zone = getTravelFee(data.estimatedMiles);
   const [query, setQuery] = useState(data.cemeteryName);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [distLoading, setDistLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 350);
 
@@ -84,28 +82,37 @@ const CemeteryStep = ({ data, update }: Props) => {
     setIsOpen(false);
     setPredictions([]);
 
-    // Get distance
-    setDistLoading(true);
+    // Get lat/lng + distance
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const url = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance&place_id=${encodeURIComponent(prediction.place_id)}`;
-
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${anonKey}`,
-          apikey: anonKey,
-        },
+      
+      // Fetch place details for lat/lng
+      const detailsUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=place_details&place_id=${encodeURIComponent(prediction.place_id)}`;
+      const detailsRes = await fetch(detailsUrl, {
+        headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
       });
-      const json = await res.json();
-      if (json.miles !== undefined) {
-        update({ estimatedMiles: json.miles });
+      const detailsJson = await detailsRes.json();
+      if (detailsJson.lat !== undefined && detailsJson.lng !== undefined) {
+        update({ cemeteryLat: detailsJson.lat, cemeteryLng: detailsJson.lng });
+      }
+
+      // Fetch distance
+      const distUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance&place_id=${encodeURIComponent(prediction.place_id)}`;
+      const distRes = await fetch(distUrl, {
+        headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
+      });
+      const distJson = await distRes.json();
+      if (distJson.miles !== undefined) {
+        update({ estimatedMiles: distJson.miles });
       }
     } catch (err) {
-      console.error("Distance error:", err);
-    } finally {
-      setDistLoading(false);
+      console.error("Place details/distance error:", err);
     }
+  }, [update]);
+
+  const handleMapClick = useCallback((lat: number, lng: number) => {
+    update({ cemeteryLat: lat, cemeteryLng: lng });
   }, [update]);
 
   return (
@@ -116,7 +123,7 @@ const CemeteryStep = ({ data, update }: Props) => {
           <span className="text-sm font-semibold uppercase tracking-widest">Step 1</span>
         </div>
         <h2 className="text-3xl font-display font-bold mb-2">Cemetery Location</h2>
-        <p className="text-muted-foreground">Help us locate the monument</p>
+        <p className="text-muted-foreground">Search for the cemetery or drop a pin on the map</p>
       </div>
 
       <div className="max-w-md mx-auto space-y-5">
@@ -158,7 +165,17 @@ const CemeteryStep = ({ data, update }: Props) => {
               ))}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">Powered by Google Maps</p>
+          <p className="text-xs text-muted-foreground">Search or drop a pin on the satellite map below</p>
+        </div>
+
+        {/* Interactive Satellite Map */}
+        <div className="rounded-lg overflow-hidden border border-border">
+          <CemeteryMap
+            lat={data.cemeteryLat ?? null}
+            lng={data.cemeteryLng ?? null}
+            onMapClick={handleMapClick}
+            satellite
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -183,43 +200,6 @@ const CemeteryStep = ({ data, update }: Props) => {
             />
           </div>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="miles">Estimated Distance from Cape Girardeau (miles)</Label>
-          <div className="relative">
-            <Input
-              id="miles"
-              type="number"
-              min={0}
-              placeholder="Auto-calculated or enter manually"
-              value={data.estimatedMiles || ''}
-              onChange={(e) => update({ estimatedMiles: Number(e.target.value) })}
-              className="bg-secondary border-border"
-            />
-            {distLoading && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {distLoading ? 'Calculating distance...' : 'Auto-calculated when you select a cemetery above'}
-          </p>
-        </div>
-
-        {data.estimatedMiles > 0 && (
-          <div className="rounded-lg bg-secondary/50 border border-border p-4 flex items-center gap-3">
-            <Navigation className="w-5 h-5 text-accent" />
-            <div>
-              <p className="text-sm font-medium">{zone.label}</p>
-              <p className="text-sm text-muted-foreground">
-                Travel fee: {zone.fee === 0 ? (
-                  <span className="text-primary font-semibold">Free!</span>
-                ) : (
-                  <span className="text-accent font-semibold">${zone.fee}</span>
-                )}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

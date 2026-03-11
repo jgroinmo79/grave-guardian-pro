@@ -20,9 +20,10 @@ interface Props {
   lat: number | null;
   lng: number | null;
   onMapClick: (lat: number, lng: number) => void;
+  satellite?: boolean;
 }
 
-const CemeteryMap = ({ lat, lng, onMapClick }: Props) => {
+const CemeteryMap = ({ lat, lng, onMapClick, satellite = false }: Props) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,13 +34,28 @@ const CemeteryMap = ({ lat, lng, onMapClick }: Props) => {
 
     const map = L.map(containerRef.current, {
       center: lat && lng ? [lat, lng] : CAPE_GIRARDEAU,
-      zoom: lat && lng ? 14 : 8,
+      zoom: lat && lng ? 16 : 8,
       scrollWheelZoom: true,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    if (satellite) {
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: "Tiles &copy; Esri",
+          maxZoom: 19,
+        }
+      ).addTo(map);
+      // Add labels overlay on satellite
+      L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        { maxZoom: 19 }
+      ).addTo(map);
+    } else {
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+    }
 
     // Add initial marker if we have coords
     if (lat && lng) {
@@ -74,7 +90,6 @@ const CemeteryMap = ({ lat, lng, onMapClick }: Props) => {
       mapRef.current = null;
       markerRef.current = null;
     };
-    // Only run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -91,7 +106,7 @@ const CemeteryMap = ({ lat, lng, onMapClick }: Props) => {
           onMapClick(pos.lat, pos.lng);
         });
       }
-      mapRef.current.setView([lat, lng], 14);
+      mapRef.current.setView([lat, lng], 16);
     }
   }, [lat, lng, onMapClick]);
 

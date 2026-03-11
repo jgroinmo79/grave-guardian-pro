@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 
 const STEPS = [
   "Cemetery",
+  "Contact",
   "Monument",
   "Condition",
   "Intent",
@@ -13,6 +14,7 @@ const STEPS = [
 
 interface Props {
   currentStep: number;
+  totalSteps?: number;
 }
 
 const BookingProgress = ({ currentStep }: Props) => (

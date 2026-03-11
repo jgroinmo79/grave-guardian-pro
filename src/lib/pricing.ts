@@ -167,6 +167,13 @@ export interface IntakeFormData {
   section: string;
   lotNumber: string;
   estimatedMiles: number;
+  cemeteryLat: number | null;
+  cemeteryLng: number | null;
+  // Person info
+  deceasedName: string;
+  shopperName: string;
+  shopperPhone: string;
+  shopperEmail: string;
   // Step 2
   isVeteran: boolean;
   veteranMonumentType: VeteranMonumentType | '';
@@ -207,6 +214,12 @@ export const initialFormData: IntakeFormData = {
   section: '',
   lotNumber: '',
   estimatedMiles: 0,
+  cemeteryLat: null,
+  cemeteryLng: null,
+  deceasedName: '',
+  shopperName: '',
+  shopperPhone: '',
+  shopperEmail: '',
   isVeteran: false,
   veteranMonumentType: '',
   veteranMaterial: '',

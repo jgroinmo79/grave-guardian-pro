@@ -77,19 +77,11 @@ const Index = () => {
               >
                 Book Your Service <ChevronRight className="w-5 h-5 ml-1" />
               </Button>
-                <Button
-                  variant="hero"
-                  size="lg"
-                  className="h-14 px-10 text-base"
-                  onClick={() => setShowIntake(true)}
-                >
-                  Book Your Service <ChevronRight className="w-5 h-5 ml-1" />
+              <Link to="/portal">
+                <Button variant="outline" size="lg" className="h-14 px-8 text-base">
+                  My Portal
                 </Button>
-                <Link to="/portal">
-                  <Button variant="outline" size="lg" className="h-14 px-8 text-base">
-                    My Portal
-                  </Button>
-                </Link>
+              </Link>
             </div>
           </motion.div>
 
