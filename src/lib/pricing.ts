@@ -8,7 +8,7 @@ export type VeteranMaterialType = 'granite' | 'marble' | 'bronze';
 
 export type MaterialType = 'granite' | 'marble' | 'bronze' | 'mixed';
 
-export type CarePlan = 'guardian' | 'keeper' | 'sentinel' | 'legacy';
+export type CarePlan = 'keeper' | 'sentinel' | 'legacy';
 
 export interface MonumentPricing {
   label: string;
