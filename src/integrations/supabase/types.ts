@@ -616,6 +616,12 @@ export type Database = {
         | "double_slant"
         | "double_upright"
         | "grave_ledger"
+        | "flat_marker"
+        | "double_companion"
+        | "monument_base"
+        | "bronze_plaque"
+        | "obelisk_unique"
+        | "mausoleum_panel"
       offer_type: "A" | "B"
       order_status:
         | "pending"
@@ -763,6 +769,12 @@ export const Constants = {
         "double_slant",
         "double_upright",
         "grave_ledger",
+        "flat_marker",
+        "double_companion",
+        "monument_base",
+        "bronze_plaque",
+        "obelisk_unique",
+        "mausoleum_panel",
       ],
       offer_type: ["A", "B"],
       order_status: [

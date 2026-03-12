@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IntakeFormData, MONUMENT_PRICES, getTravelFee, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
+import { IntakeFormData, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Check, Shield, Sparkles, X, Leaf, Flower2, Star } from "lucide-react";
 
@@ -11,7 +11,7 @@ interface Props {
 const ServiceStep = ({ data, update }: Props) => {
   const [showUpsell, setShowUpsell] = useState(false);
   const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
-  const travelFee = getTravelFee(data.estimatedMiles).fee;
+  
 
   const handleSelectA = () => {
     update({ selectedOffer: 'A' });
@@ -39,8 +39,8 @@ const ServiceStep = ({ data, update }: Props) => {
   };
 
   const recommendedPlan = getRecommendedPlan();
-  const showCarePlans = hasSelectedOffer && (isOutOfState || wantsMonitoring);
-  const showBundles = hasSelectedOffer && (wantsFlowers || hasImportantDates);
+  const showCarePlans = hasSelectedOffer;
+  const showBundles = hasSelectedOffer;
 
   const formatPlanPrice = (plan: typeof CARE_PLANS[CarePlan]) => {
     if (plan.period === 'one-time') return `$${plan.price}`;
@@ -57,9 +57,9 @@ const ServiceStep = ({ data, update }: Props) => {
 
       {monument && (
         <div className="max-w-lg mx-auto space-y-6">
-          {/* Offer A vs B */}
+          {/* Essential vs Full Service */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Offer A */}
+            {/* Essential Clean */}
             <button
               onClick={handleSelectA}
               className={`relative p-5 rounded-lg border text-left transition-all ${
@@ -68,13 +68,9 @@ const ServiceStep = ({ data, update }: Props) => {
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offer A</p>
               <p className="font-display font-bold text-xl mt-1">Essential Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
-                ${monument.offerA + travelFee}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {travelFee > 0 ? `Includes $${travelFee} travel fee` : 'No travel fee'}
+                ${monument.offerA}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 {OFFER_A_FEATURES.map((f, i) => (
@@ -85,7 +81,7 @@ const ServiceStep = ({ data, update }: Props) => {
               </ul>
             </button>
 
-            {/* Offer B */}
+            {/* Full Service Clean */}
             <button
               onClick={() => { update({ selectedOffer: 'B' }); setShowUpsell(false); }}
               className={`relative p-5 rounded-lg border text-left transition-all ${
@@ -97,17 +93,13 @@ const ServiceStep = ({ data, update }: Props) => {
               <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full">
                 Best Value
               </span>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offer B</p>
               <p className="font-display font-bold text-xl mt-1">Full Service Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
-                ${monument.offerB + travelFee}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {travelFee > 0 ? `Includes $${travelFee} travel fee` : 'No travel fee'}
+                ${monument.offerB}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Offer A
+                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Essential Clean
                 </li>
                 {OFFER_B_EXTRAS.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -136,8 +128,8 @@ const ServiceStep = ({ data, update }: Props) => {
                 </p>
                 <div className="flex gap-3">
                   <Button variant="hero" className="flex-1" onClick={handleUpgradeToB}>
-                    Upgrade to Offer B
-                  </Button>
+                     Upgrade to Full Service
+                   </Button>
                   <Button variant="outline" onClick={() => setShowUpsell(false)}>
                     No thanks
                   </Button>

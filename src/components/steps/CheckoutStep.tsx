@@ -93,7 +93,7 @@ const CheckoutStep = ({ data }: Props) => {
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
           {monument && (
             <div className="flex justify-between text-sm">
-              <span>{monument.label} — Offer {data.selectedOffer || 'A'}</span>
+              <span>{monument.label} — {data.selectedOffer === 'B' ? 'Full Service Clean' : 'Essential Clean'}</span>
               <span className="font-semibold">${basePrice}</span>
             </div>
           )}
