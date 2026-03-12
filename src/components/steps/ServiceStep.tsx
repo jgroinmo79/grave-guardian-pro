@@ -59,7 +59,7 @@ const ServiceStep = ({ data, update }: Props) => {
         <div className="max-w-lg mx-auto space-y-6">
           {/* Essential vs Full Service */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Offer A */}
+            {/* Essential Clean */}
             <button
               onClick={handleSelectA}
               className={`relative p-5 rounded-lg border text-left transition-all ${
@@ -68,13 +68,9 @@ const ServiceStep = ({ data, update }: Props) => {
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offer A</p>
               <p className="font-display font-bold text-xl mt-1">Essential Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
-                ${monument.offerA + travelFee}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {travelFee > 0 ? `Includes $${travelFee} travel fee` : 'No travel fee'}
+                ${monument.offerA}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 {OFFER_A_FEATURES.map((f, i) => (
