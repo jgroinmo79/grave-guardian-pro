@@ -11,7 +11,7 @@ interface Props {
 const ServiceStep = ({ data, update }: Props) => {
   const [showUpsell, setShowUpsell] = useState(false);
   const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
-  const travelFee = getTravelFee(data.estimatedMiles).fee;
+  
 
   const handleSelectA = () => {
     update({ selectedOffer: 'A' });
