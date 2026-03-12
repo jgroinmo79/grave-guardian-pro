@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IntakeFormData, MONUMENT_PRICES, getTravelFee, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
+import { IntakeFormData, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Check, Shield, Sparkles, X, Leaf, Flower2, Star } from "lucide-react";
 
