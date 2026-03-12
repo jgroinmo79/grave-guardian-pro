@@ -9,13 +9,13 @@ const corsHeaders = {
 };
 
 const MONUMENT_PRICES: Record<string, { offerA: number; offerB: number; label: string }> = {
-  single_marker: { label: "Single Marker", offerA: 175, offerB: 225 },
-  double_marker: { label: "Double Marker", offerA: 200, offerB: 250 },
-  single_slant: { label: "Single Slant", offerA: 210, offerB: 260 },
-  single_upright: { label: "Single Upright", offerA: 225, offerB: 275 },
-  double_slant: { label: "Double Slant", offerA: 260, offerB: 310 },
-  double_upright: { label: "Double Upright", offerA: 300, offerB: 350 },
-  grave_ledger: { label: "Grave Ledger", offerA: 325, offerB: 375 },
+  single_upright: { label: "Single Upright Headstone", offerA: 175, offerB: 225 },
+  flat_marker: { label: "Flat / Flush Grave Marker", offerA: 175, offerB: 225 },
+  double_companion: { label: "Double / Companion Stone", offerA: 225, offerB: 275 },
+  monument_base: { label: "Monument with Base", offerA: 275, offerB: 325 },
+  bronze_plaque: { label: "Bronze Plaque on Granite", offerA: 225, offerB: 275 },
+  obelisk_unique: { label: "Obelisk / Unique Shape", offerA: 275, offerB: 325 },
+  mausoleum_panel: { label: "Mausoleum Panel", offerA: 375, offerB: 425 },
 };
 
 const TRAVEL_ZONES = [
