@@ -197,7 +197,6 @@ serve(async (req) => {
         user_id: effectiveUserId,
         photo_url: url,
         description: "Client upload — intake",
-        client_visible: false,
         taken_at: new Date().toISOString(),
       }));
       const { error: photoError } = await supabaseAdmin
