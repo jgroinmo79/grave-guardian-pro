@@ -442,29 +442,25 @@ const AdminOrderDetail = () => {
       </section>
 
       {/* PHOTOS */}
-      {(order.monuments as any)?.id && (
-        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Photos</h2>
-          <PhotoUpload
-            monumentId={(order.monuments as any).id}
-            orderId={order.id}
-            userId={order.user_id}
-          />
-        </section>
-      )}
+      <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <h2 className="font-display font-semibold text-lg">Photos</h2>
+        <PhotoUpload
+          monumentId={(order.monuments as any)?.id || order.monument_id}
+          orderId={order.id}
+          userId={order.user_id}
+        />
+      </section>
 
       {/* SERVICE LOG */}
-      {(order.monuments as any)?.id && (
-        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Add Service Log</h2>
-          <ServiceLogForm
-            monumentId={(order.monuments as any).id}
-            orderId={order.id}
-            userId={order.user_id}
-          />
-          <AdminServiceLogsList monumentId={(order.monuments as any).id} />
-        </section>
-      )}
+      <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <h2 className="font-display font-semibold text-lg">Add Service Log</h2>
+        <ServiceLogForm
+          monumentId={(order.monuments as any)?.id || order.monument_id}
+          orderId={order.id}
+          userId={order.user_id}
+        />
+        <AdminServiceLogsList monumentId={(order.monuments as any)?.id || order.monument_id} />
+      </section>
     </div>
   );
 };
