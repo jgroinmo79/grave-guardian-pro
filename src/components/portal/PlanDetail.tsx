@@ -70,9 +70,7 @@ const PlanDetail = ({ subscription }: PlanDetailProps) => {
     const year = start.getFullYear();
     const visits: { label: string; date: string }[] = [];
 
-    if (subscription.plan === "guardian") {
-      visits.push({ label: "One-time visit", date: subscription.start_date });
-    } else if (subscription.plan === "keeper") {
+    if (subscription.plan === "keeper") {
       visits.push({ label: "Spring cleaning", date: `${year}-04-15` });
       visits.push({ label: "Fall cleaning", date: `${year}-10-15` });
     } else if (subscription.plan === "sentinel") {
