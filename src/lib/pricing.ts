@@ -1,6 +1,6 @@
 export type MonumentType = 
-  | 'single_marker' | 'double_marker' | 'single_slant' 
-  | 'single_upright' | 'double_slant' | 'double_upright' | 'grave_ledger';
+  | 'single_upright' | 'flat_marker' | 'double_companion' 
+  | 'monument_base' | 'bronze_plaque' | 'obelisk_unique' | 'mausoleum_panel';
 
 export type VeteranMonumentType = 'va_upright' | 'va_flat' | 'va_niche';
 
