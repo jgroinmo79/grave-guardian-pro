@@ -55,22 +55,6 @@ export const OFFER_B_EXTRAS = [
 ];
 
 export const CARE_PLANS = {
-  guardian: {
-    label: 'The Guardian',
-    price: 275,
-    period: 'one-time',
-    description: 'For families who want professional care — just once, done right.',
-    features: [
-      'Full Offer B service on your monument type',
-      'D/2 biological growth inhibitor applied',
-      'Detailed condition report with groundskeeping damage notation',
-      'Weeding and edging around monument',
-      '4 GPS-timestamped photos sent same day',
-      'Direct communication with Josh before and after',
-      'Scheduled within days of booking',
-    ],
-    recommended: 'one-time professional care',
-  },
   keeper: {
     label: 'The Keeper',
     price: 475,
