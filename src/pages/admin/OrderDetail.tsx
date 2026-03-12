@@ -33,17 +33,21 @@ const AdminOrderDetail = () => {
   const { data: order, isLoading } = useQuery({
     queryKey: ["admin-order-detail", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: orderData, error: orderError } = await supabase
         .from("orders")
-        .select(`
-          *,
-          monuments (*),
-          profiles:user_id (full_name, email, phone, address, city, state, zip)
-        `)
+        .select(`*, monuments (*)`)
         .eq("id", id!)
         .single();
-      if (error) throw error;
-      return data;
+      if (orderError) throw orderError;
+
+      // Fetch profile separately since there's no FK from orders to profiles
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name, email, phone, address, city, state, zip")
+        .eq("user_id", orderData.user_id)
+        .single();
+
+      return { ...orderData, profiles: profileData };
     },
     enabled: !!id,
   });
