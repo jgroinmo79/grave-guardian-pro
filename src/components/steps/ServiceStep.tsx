@@ -39,8 +39,8 @@ const ServiceStep = ({ data, update }: Props) => {
   };
 
   const recommendedPlan = getRecommendedPlan();
-  const showCarePlans = hasSelectedOffer && (isOutOfState || wantsMonitoring);
-  const showBundles = hasSelectedOffer && (wantsFlowers || hasImportantDates);
+  const showCarePlans = hasSelectedOffer;
+  const showBundles = hasSelectedOffer;
 
   const formatPlanPrice = (plan: typeof CARE_PLANS[CarePlan]) => {
     if (plan.period === 'one-time') return `$${plan.price}`;
