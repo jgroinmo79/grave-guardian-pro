@@ -81,7 +81,7 @@ const ServiceStep = ({ data, update }: Props) => {
               </ul>
             </button>
 
-            {/* Offer B */}
+            {/* Full Service Clean */}
             <button
               onClick={() => { update({ selectedOffer: 'B' }); setShowUpsell(false); }}
               className={`relative p-5 rounded-lg border text-left transition-all ${
@@ -93,17 +93,13 @@ const ServiceStep = ({ data, update }: Props) => {
               <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full">
                 Best Value
               </span>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offer B</p>
               <p className="font-display font-bold text-xl mt-1">Full Service Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
-                ${monument.offerB + travelFee}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {travelFee > 0 ? `Includes $${travelFee} travel fee` : 'No travel fee'}
+                ${monument.offerB}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Offer A
+                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Essential Clean
                 </li>
                 {OFFER_B_EXTRAS.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
