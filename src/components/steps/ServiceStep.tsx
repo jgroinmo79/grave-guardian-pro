@@ -57,7 +57,7 @@ const ServiceStep = ({ data, update }: Props) => {
 
       {monument && (
         <div className="max-w-lg mx-auto space-y-6">
-          {/* Offer A vs B */}
+          {/* Essential vs Full Service */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Offer A */}
             <button
