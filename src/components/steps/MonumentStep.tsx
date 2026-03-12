@@ -10,13 +10,13 @@ interface Props {
 }
 
 const MONUMENT_ICONS: Record<MonumentType, { icon: typeof Square; style: string }> = {
-  single_marker: { icon: RectangleHorizontal, style: 'rotate-0' },
-  double_marker: { icon: Columns2, style: 'rotate-0' },
-  single_slant: { icon: Square, style: '-rotate-12' },
   single_upright: { icon: Square, style: 'rotate-0' },
-  double_slant: { icon: Columns2, style: '-rotate-12' },
-  double_upright: { icon: Columns2, style: 'rotate-0' },
-  grave_ledger: { icon: RectangleHorizontal, style: 'rotate-0' },
+  flat_marker: { icon: RectangleHorizontal, style: 'rotate-0' },
+  double_companion: { icon: Columns2, style: 'rotate-0' },
+  monument_base: { icon: Square, style: 'rotate-0' },
+  bronze_plaque: { icon: RectangleHorizontal, style: 'rotate-0' },
+  obelisk_unique: { icon: Square, style: '-rotate-12' },
+  mausoleum_panel: { icon: RectangleHorizontal, style: 'rotate-0' },
 };
 
 const MATERIALS: { value: MaterialType; label: string }[] = [

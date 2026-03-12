@@ -214,7 +214,7 @@ serve(async (req) => {
       {
         price_data: {
           currency: "usd",
-          product_data: { name: `${monument.label} — Offer ${offer}` },
+          product_data: { name: `${monument.label} — ${offer === 'B' ? 'Full Service Clean' : 'Essential Clean'}` },
           unit_amount: basePrice * 100,
         },
         quantity: 1,

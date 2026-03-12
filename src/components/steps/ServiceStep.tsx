@@ -128,8 +128,8 @@ const ServiceStep = ({ data, update }: Props) => {
                 </p>
                 <div className="flex gap-3">
                   <Button variant="hero" className="flex-1" onClick={handleUpgradeToB}>
-                    Upgrade to Offer B
-                  </Button>
+                     Upgrade to Full Service
+                   </Button>
                   <Button variant="outline" onClick={() => setShowUpsell(false)}>
                     No thanks
                   </Button>
