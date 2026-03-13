@@ -231,7 +231,7 @@ const AdminOrderDetail = () => {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-bold">Edit Order</h1>
+          <h1 className="text-2xl font-display font-bold">View / Change Order</h1>
           <p className="text-xs text-muted-foreground font-mono">#{order.id.slice(0, 8)}</p>
         </div>
         <Button
@@ -445,9 +445,17 @@ const AdminOrderDetail = () => {
         </div>
       </section>
 
-      {/* PHOTOS */}
+      {/* BEFORE PHOTOS (Customer) */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-        <h2 className="font-display font-semibold text-lg">Photos</h2>
+        <h2 className="font-display font-semibold text-lg">Before Photos</h2>
+        <p className="text-xs text-muted-foreground">Photos provided by the customer during intake</p>
+        <CustomerPhotosGallery monumentId={(order.monuments as any)?.id || order.monument_id} />
+      </section>
+
+      {/* FINISHED PHOTOS (Technician) */}
+      <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <h2 className="font-display font-semibold text-lg">Finished Photos</h2>
+        <p className="text-xs text-muted-foreground">Photos uploaded by the technician after service</p>
         <PhotoUpload
           monumentId={(order.monuments as any)?.id || order.monument_id}
           orderId={order.id}
@@ -468,6 +476,41 @@ const AdminOrderDetail = () => {
     </div>
   );
 };
+
+function CustomerPhotosGallery({ monumentId }: { monumentId: string }) {
+  const { data: photos } = useQuery({
+    queryKey: ["customer-before-photos", monumentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("photo_records")
+        .select("*")
+        .eq("monument_id", monumentId)
+        .eq("description", "Client upload — intake")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!photos?.length) {
+    return <p className="text-xs text-muted-foreground italic">No customer photos uploaded.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {photos.map((photo) => (
+        <div key={photo.id} className="relative rounded-lg overflow-hidden border border-border">
+          <img
+            src={photo.photo_url}
+            alt="Customer before photo"
+            className="w-full aspect-square object-cover"
+            loading="lazy"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function AdminServiceLogsList({ monumentId }: { monumentId: string }) {
   const { toast } = useToast();
