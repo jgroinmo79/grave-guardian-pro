@@ -26,6 +26,7 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
         .from("photo_records")
         .select("*")
         .eq("monument_id", monumentId)
+        .neq("description", "Client upload — intake")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
