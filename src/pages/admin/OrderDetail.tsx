@@ -477,6 +477,41 @@ const AdminOrderDetail = () => {
   );
 };
 
+function CustomerPhotosGallery({ monumentId }: { monumentId: string }) {
+  const { data: photos } = useQuery({
+    queryKey: ["customer-before-photos", monumentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("photo_records")
+        .select("*")
+        .eq("monument_id", monumentId)
+        .eq("description", "Client upload — intake")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!photos?.length) {
+    return <p className="text-xs text-muted-foreground italic">No customer photos uploaded.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {photos.map((photo) => (
+        <div key={photo.id} className="relative rounded-lg overflow-hidden border border-border">
+          <img
+            src={photo.photo_url}
+            alt="Customer before photo"
+            className="w-full aspect-square object-cover"
+            loading="lazy"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function AdminServiceLogsList({ monumentId }: { monumentId: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
