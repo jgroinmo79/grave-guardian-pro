@@ -231,7 +231,7 @@ const AdminOrderDetail = () => {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-bold">Edit Order</h1>
+          <h1 className="text-2xl font-display font-bold">View / Change Order</h1>
           <p className="text-xs text-muted-foreground font-mono">#{order.id.slice(0, 8)}</p>
         </div>
         <Button
