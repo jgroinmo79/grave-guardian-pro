@@ -445,9 +445,17 @@ const AdminOrderDetail = () => {
         </div>
       </section>
 
-      {/* PHOTOS */}
+      {/* BEFORE PHOTOS (Customer) */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-        <h2 className="font-display font-semibold text-lg">Photos</h2>
+        <h2 className="font-display font-semibold text-lg">Before Photos</h2>
+        <p className="text-xs text-muted-foreground">Photos provided by the customer during intake</p>
+        <CustomerPhotosGallery monumentId={(order.monuments as any)?.id || order.monument_id} />
+      </section>
+
+      {/* FINISHED PHOTOS (Technician) */}
+      <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <h2 className="font-display font-semibold text-lg">Finished Photos</h2>
+        <p className="text-xs text-muted-foreground">Photos uploaded by the technician after service</p>
         <PhotoUpload
           monumentId={(order.monuments as any)?.id || order.monument_id}
           orderId={order.id}

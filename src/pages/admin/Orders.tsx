@@ -142,7 +142,7 @@ const AdminOrders = () => {
 
                    <Button variant="outline" size="sm" className="text-xs gap-1.5 ml-auto" asChild>
                      <Link to={`/admin/orders/${order.id}`}>
-                       <ExternalLink className="w-3 h-3" /> Edit
+                       <ExternalLink className="w-3 h-3" /> View / Change Order
                      </Link>
                    </Button>
 
