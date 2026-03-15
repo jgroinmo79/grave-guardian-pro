@@ -34,6 +34,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
       const { data, error } = await supabase
         .from("orders")
         .select(`id, status, scheduled_date, total_price, offer, monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)`)
+        .not("scheduled_date", "is", null)
         .gte("scheduled_date", format(start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(end, "yyyy-MM-dd"))
         .order("scheduled_date", { ascending: true });
