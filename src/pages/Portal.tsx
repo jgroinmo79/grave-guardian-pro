@@ -122,6 +122,15 @@ const Portal = () => {
     cancelled: "bg-destructive/20 text-destructive",
   };
 
+  const statusLabels: Record<string, string> = {
+    pending: "Pending",
+    confirmed: "Confirmed",
+    scheduled: "Scheduled",
+    in_progress: "In Progress",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+
   const planStatusColors: Record<string, string> = {
     active: "bg-primary/20 text-primary",
     paused: "bg-accent/20 text-accent",
