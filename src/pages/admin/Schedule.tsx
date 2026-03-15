@@ -93,6 +93,25 @@ const AdminSchedule = () => {
     },
   });
 
+  const reactivateOrder = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "pending" as const, scheduled_date: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-cancelled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-unscheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      toast({ title: "Order reactivated", description: "Moved back to pending." });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   const DatePickerButton = ({ orderId, currentDate }: { orderId: string; currentDate?: string | null }) => (
     <Popover open={openPopover === orderId} onOpenChange={(open) => setOpenPopover(open ? orderId : null)}>
       <PopoverTrigger asChild>
