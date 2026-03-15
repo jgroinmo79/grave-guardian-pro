@@ -147,7 +147,7 @@ const AdminOrders = () => {
                    </Button>
 
                    <p className="text-xs text-muted-foreground">
-                     {new Date(order.created_at).toLocaleDateString()}
+                     Ordered: {new Date(order.created_at).toLocaleDateString()}
                    </p>
                 </div>
 
