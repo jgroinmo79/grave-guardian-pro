@@ -63,6 +63,8 @@ const CheckoutStep = ({ data }: Props) => {
           consentBiological: data.consentBiological,
           consentAuthorize: data.consentAuthorize,
           consentPhotos: data.consentPhotos,
+          // Preferred date
+          preferredDate: data.preferredDate ? data.preferredDate.toISOString().split('T')[0] : null,
         },
       });
 

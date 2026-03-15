@@ -181,6 +181,7 @@ serve(async (req) => {
         shopper_name: shopperName || null,
         shopper_phone: shopperPhone || null,
         shopper_email: shopperEmail || email || null,
+        scheduled_date: preferredDate || null,
       })
       .select("id")
       .single();

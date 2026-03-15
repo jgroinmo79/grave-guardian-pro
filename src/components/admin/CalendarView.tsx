@@ -152,16 +152,20 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
                     onClick={() => onSelectOrder?.(o.id)}
                     className="rounded-lg border border-border bg-card/80 p-3 text-left hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-semibold flex items-center gap-1.5">
                         <MapPin className="w-3 h-3 text-primary" />
                         {m?.cemetery_name}
                       </p>
                       <span className={cn(
-                        "text-[10px] px-2 py-0.5 rounded-full font-medium",
-                        statusColor[o.status] ? `${statusColor[o.status]}/20 text-primary` : "bg-muted text-muted-foreground"
+                        "text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap",
+                        o.status === "pending"
+                          ? "bg-amber-500/20 text-amber-500"
+                          : statusColor[o.status]
+                            ? `${statusColor[o.status]}/20 text-primary`
+                            : "bg-muted text-muted-foreground"
                       )}>
-                        {o.status.replace(/_/g, " ")}
+                        {o.status === "pending" ? "unconfirmed" : o.status.replace(/_/g, " ")}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
