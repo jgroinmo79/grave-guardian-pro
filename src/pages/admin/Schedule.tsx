@@ -27,7 +27,8 @@ const AdminSchedule = () => {
           id, status, scheduled_date, total_price, offer, travel_fee,
           monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)
         `)
-        .in("status", ["confirmed", "scheduled", "in_progress"])
+        .in("status", ["pending", "confirmed", "scheduled", "in_progress"])
+        .not("scheduled_date", "is", null)
         .order("scheduled_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data;
