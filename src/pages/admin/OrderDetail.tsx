@@ -155,6 +155,7 @@ const AdminOrderDetail = () => {
           notes: notes || null,
           add_ons: addOns as any,
           bundle_id: bundleId || null,
+          scheduled_date: scheduledDate || null,
         })
         .eq("id", id!);
       if (orderErr) throw orderErr;
