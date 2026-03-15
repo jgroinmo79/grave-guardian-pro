@@ -59,6 +59,7 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
           photo_url: urlData.publicUrl,
           description: description || null,
           taken_at: new Date().toISOString(),
+          client_visible: true,
         });
         if (recordErr) throw recordErr;
       }
