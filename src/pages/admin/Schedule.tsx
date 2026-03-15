@@ -82,31 +82,54 @@ const AdminSchedule = () => {
       if (error) throw error;
       return { id, newDate };
     },
-    onSuccess: (result) => {
-      // Update the scheduled orders cache in-place (no re-sort / no flicker)
-      queryClient.setQueryData(["admin-scheduled-orders"], (old: any[] | undefined) => {
-        if (!old) return old;
-        const exists = old.find((o) => o.id === result.id);
-        if (exists) {
-          return old.map((o) =>
-            o.id === result.id ? { ...o, scheduled_date: result.newDate, status: "scheduled" } : o
+    onMutate: async ({ id, date }) => {
+      const newDate = format(date, "yyyy-MM-dd");
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["admin-scheduled-orders"] });
+      await queryClient.cancelQueries({ queryKey: ["admin-unscheduled-orders"] });
+
+      const prevScheduled = queryClient.getQueryData<any[]>(["admin-scheduled-orders"]);
+      const prevUnscheduled = queryClient.getQueryData<any[]>(["admin-unscheduled-orders"]);
+
+      // Update date in-place in the scheduled list
+      if (prevScheduled) {
+        queryClient.setQueryData(["admin-scheduled-orders"],
+          prevScheduled.map((o) =>
+            o.id === id ? { ...o, scheduled_date: newDate, status: "scheduled" } : o
+          )
+        );
+      }
+      // Remove from unscheduled if present
+      if (prevUnscheduled) {
+        const moved = prevUnscheduled.find((o) => o.id === id);
+        if (moved) {
+          queryClient.setQueryData(["admin-unscheduled-orders"],
+            prevUnscheduled.filter((o) => o.id !== id)
           );
+          // Add to scheduled list if it wasn't there
+          if (prevScheduled && !prevScheduled.find((o) => o.id === id)) {
+            queryClient.setQueryData(["admin-scheduled-orders"], [
+              ...prevScheduled,
+              { ...moved, scheduled_date: newDate, status: "scheduled" },
+            ]);
+          }
         }
-        // Order was unscheduled before – just refetch
-        return old;
-      });
-      // Remove from unscheduled list if present
-      queryClient.setQueryData(["admin-unscheduled-orders"], (old: any[] | undefined) =>
-        old ? old.filter((o) => o.id !== result.id) : old
-      );
-      // Calendar & all-orders can do a background refetch
+      }
+
+      setOpenPopover(null);
+      return { prevScheduled, prevUnscheduled };
+    },
+    onError: (err: Error, _vars, context) => {
+      // Roll back on error
+      if (context?.prevScheduled) queryClient.setQueryData(["admin-scheduled-orders"], context.prevScheduled);
+      if (context?.prevUnscheduled) queryClient.setQueryData(["admin-unscheduled-orders"], context.prevUnscheduled);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+    onSuccess: () => {
+      toast({ title: "Order scheduled" });
+      // Background-refresh calendar view
       queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
       queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
-      toast({ title: "Order scheduled" });
-      setOpenPopover(null);
-    },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
     },
   });
 
