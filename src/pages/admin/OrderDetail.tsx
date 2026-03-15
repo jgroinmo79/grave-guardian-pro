@@ -302,7 +302,6 @@ const AdminOrderDetail = () => {
               onChange={(e) => handleDateChange(e.target.value)}
               className="h-9 text-sm"
             />
-            />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Offer</Label>
