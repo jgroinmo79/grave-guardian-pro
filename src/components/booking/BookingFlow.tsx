@@ -69,8 +69,9 @@ const BookingFlow = () => {
       case 4: return <IntentStep data={data} update={update} />;
       case 5: return <ServiceStep data={data} update={update} />;
       case 6: return <AddOnsStep data={data} update={update} />;
-      case 7: return <ConsentStep data={data} update={update} />;
-      case 8: return <CheckoutStep data={data} />;
+      case 7: return <ScheduleDateStep data={data} update={update} />;
+      case 8: return <ConsentStep data={data} update={update} />;
+      case 9: return <CheckoutStep data={data} />;
       default: return null;
     }
   };
