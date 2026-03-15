@@ -229,6 +229,7 @@ export const initialFormData: IntakeFormData = {
   selectedPlan: '',
   selectedBundle: '',
   addOns: [],
+  preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,
   consentPhotos: false,
