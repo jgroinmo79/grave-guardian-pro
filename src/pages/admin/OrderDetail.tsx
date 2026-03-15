@@ -105,6 +105,7 @@ const AdminOrderDetail = () => {
     setIsVeteran(order.is_veteran ?? false);
     setNotes(order.notes ?? "");
     setBundleId(order.bundle_id ?? "");
+    setScheduledDate(order.scheduled_date ?? "");
     
     // Parse add_ons
     const parsedAddOns = Array.isArray(order.add_ons) ? (order.add_ons as string[]) : [];
