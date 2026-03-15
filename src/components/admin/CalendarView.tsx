@@ -66,6 +66,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
     : [];
 
   const statusColor: Record<string, string> = {
+    pending: "bg-amber-500",
     scheduled: "bg-primary",
     confirmed: "bg-primary",
     in_progress: "bg-accent",
