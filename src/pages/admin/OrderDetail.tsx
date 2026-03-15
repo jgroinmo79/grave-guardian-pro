@@ -64,6 +64,7 @@ const AdminOrderDetail = () => {
   const [notes, setNotes] = useState("");
   const [addOns, setAddOns] = useState<string[]>([]);
   const [bundleId, setBundleId] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
 
   // Monument fields
   const [cemeteryName, setCemeteryName] = useState("");
