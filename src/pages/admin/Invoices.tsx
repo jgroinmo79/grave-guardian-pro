@@ -239,7 +239,7 @@ function CreateInvoiceDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               <SelectContent>
                 {orders?.map((o: any) => (
                   <SelectItem key={o.id} value={o.id}>
-                    {(o.profiles as any)?.full_name ?? (o.profiles as any)?.email ?? o.id.slice(0, 8)} — ${Number(o.total_price).toFixed(0)} — {(o.monuments as any)?.cemetery_name}
+                    {o.profile?.full_name ?? o.profile?.email ?? o.id.slice(0, 8)} — ${Number(o.total_price).toFixed(0)} — {(o.monuments as any)?.cemetery_name}
                   </SelectItem>
                 ))}
               </SelectContent>
