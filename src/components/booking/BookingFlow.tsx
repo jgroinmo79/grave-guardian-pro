@@ -10,11 +10,12 @@ import ConditionStep from "@/components/steps/ConditionStep";
 import IntentStep from "@/components/steps/IntentStep";
 import ServiceStep from "@/components/steps/ServiceStep";
 import AddOnsStep from "@/components/steps/AddOnsStep";
+import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
 import { IntakeFormData, initialFormData } from "@/lib/pricing";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 
 const BookingFlow = () => {
   const [step, setStep] = useState(0);
