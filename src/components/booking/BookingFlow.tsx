@@ -49,9 +49,11 @@ const BookingFlow = () => {
         return data.selectedOffer !== '';
       case 6: // Add-Ons
         return true;
-      case 7: // Consent
+      case 7: // Schedule Date
+        return true;
+      case 8: // Consent
         return data.consentBiological && data.consentAuthorize;
-      case 8: // Checkout
+      case 9: // Checkout
         return true;
       default:
         return true;
