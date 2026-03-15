@@ -118,15 +118,12 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
               </span>
               {dayOrders.length > 0 && (
                 <div className="mt-1 space-y-0.5">
-                  {dayOrders.slice(0, 3).map((o) => (
+                  {dayOrders.map((o) => (
                     <div
                       key={o.id}
                       className={cn("h-1.5 rounded-full", statusColor[o.status] ?? "bg-muted-foreground")}
                     />
                   ))}
-                  {dayOrders.length > 3 && (
-                    <span className="text-[9px] text-muted-foreground">+{dayOrders.length - 3}</span>
-                  )}
                 </div>
               )}
             </button>
