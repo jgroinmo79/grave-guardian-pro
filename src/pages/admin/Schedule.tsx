@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CalendarDays, List, Map, LayoutGrid } from "lucide-react";
+import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -11,6 +11,7 @@ import { CalendarView } from "@/components/admin/CalendarView";
 import { CemeteryRouteView } from "@/components/admin/CemeteryRouteView";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 const AdminSchedule = () => {
   const { toast } = useToast();
@@ -27,9 +28,26 @@ const AdminSchedule = () => {
           id, status, scheduled_date, total_price, offer, travel_fee,
           monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)
         `)
-        .in("status", ["pending", "confirmed", "scheduled", "in_progress"])
+        .in("status", ["pending", "confirmed", "scheduled", "in_progress", "completed"])
         .not("scheduled_date", "is", null)
         .order("scheduled_date", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: cancelledOrders } = useQuery({
+    queryKey: ["admin-cancelled-orders"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          id, status, scheduled_date, total_price, offer, travel_fee, created_at,
+          shopper_name, shopper_email, shopper_phone,
+          monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)
+        `)
+        .eq("status", "cancelled")
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -164,8 +182,14 @@ const AdminSchedule = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
-                          {o.status.replace(/_/g, " ")}
+                        <span className={cn(
+                          "text-xs px-2 py-0.5 rounded-full font-medium",
+                          o.status === "pending" && "bg-orange-500/20 text-orange-500",
+                          (o.status === "scheduled" || o.status === "confirmed") && "bg-emerald-500/20 text-emerald-600",
+                          o.status === "in_progress" && "bg-emerald-600/20 text-emerald-700",
+                          o.status === "completed" && "bg-red-500/20 text-red-500"
+                        )}>
+                          {o.status === "pending" ? "unconfirmed" : o.status.replace(/_/g, " ")}
                         </span>
                         <DatePickerButton orderId={o.id} currentDate={o.scheduled_date} />
                         <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
@@ -201,6 +225,52 @@ const AdminSchedule = () => {
                         <DatePickerButton orderId={o.id} currentDate={null} />
                         <span className="text-xs text-muted-foreground">
                           {new Date(o.created_at).toLocaleDateString()}
+                        </span>
+                        <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Cancelled Orders */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-destructive" />
+              Cancelled Orders
+            </h2>
+            {!cancelledOrders?.length ? (
+              <div className="rounded-xl border border-border bg-card p-6 text-center">
+                <p className="text-sm text-muted-foreground">No cancelled orders.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {cancelledOrders.map((o) => {
+                  const m = o.monuments as any;
+                  return (
+                    <div
+                      key={o.id}
+                      onClick={() => navigate(`/admin/orders/${o.id}`)}
+                      className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex flex-wrap items-center justify-between gap-4 cursor-pointer hover:bg-destructive/10 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-semibold text-sm">{m?.cemetery_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {m?.monument_type?.replace(/_/g, " ")} · {m?.material}
+                          {m?.section ? ` · Sec ${m.section}` : ""}
+                          {m?.lot_number ? `, Lot ${m.lot_number}` : ""}
+                        </p>
+                        {o.shopper_name && (
+                          <p className="text-xs text-muted-foreground">
+                            {o.shopper_name}{o.shopper_phone ? ` · ${o.shopper_phone}` : ""}{o.shopper_email ? ` · ${o.shopper_email}` : ""}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive font-medium">
+                          cancelled
                         </span>
                         <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
                       </div>

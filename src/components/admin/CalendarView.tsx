@@ -35,6 +35,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
         .from("orders")
         .select(`id, status, scheduled_date, total_price, offer, monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)`)
         .not("scheduled_date", "is", null)
+        .neq("status", "cancelled")
         .gte("scheduled_date", format(start, "yyyy-MM-dd"))
         .lte("scheduled_date", format(end, "yyyy-MM-dd"))
         .order("scheduled_date", { ascending: true });
@@ -66,11 +67,11 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
     : [];
 
   const statusColor: Record<string, string> = {
-    pending: "bg-amber-500",
-    scheduled: "bg-primary",
-    confirmed: "bg-primary",
-    in_progress: "bg-accent",
-    completed: "bg-primary/50",
+    pending: "bg-orange-500",
+    scheduled: "bg-emerald-500",
+    confirmed: "bg-emerald-500",
+    in_progress: "bg-emerald-600",
+    completed: "bg-red-500",
   };
 
   return (
@@ -156,11 +157,10 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
                       </p>
                       <span className={cn(
                         "text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap",
-                        o.status === "pending"
-                          ? "bg-amber-500/20 text-amber-500"
-                          : statusColor[o.status]
-                            ? `${statusColor[o.status]}/20 text-primary`
-                            : "bg-muted text-muted-foreground"
+                        o.status === "pending" && "bg-orange-500/20 text-orange-500",
+                        (o.status === "scheduled" || o.status === "confirmed" || o.status === "in_progress") && "bg-emerald-500/20 text-emerald-600",
+                        o.status === "completed" && "bg-red-500/20 text-red-500",
+                        !["pending","scheduled","confirmed","in_progress","completed"].includes(o.status) && "bg-muted text-muted-foreground"
                       )}>
                         {o.status === "pending" ? "unconfirmed" : o.status.replace(/_/g, " ")}
                       </span>
