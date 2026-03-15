@@ -158,7 +158,7 @@ const AdminSchedule = () => {
         <Button variant="outline" size="sm" className="text-xs gap-1.5">
           <CalendarDays className="w-3 h-3" />
           {currentDate
-            ? format(new Date(currentDate), "MMM d")
+            ? (() => { const [y,m,d] = currentDate.split("-").map(Number); return format(new Date(y, m-1, d), "MMM d"); })()
             : "Schedule"}
         </Button>
       </PopoverTrigger>
