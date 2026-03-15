@@ -234,6 +234,52 @@ const AdminSchedule = () => {
               </div>
             )}
           </div>
+
+          {/* Cancelled Orders */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-destructive" />
+              Cancelled Orders
+            </h2>
+            {!cancelledOrders?.length ? (
+              <div className="rounded-xl border border-border bg-card p-6 text-center">
+                <p className="text-sm text-muted-foreground">No cancelled orders.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {cancelledOrders.map((o) => {
+                  const m = o.monuments as any;
+                  return (
+                    <div
+                      key={o.id}
+                      onClick={() => navigate(`/admin/orders/${o.id}`)}
+                      className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex flex-wrap items-center justify-between gap-4 cursor-pointer hover:bg-destructive/10 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-semibold text-sm">{m?.cemetery_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {m?.monument_type?.replace(/_/g, " ")} · {m?.material}
+                          {m?.section ? ` · Sec ${m.section}` : ""}
+                          {m?.lot_number ? `, Lot ${m.lot_number}` : ""}
+                        </p>
+                        {o.shopper_name && (
+                          <p className="text-xs text-muted-foreground">
+                            {o.shopper_name}{o.shopper_phone ? ` · ${o.shopper_phone}` : ""}{o.shopper_email ? ` · ${o.shopper_email}` : ""}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive font-medium">
+                          cancelled
+                        </span>
+                        <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Route View */}
