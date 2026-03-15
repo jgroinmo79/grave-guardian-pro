@@ -138,6 +138,38 @@ const AdminOrderDetail = () => {
     }
   }, [order]);
 
+  // Auto-save status and scheduled date immediately
+  const quickSave = useMutation({
+    mutationFn: async (fields: { status?: OrderStatus; scheduled_date?: string | null }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update(fields)
+        .eq("id", id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-order-detail", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-scheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-unscheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
+      toast({ title: "Saved" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error saving", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const handleStatusChange = (v: string) => {
+    setStatus(v as OrderStatus);
+    quickSave.mutate({ status: v as OrderStatus });
+  };
+
+  const handleDateChange = (v: string) => {
+    setScheduledDate(v);
+    quickSave.mutate({ scheduled_date: v || null });
+  };
+
   const saveAll = useMutation({
     mutationFn: async () => {
       // Update order
@@ -253,7 +285,7 @@ const AdminOrderDetail = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs">Status</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
+            <Select value={status} onValueChange={handleStatusChange}>
               <SelectTrigger className="h-9 text-sm capitalize"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {ORDER_STATUSES.map((s) => (
@@ -267,7 +299,7 @@ const AdminOrderDetail = () => {
             <Input
               type="date"
               value={scheduledDate}
-              onChange={(e) => setScheduledDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               className="h-9 text-sm"
             />
           </div>
