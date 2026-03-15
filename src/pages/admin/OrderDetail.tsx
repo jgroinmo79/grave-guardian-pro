@@ -254,13 +254,22 @@ const AdminOrderDetail = () => {
           <div className="space-y-1.5">
             <Label className="text-xs">Status</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 text-sm capitalize"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {ORDER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s} className="text-sm">{s.replace(/_/g, " ")}</SelectItem>
+                  <SelectItem key={s} value={s} className="text-sm capitalize">{s.replace(/_/g, " ")}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Scheduled Date</Label>
+            <Input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              className="h-9 text-sm"
+            />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Offer</Label>
