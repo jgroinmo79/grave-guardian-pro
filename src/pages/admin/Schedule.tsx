@@ -71,20 +71,37 @@ const AdminSchedule = () => {
 
   const scheduleOrder = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
+      const newDate = format(date, "yyyy-MM-dd");
       const { error } = await supabase
         .from("orders")
         .update({
-          scheduled_date: format(date, "yyyy-MM-dd"),
+          scheduled_date: newDate,
           status: "scheduled" as const,
         })
         .eq("id", id);
       if (error) throw error;
+      return { id, newDate };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-scheduled-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-unscheduled-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+    onSuccess: (result) => {
+      // Update the scheduled orders cache in-place (no re-sort / no flicker)
+      queryClient.setQueryData(["admin-scheduled-orders"], (old: any[] | undefined) => {
+        if (!old) return old;
+        const exists = old.find((o) => o.id === result.id);
+        if (exists) {
+          return old.map((o) =>
+            o.id === result.id ? { ...o, scheduled_date: result.newDate, status: "scheduled" } : o
+          );
+        }
+        // Order was unscheduled before – just refetch
+        return old;
+      });
+      // Remove from unscheduled list if present
+      queryClient.setQueryData(["admin-unscheduled-orders"], (old: any[] | undefined) =>
+        old ? old.filter((o) => o.id !== result.id) : old
+      );
+      // Calendar & all-orders can do a background refetch
       queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
       toast({ title: "Order scheduled" });
       setOpenPopover(null);
     },
