@@ -287,10 +287,23 @@ const AdminSchedule = () => {
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive font-medium">
                           cancelled
                         </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs gap-1.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            reactivateOrder.mutate(o.id);
+                          }}
+                          disabled={reactivateOrder.isPending}
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Reactivate
+                        </Button>
                         <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
                       </div>
                     </div>
