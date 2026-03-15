@@ -72,7 +72,7 @@ export function CemeteryRouteView() {
                       <p className="text-muted-foreground">
                         {m?.section ? `Sec ${m.section}` : ""}
                         {m?.lot_number ? `, Lot ${m.lot_number}` : ""}
-                        {o.scheduled_date ? ` · ${new Date(o.scheduled_date).toLocaleDateString()}` : " · Unscheduled"}
+                        {o.scheduled_date ? ` · ${new Date(o.scheduled_date + "T00:00:00").toLocaleDateString()}` : " · Unscheduled"}
                       </p>
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
