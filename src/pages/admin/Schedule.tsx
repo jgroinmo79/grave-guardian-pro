@@ -28,9 +28,26 @@ const AdminSchedule = () => {
           id, status, scheduled_date, total_price, offer, travel_fee,
           monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)
         `)
-        .in("status", ["pending", "confirmed", "scheduled", "in_progress"])
+        .in("status", ["pending", "confirmed", "scheduled", "in_progress", "completed"])
         .not("scheduled_date", "is", null)
         .order("scheduled_date", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: cancelledOrders } = useQuery({
+    queryKey: ["admin-cancelled-orders"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          id, status, scheduled_date, total_price, offer, travel_fee, created_at,
+          shopper_name, shopper_email, shopper_phone,
+          monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)
+        `)
+        .eq("status", "cancelled")
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
