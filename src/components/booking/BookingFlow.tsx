@@ -10,11 +10,12 @@ import ConditionStep from "@/components/steps/ConditionStep";
 import IntentStep from "@/components/steps/IntentStep";
 import ServiceStep from "@/components/steps/ServiceStep";
 import AddOnsStep from "@/components/steps/AddOnsStep";
+import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
 import { IntakeFormData, initialFormData } from "@/lib/pricing";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 
 const BookingFlow = () => {
   const [step, setStep] = useState(0);
@@ -48,9 +49,11 @@ const BookingFlow = () => {
         return data.selectedOffer !== '';
       case 6: // Add-Ons
         return true;
-      case 7: // Consent
+      case 7: // Schedule Date
+        return true;
+      case 8: // Consent
         return data.consentBiological && data.consentAuthorize;
-      case 8: // Checkout
+      case 9: // Checkout
         return true;
       default:
         return true;
@@ -66,8 +69,9 @@ const BookingFlow = () => {
       case 4: return <IntentStep data={data} update={update} />;
       case 5: return <ServiceStep data={data} update={update} />;
       case 6: return <AddOnsStep data={data} update={update} />;
-      case 7: return <ConsentStep data={data} update={update} />;
-      case 8: return <CheckoutStep data={data} />;
+      case 7: return <ScheduleDateStep data={data} update={update} />;
+      case 8: return <ConsentStep data={data} update={update} />;
+      case 9: return <CheckoutStep data={data} />;
       default: return null;
     }
   };

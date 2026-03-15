@@ -187,6 +187,8 @@ export interface IntakeFormData {
   selectedBundle: string;
   // Step 6
   addOns: string[];
+  // Preferred date
+  preferredDate: Date | null;
   // Step 7
   consentBiological: boolean;
   consentAuthorize: boolean;
@@ -227,6 +229,7 @@ export const initialFormData: IntakeFormData = {
   selectedPlan: '',
   selectedBundle: '',
   addOns: [],
+  preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,
   consentPhotos: false,
