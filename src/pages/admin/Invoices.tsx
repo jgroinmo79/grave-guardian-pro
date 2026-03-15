@@ -159,13 +159,21 @@ function CreateInvoiceDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   const { data: orders } = useQuery({
     queryKey: ["admin-orders-for-invoice"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
-        .select("id, user_id, monument_id, total_price, offer, monuments (cemetery_name), profiles:user_id (full_name, email)")
+        .select("id, user_id, monument_id, total_price, offer, monuments (cemetery_name)")
         .order("created_at", { ascending: false })
         .limit(50);
-      if (error) throw error;
-      return data;
+      if (ordersError) throw ordersError;
+
+      // Fetch profiles separately since there's no FK between orders and profiles
+      const userIds = [...new Set(ordersData?.map((o) => o.user_id) ?? [])];
+      const { data: profiles } = userIds.length
+        ? await supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds)
+        : { data: [] };
+
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+      return (ordersData ?? []).map((o) => ({ ...o, profile: profileMap.get(o.user_id) ?? null }));
     },
   });
 
@@ -231,7 +239,7 @@ function CreateInvoiceDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               <SelectContent>
                 {orders?.map((o: any) => (
                   <SelectItem key={o.id} value={o.id}>
-                    {(o.profiles as any)?.full_name ?? (o.profiles as any)?.email ?? o.id.slice(0, 8)} — ${Number(o.total_price).toFixed(0)} — {(o.monuments as any)?.cemetery_name}
+                    {o.profile?.full_name ?? o.profile?.email ?? o.id.slice(0, 8)} — ${Number(o.total_price).toFixed(0)} — {(o.monuments as any)?.cemetery_name}
                   </SelectItem>
                 ))}
               </SelectContent>
