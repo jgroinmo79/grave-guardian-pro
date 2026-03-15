@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle } from "lucide-react";
+import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -87,6 +87,25 @@ const AdminSchedule = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
       toast({ title: "Order scheduled" });
       setOpenPopover(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const reactivateOrder = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "pending" as const, scheduled_date: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-cancelled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-unscheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      toast({ title: "Order reactivated", description: "Moved back to pending." });
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -268,10 +287,23 @@ const AdminSchedule = () => {
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/20 text-destructive font-medium">
                           cancelled
                         </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs gap-1.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            reactivateOrder.mutate(o.id);
+                          }}
+                          disabled={reactivateOrder.isPending}
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Reactivate
+                        </Button>
                         <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
                       </div>
                     </div>
