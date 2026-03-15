@@ -285,7 +285,7 @@ const AdminOrderDetail = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs">Status</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
+            <Select value={status} onValueChange={handleStatusChange}>
               <SelectTrigger className="h-9 text-sm capitalize"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {ORDER_STATUSES.map((s) => (
@@ -299,8 +299,9 @@ const AdminOrderDetail = () => {
             <Input
               type="date"
               value={scheduledDate}
-              onChange={(e) => setScheduledDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               className="h-9 text-sm"
+            />
             />
           </div>
           <div className="space-y-1.5">
