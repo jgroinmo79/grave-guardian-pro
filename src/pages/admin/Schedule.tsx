@@ -182,8 +182,14 @@ const AdminSchedule = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
-                          {o.status.replace(/_/g, " ")}
+                        <span className={cn(
+                          "text-xs px-2 py-0.5 rounded-full font-medium",
+                          o.status === "pending" && "bg-orange-500/20 text-orange-500",
+                          (o.status === "scheduled" || o.status === "confirmed") && "bg-emerald-500/20 text-emerald-600",
+                          o.status === "in_progress" && "bg-emerald-600/20 text-emerald-700",
+                          o.status === "completed" && "bg-red-500/20 text-red-500"
+                        )}>
+                          {o.status === "pending" ? "unconfirmed" : o.status.replace(/_/g, " ")}
                         </span>
                         <DatePickerButton orderId={o.id} currentDate={o.scheduled_date} />
                         <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
