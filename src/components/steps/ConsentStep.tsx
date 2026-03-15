@@ -13,7 +13,7 @@ const ConsentStep = ({ data, update }: Props) => {
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
         <ShieldCheck className="w-8 h-8 text-primary mx-auto mb-3" />
-        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 7</span>
+        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 8</span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Legal & Consent</h2>
         <p className="text-muted-foreground">Please review and agree to proceed</p>
       </div>
