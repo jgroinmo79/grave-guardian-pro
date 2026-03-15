@@ -157,11 +157,10 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
                       </p>
                       <span className={cn(
                         "text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap",
-                        o.status === "pending"
-                          ? "bg-amber-500/20 text-amber-500"
-                          : statusColor[o.status]
-                            ? `${statusColor[o.status]}/20 text-primary`
-                            : "bg-muted text-muted-foreground"
+                        o.status === "pending" && "bg-orange-500/20 text-orange-500",
+                        (o.status === "scheduled" || o.status === "confirmed" || o.status === "in_progress") && "bg-emerald-500/20 text-emerald-600",
+                        o.status === "completed" && "bg-red-500/20 text-red-500",
+                        !["pending","scheduled","confirmed","in_progress","completed"].includes(o.status) && "bg-muted text-muted-foreground"
                       )}>
                         {o.status === "pending" ? "unconfirmed" : o.status.replace(/_/g, " ")}
                       </span>
