@@ -64,6 +64,7 @@ const AdminOrderDetail = () => {
   const [notes, setNotes] = useState("");
   const [addOns, setAddOns] = useState<string[]>([]);
   const [bundleId, setBundleId] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
 
   // Monument fields
   const [cemeteryName, setCemeteryName] = useState("");
@@ -104,6 +105,7 @@ const AdminOrderDetail = () => {
     setIsVeteran(order.is_veteran ?? false);
     setNotes(order.notes ?? "");
     setBundleId(order.bundle_id ?? "");
+    setScheduledDate(order.scheduled_date ?? "");
     
     // Parse add_ons
     const parsedAddOns = Array.isArray(order.add_ons) ? (order.add_ons as string[]) : [];
@@ -153,6 +155,7 @@ const AdminOrderDetail = () => {
           notes: notes || null,
           add_ons: addOns as any,
           bundle_id: bundleId || null,
+          scheduled_date: scheduledDate || null,
         })
         .eq("id", id!);
       if (orderErr) throw orderErr;
@@ -251,13 +254,22 @@ const AdminOrderDetail = () => {
           <div className="space-y-1.5">
             <Label className="text-xs">Status</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 text-sm capitalize"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {ORDER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s} className="text-sm">{s.replace(/_/g, " ")}</SelectItem>
+                  <SelectItem key={s} value={s} className="text-sm capitalize">{s.replace(/_/g, " ")}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Scheduled Date</Label>
+            <Input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              className="h-9 text-sm"
+            />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Offer</Label>

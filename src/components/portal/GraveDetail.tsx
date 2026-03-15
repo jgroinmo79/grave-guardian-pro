@@ -320,17 +320,24 @@ const GraveDetail = ({ monumentId }: GraveDetailProps) => {
           ) : (
             <div className="space-y-3">
               {orders.map((o) => (
-                <div key={o.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-xs font-mono text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                    <p className="text-sm">Offer {o.offer} · {new Date(o.created_at).toLocaleDateString()}</p>
+                <div key={o.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs font-mono text-muted-foreground">#{o.id.slice(0, 8)}</p>
+                      <p className="text-sm">{o.offer === "A" ? "Essential Clean" : "Full Service Clean"} · {new Date(o.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[o.status]}`}>
+                        {o.status.replace(/_/g, " ")}
+                      </span>
+                      <p className="font-display font-bold text-sm">${Number(o.total_price).toFixed(2)}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[o.status]}`}>
-                      {o.status.replace(/_/g, " ")}
-                    </span>
-                    <p className="font-display font-bold text-sm">${Number(o.total_price).toFixed(2)}</p>
-                  </div>
+                  {o.scheduled_date && (
+                    <p className="text-xs text-muted-foreground">
+                      📅 Scheduled for <span className="font-medium text-foreground">{new Date(o.scheduled_date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</span>
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
