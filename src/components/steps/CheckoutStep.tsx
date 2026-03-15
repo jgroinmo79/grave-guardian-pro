@@ -84,7 +84,7 @@ const CheckoutStep = ({ data }: Props) => {
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
         <CreditCard className="w-8 h-8 text-primary mx-auto mb-3" />
-        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 8</span>
+        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 9</span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Review & Checkout</h2>
         <p className="text-muted-foreground">Review your order before payment</p>
       </div>
