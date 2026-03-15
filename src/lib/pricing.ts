@@ -187,6 +187,8 @@ export interface IntakeFormData {
   selectedBundle: string;
   // Step 6
   addOns: string[];
+  // Preferred date
+  preferredDate: Date | null;
   // Step 7
   consentBiological: boolean;
   consentAuthorize: boolean;
