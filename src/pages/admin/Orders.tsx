@@ -136,7 +136,7 @@ const AdminOrders = () => {
 
                    {order.scheduled_date && (
                      <p className="text-xs text-muted-foreground">
-                       📅 {new Date(order.scheduled_date).toLocaleDateString()}
+                       📅 {(() => { const [y, m, d] = order.scheduled_date!.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString(); })()}
                      </p>
                    )}
 
