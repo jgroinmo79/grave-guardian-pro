@@ -60,7 +60,7 @@ const Index = () => {
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6 font-semibold">
               Benton, Missouri
             </p>
-            <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-32 sm:h-40 md:h-48 mx-auto mb-6 invert brightness-200" />
+            <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-32 sm:h-40 md:h-48 mx-auto mb-6" />
             <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-10 leading-relaxed">
               Time Takes a Toll. We Take It Back.
             </p>
