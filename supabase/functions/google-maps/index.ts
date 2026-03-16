@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CAPE_GIRARDEAU = "37.3059,-89.5181"; // lat,lng
+const BENTON_MO = "37.0978,-89.5625"; // lat,lng
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
