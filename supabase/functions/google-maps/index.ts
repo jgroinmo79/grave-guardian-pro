@@ -48,8 +48,19 @@ Deno.serve(async (req) => {
       );
       const data = await res.json();
 
+      // Strict filter: only return results matching cemetery/church keywords
+      const allowedKeywords = [
+        "cemetery", "church", "memorial", "funeral", "burial",
+        "graveyard", "mausoleum", "mortuary", "chapel", "parish",
+        "tabernacle", "temple", "synagogue", "mosque",
+      ];
+      const filtered = (data.predictions || []).filter((p: any) => {
+        const desc = p.description.toLowerCase();
+        return allowedKeywords.some((kw) => desc.includes(kw));
+      });
+
       return new Response(JSON.stringify({
-        predictions: (data.predictions || []).map((p: any) => ({
+        predictions: filtered.map((p: any) => ({
           place_id: p.place_id,
           description: p.description,
         })),
