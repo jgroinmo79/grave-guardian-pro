@@ -83,7 +83,6 @@ const BookingFlow = () => {
         <div className="text-center mb-2">
           <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 mx-auto mb-1 invert brightness-200" />
         </div>
-        </div>
 
         <BookingProgress currentStep={step} totalSteps={TOTAL_STEPS} />
 
