@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         input,
         types: "establishment",
         keyword: "cemetery church",
-        location: CAPE_GIRARDEAU,
+        location: BENTON_MO,
         radius: "250000", // 250km radius
         key: apiKey,
       });
