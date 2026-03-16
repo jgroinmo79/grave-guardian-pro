@@ -128,7 +128,7 @@ export const FLOWER_OPTIONS = [
 ];
 
 export const TRAVEL_ZONES_BOOKING = [
-  { label: 'Zone 1', range: '0–25 miles from Cape Girardeau', fee: 'No charge' },
+  { label: 'Zone 1', range: '0–25 miles from Benton', fee: 'No charge' },
   { label: 'Zone 2', range: '26–50 miles', fee: '$35' },
   { label: 'Zone 3', range: '51–75 miles', fee: '$70' },
   { label: 'Zone 4', range: '76–100 miles', fee: '$105' },

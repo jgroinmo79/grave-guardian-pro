@@ -33,7 +33,7 @@ const CemeteryMap = ({ lat, lng, onMapClick, satellite = false }: Props) => {
     if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
-      center: lat && lng ? [lat, lng] : CAPE_GIRARDEAU,
+      center: lat && lng ? [lat, lng] : BENTON_MO,
       zoom: lat && lng ? 16 : 8,
       scrollWheelZoom: true,
     });
