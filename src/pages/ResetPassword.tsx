@@ -64,7 +64,7 @@ const ResetPassword = () => {
     <div className="min-h-screen gradient-dark flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
-          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-16 mx-auto mb-1 invert brightness-200" />
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-16 mx-auto mb-1" />
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-6">
