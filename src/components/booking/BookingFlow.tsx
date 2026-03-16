@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import logo from "@/assets/logo.png";
 import BookingProgress from "./BookingProgress";
 import CemeteryStep from "@/components/steps/CemeteryStep";
 import ContactStep from "@/components/steps/ContactStep";
@@ -80,10 +81,7 @@ const BookingFlow = () => {
     <div className="min-h-screen gradient-dark">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="text-center mb-2">
-          <h1 className="font-display text-xl font-bold">
-            <span className="text-gradient-patina">Grave Detail</span>
-          </h1>
-          <p className="text-xs text-muted-foreground">Cleaning & Preservation</p>
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 mx-auto mb-1 invert brightness-200" />
         </div>
 
         <BookingProgress currentStep={step} totalSteps={TOTAL_STEPS} />

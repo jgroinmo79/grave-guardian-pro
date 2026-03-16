@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -63,9 +64,7 @@ const ResetPassword = () => {
     <div className="min-h-screen gradient-dark flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
-          <h1 className="font-display text-2xl font-bold">
-            <span className="text-gradient-patina">Grave Detail</span>
-          </h1>
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-16 mx-auto mb-1 invert brightness-200" />
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-6">

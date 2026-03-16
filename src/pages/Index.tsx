@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import IntakeFlow from "@/components/IntakeFlow";
 import { Shield, Star, Clock, ChevronRight, LogOut, User, Settings } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -59,11 +60,7 @@ const Index = () => {
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6 font-semibold">
               Benton, Missouri
             </p>
-            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.1] mb-6">
-              Grave Detail{" "}
-              <span className="text-gradient-patina">Cleaning &amp; Preservation</span>
-              <span className="block text-lg sm:text-xl font-semibold text-muted-foreground mt-2 tracking-wide">LLC</span>
-            </h1>
+            <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-32 sm:h-40 md:h-48 mx-auto mb-6 invert brightness-200" />
             <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-10 leading-relaxed">
               Time Takes a Toll. We Take It Back.
             </p>
