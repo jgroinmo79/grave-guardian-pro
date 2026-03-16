@@ -29,6 +29,9 @@ const CemeteryStep = ({ data, update }: Props) => {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [reverseAddress, setReverseAddress] = useState("");
+  const [reverseLoading, setReverseLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 350);
 
@@ -82,7 +85,6 @@ const CemeteryStep = ({ data, update }: Props) => {
     setIsOpen(false);
     setPredictions([]);
 
-    // Get lat/lng + distance
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -111,8 +113,38 @@ const CemeteryStep = ({ data, update }: Props) => {
     }
   }, [update]);
 
-  const handleMapClick = useCallback((lat: number, lng: number) => {
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
     update({ cemeteryLat: lat, cemeteryLng: lng });
+
+    // Reverse geocode to get address
+    setReverseLoading(true);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const geocodeUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=reverse_geocode&lat=${lat}&lng=${lng}`;
+      const res = await fetch(geocodeUrl, {
+        headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
+      });
+      const json = await res.json();
+      const address = json.formatted_address || "";
+      setReverseAddress(address);
+      update({ cemeteryName: address });
+
+      // Also get distance from coordinates
+      const distUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance_latlng&lat=${lat}&lng=${lng}`;
+      const distRes = await fetch(distUrl, {
+        headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
+      });
+      const distJson = await distRes.json();
+      if (distJson.miles !== undefined) {
+        update({ estimatedMiles: distJson.miles });
+      }
+    } catch (err) {
+      console.error("Reverse geocode error:", err);
+    } finally {
+      setReverseLoading(false);
+    }
   }, [update]);
 
   return (
@@ -123,7 +155,7 @@ const CemeteryStep = ({ data, update }: Props) => {
           <span className="text-sm font-semibold uppercase tracking-widest">Step 1</span>
         </div>
         <h2 className="text-3xl font-display font-bold mb-2">Cemetery Location</h2>
-        <p className="text-muted-foreground">Search for the cemetery or drop a pin on the map</p>
+        <p className="text-muted-foreground">Search for the cemetery where the monument is located</p>
       </div>
 
       <div className="max-w-md mx-auto space-y-5">
@@ -133,7 +165,7 @@ const CemeteryStep = ({ data, update }: Props) => {
           <div className="relative">
             <Input
               id="cemetery"
-              placeholder="Start typing a cemetery name..."
+              placeholder="Start typing a cemetery or church name..."
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -165,18 +197,50 @@ const CemeteryStep = ({ data, update }: Props) => {
               ))}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">Search or drop a pin on the satellite map below</p>
         </div>
 
-        {/* Interactive Satellite Map */}
-        <div className="rounded-lg overflow-hidden border border-border">
-          <CemeteryMap
-            lat={data.cemeteryLat ?? null}
-            lng={data.cemeteryLng ?? null}
-            onMapClick={handleMapClick}
-            satellite
-          />
-        </div>
+        {/* Toggle map link */}
+        {!showMap && (
+          <button
+            type="button"
+            onClick={() => setShowMap(true)}
+            className="text-sm text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+          >
+            Can't find your cemetery? Drop a pin on the map.
+          </button>
+        )}
+
+        {/* Map + reverse geocoded address */}
+        {showMap && (
+          <div className="space-y-3 animate-fade-in">
+            <p className="text-sm text-muted-foreground">Tap or click the map to drop a pin at the cemetery location.</p>
+            <div className="rounded-lg overflow-hidden border border-border">
+              <CemeteryMap
+                lat={data.cemeteryLat ?? null}
+                lng={data.cemeteryLng ?? null}
+                onMapClick={handleMapClick}
+                satellite
+              />
+            </div>
+            {/* Reverse geocoded address */}
+            {(reverseAddress || reverseLoading) && (
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Pin Location Address</Label>
+                <div className="relative">
+                  <Input
+                    readOnly
+                    value={reverseAddress}
+                    placeholder="Drop a pin to get the address..."
+                    className="bg-muted border-border text-muted-foreground cursor-default"
+                  />
+                  {reverseLoading && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
