@@ -112,7 +112,7 @@ const Auth = () => {
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-16 mx-auto mb-1" />
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="w-full max-w-sm mx-auto mb-1" />
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-6">
