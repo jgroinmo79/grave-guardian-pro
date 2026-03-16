@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import IntakeFlow from "@/components/IntakeFlow";
 import { Shield, Star, Clock, ChevronRight, LogOut, User, Settings } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
