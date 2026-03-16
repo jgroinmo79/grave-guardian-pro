@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       }
 
       const params = new URLSearchParams({
-        origins: CAPE_GIRARDEAU,
+        origins: BENTON_MO,
         destinations: `place_id:${placeId}`,
         units: "imperial",
         key: apiKey,
