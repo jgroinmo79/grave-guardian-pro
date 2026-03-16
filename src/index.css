@@ -4,53 +4,53 @@
 
 @layer base {
   :root {
-    --background: 220 15% 10%;
-    --foreground: 40 15% 90%;
+    --background: 0 0% 11%;
+    --foreground: 40 33% 94%;
 
-    --card: 220 14% 13%;
-    --card-foreground: 40 15% 90%;
+    --card: 0 0% 14%;
+    --card-foreground: 40 33% 94%;
 
-    --popover: 220 14% 13%;
-    --popover-foreground: 40 15% 90%;
+    --popover: 0 0% 14%;
+    --popover-foreground: 40 33% 94%;
 
-    --primary: 155 30% 38%;
-    --primary-foreground: 40 20% 96%;
+    --primary: 32 38% 40%;
+    --primary-foreground: 40 33% 94%;
 
-    --secondary: 220 12% 18%;
-    --secondary-foreground: 40 15% 85%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 40 33% 88%;
 
-    --muted: 220 10% 22%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 44%;
 
-    --accent: 35 45% 48%;
-    --accent-foreground: 35 60% 95%;
+    --accent: 93 15% 38%;
+    --accent-foreground: 40 33% 94%;
 
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 12% 20%;
-    --input: 220 12% 20%;
-    --ring: 155 30% 38%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 32 38% 40%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 15% 8%;
-    --sidebar-foreground: 40 15% 90%;
-    --sidebar-primary: 155 30% 38%;
-    --sidebar-primary-foreground: 40 20% 96%;
-    --sidebar-accent: 220 12% 16%;
-    --sidebar-accent-foreground: 40 15% 90%;
-    --sidebar-border: 220 12% 18%;
-    --sidebar-ring: 155 30% 38%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 40 33% 94%;
+    --sidebar-primary: 32 38% 40%;
+    --sidebar-primary-foreground: 40 33% 94%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 40 33% 94%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 32 38% 40%;
 
     /* Custom tokens */
-    --patina: 155 30% 38%;
-    --patina-light: 155 25% 50%;
-    --bronze: 35 45% 48%;
-    --bronze-light: 35 50% 60%;
-    --granite: 220 8% 30%;
-    --granite-light: 220 8% 40%;
-    --charcoal-deep: 220 15% 6%;
+    --patina: 93 15% 38%;
+    --patina-light: 93 15% 48%;
+    --bronze: 32 38% 40%;
+    --bronze-light: 32 42% 52%;
+    --granite: 0 0% 44%;
+    --granite-light: 0 0% 54%;
+    --charcoal-deep: 0 0% 6%;
   }
 
   * {
