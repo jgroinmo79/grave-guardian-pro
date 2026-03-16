@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       const params = new URLSearchParams({
         input,
         types: "establishment",
-        keyword: "cemetery",
+        keyword: "cemetery church",
         location: CAPE_GIRARDEAU,
         radius: "250000", // 250km radius
         key: apiKey,
@@ -130,6 +130,85 @@ Deno.serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Reverse geocode: lat/lng → formatted address
+    if (action === "reverse_geocode") {
+      const lat = url.searchParams.get("lat");
+      const lng = url.searchParams.get("lng");
+      if (!lat || !lng) {
+        return new Response(JSON.stringify({ error: "lat and lng required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const params = new URLSearchParams({
+        latlng: `${lat},${lng}`,
+        key: apiKey,
+      });
+
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?${params}`
+      );
+      const data = await res.json();
+      const result = data.results?.[0];
+
+      if (!result) {
+        return new Response(JSON.stringify({ error: "No address found", formatted_address: "" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({
+        formatted_address: result.formatted_address,
+        place_id: result.place_id,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Distance from lat/lng coordinates (no place_id needed)
+    if (action === "distance_latlng") {
+      const lat = url.searchParams.get("lat");
+      const lng = url.searchParams.get("lng");
+      if (!lat || !lng) {
+        return new Response(JSON.stringify({ error: "lat and lng required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const params = new URLSearchParams({
+        origins: CAPE_GIRARDEAU,
+        destinations: `${lat},${lng}`,
+        units: "imperial",
+        key: apiKey,
+      });
+
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
+      );
+      const data = await res.json();
+
+      const element = data.rows?.[0]?.elements?.[0];
+      if (element?.status !== "OK") {
+        return new Response(JSON.stringify({ error: "Could not calculate distance", raw: element }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const miles = Math.round(element.distance.value / 1609.34);
+
+      return new Response(JSON.stringify({
+        miles,
+        distance_text: element.distance.text,
+        duration_text: element.duration.text,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
