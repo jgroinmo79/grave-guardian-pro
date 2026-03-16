@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import logo from "@/assets/logo.png";
 import BookingProgress from "./BookingProgress";
 import CemeteryStep from "@/components/steps/CemeteryStep";
 import ContactStep from "@/components/steps/ContactStep";
