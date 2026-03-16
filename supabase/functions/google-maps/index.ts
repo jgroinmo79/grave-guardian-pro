@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CAPE_GIRARDEAU = "37.3059,-89.5181"; // lat,lng
+const BENTON_MO = "37.0978,-89.5625"; // lat,lng
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         input,
         types: "establishment",
         keyword: "cemetery church",
-        location: CAPE_GIRARDEAU,
+        location: BENTON_MO,
         radius: "250000", // 250km radius
         key: apiKey,
       });
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get distance from Cape Girardeau to a place
+    // Get distance from Benton, MO to a place
     if (action === "distance") {
       const placeId = url.searchParams.get("place_id");
       if (!placeId) {
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       }
 
       const params = new URLSearchParams({
-        origins: CAPE_GIRARDEAU,
+        origins: BENTON_MO,
         destinations: `place_id:${placeId}`,
         units: "imperial",
         key: apiKey,
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
       }
 
       const params = new URLSearchParams({
-        origins: CAPE_GIRARDEAU,
+        origins: BENTON_MO,
         destinations: `${lat},${lng}`,
         units: "imperial",
         key: apiKey,

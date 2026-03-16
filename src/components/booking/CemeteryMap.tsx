@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const CAPE_GIRARDEAU: [number, number] = [37.3059, -89.5181];
+const BENTON_MO: [number, number] = [37.0978, -89.5625];
 
 interface Props {
   lat: number | null;
@@ -33,7 +33,7 @@ const CemeteryMap = ({ lat, lng, onMapClick, satellite = false }: Props) => {
     if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
-      center: lat && lng ? [lat, lng] : CAPE_GIRARDEAU,
+      center: lat && lng ? [lat, lng] : BENTON_MO,
       zoom: lat && lng ? 16 : 8,
       scrollWheelZoom: true,
     });
