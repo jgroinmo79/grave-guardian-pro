@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get distance from Cape Girardeau to a place
+    // Get distance from Benton, MO to a place
     if (action === "distance") {
       const placeId = url.searchParams.get("place_id");
       if (!placeId) {
