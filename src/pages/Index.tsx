@@ -57,7 +57,7 @@ const Index = () => {
             transition={{ duration: 0.8 }}
           >
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6 font-semibold">
-              Cape Girardeau, Missouri
+              Benton, Missouri
             </p>
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.1] mb-6">
               Grave Detail{" "}
