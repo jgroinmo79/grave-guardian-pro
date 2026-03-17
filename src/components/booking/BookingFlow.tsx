@@ -67,8 +67,8 @@ const BookingFlow = () => {
       case 1: return <ContactStep data={data} update={update} />;
       case 2: return <MonumentStep data={data} update={update} />;
       case 3: return <ConditionStep data={data} update={update} />;
-      case 4: return <IntentStep data={data} update={update} />;
-      case 5: return <ServiceStep data={data} update={update} />;
+      case 4: return <ServiceStep data={data} update={update} />;
+      case 5: return <IntentStep data={data} update={update} />;
       case 6: return <AddOnsStep data={data} update={update} />;
       case 7: return <ScheduleDateStep data={data} update={update} />;
       case 8: return <ConsentStep data={data} update={update} />;
