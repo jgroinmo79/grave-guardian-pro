@@ -95,16 +95,17 @@ const ServiceStep = ({ data, update }: Props) => {
                 Best Value
               </span>
               <p className="font-display font-bold text-xl mt-1">Restoration Clean</p>
+              <p className="text-xs text-muted-foreground mt-1">Deep clean plus biological treatment that prevents regrowth</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerB}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Standard Clean
+                  <Check className="w-3.5 h-3.5 text-[#C9A84C] mt-0.5 shrink-0" /> Everything in Standard Clean
                 </li>
                 {OFFER_B_EXTRAS.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Shield className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" /> {f}
+                    <Check className="w-3.5 h-3.5 text-[#C9A84C] mt-0.5 shrink-0" /> {f}
                   </li>
                 ))}
               </ul>
