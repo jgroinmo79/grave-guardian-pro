@@ -158,33 +158,45 @@ const MonumentStep = ({ data, update }: Props) => {
         {/* Non-veteran flow */}
         {!data.isVeteran && (
           <>
-            {/* Monument Type Grid */}
+            {/* Consolidated Monument Type Grid */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">Monument Type</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {(Object.entries(MONUMENT_PRICES) as [MonumentType, typeof MONUMENT_PRICES[MonumentType]][]).map(
-                  ([key, val]) => {
-                    const { icon: Icon, style } = MONUMENT_ICONS[key];
-                    const selected = data.monumentType === key;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => update({ monumentType: key })}
-                        className={`p-4 rounded-lg border text-left transition-all ${
-                          selected
-                            ? "border-primary bg-primary/10 shadow-patina"
-                            : "border-border bg-secondary/50 hover:border-muted-foreground/40"
-                        }`}
-                      >
-                        <Icon className={`w-6 h-6 mb-2 ${style} ${selected ? "text-primary" : "text-muted-foreground"}`} />
-                        <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{val.label}</p>
-                        <p className="text-xs text-muted-foreground">{val.description}</p>
-                      </button>
-                    );
-                  }
-                )}
+              <div className="grid grid-cols-2 gap-3">
+                {CONSOLIDATED_MONUMENTS.map((m) => {
+                  const selected = selectedGroup === m.id;
+                  const Icon = m.icon;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => handleGroupSelect(m.id)}
+                      className={`p-4 rounded-lg border text-left transition-all ${
+                        selected
+                          ? "border-primary bg-primary/10 shadow-patina"
+                          : "border-border bg-secondary/50 hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <Icon className={`w-6 h-6 mb-2 ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{m.label}</p>
+                      <p className="text-xs text-muted-foreground">{m.subtitle}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Other / Unique description */}
+            {selectedGroup === 'other' && (
+              <div className="space-y-2">
+                <Label htmlFor="other-desc" className="text-sm font-medium">Briefly describe your monument</Label>
+                <Input
+                  id="other-desc"
+                  placeholder="e.g. Bronze plaque on granite base"
+                  value={otherDescription}
+                  onChange={(e) => setOtherDescription(e.target.value)}
+                  className="bg-secondary border-border"
+                />
+              </div>
+            )}
 
             {/* Material */}
             <div className="space-y-3">
