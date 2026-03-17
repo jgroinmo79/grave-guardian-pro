@@ -1,23 +1,23 @@
-import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType, MONUMENT_PRICES } from "@/lib/pricing";
+import { useState } from "react";
+import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType } from "@/lib/pricing";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Square, RectangleHorizontal, Columns2, Medal } from "lucide-react";
+import { Square, RectangleHorizontal, Landmark, Shapes, Medal } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
   update: (d: Partial<IntakeFormData>) => void;
 }
 
-const MONUMENT_ICONS: Record<MonumentType, { icon: typeof Square; style: string }> = {
-  single_upright: { icon: Square, style: 'rotate-0' },
-  flat_marker: { icon: RectangleHorizontal, style: 'rotate-0' },
-  double_companion: { icon: Columns2, style: 'rotate-0' },
-  monument_base: { icon: Square, style: 'rotate-0' },
-  bronze_plaque: { icon: RectangleHorizontal, style: 'rotate-0' },
-  obelisk_unique: { icon: Square, style: '-rotate-12' },
-  mausoleum_panel: { icon: RectangleHorizontal, style: 'rotate-0' },
-};
+type ConsolidatedType = 'upright' | 'flat' | 'large' | 'other';
+
+const CONSOLIDATED_MONUMENTS: { id: ConsolidatedType; label: string; subtitle: string; icon: typeof Square; dbValue: MonumentType }[] = [
+  { id: 'upright', label: 'Upright Headstone', subtitle: 'Standard standing headstone', icon: Square, dbValue: 'single_upright' },
+  { id: 'flat', label: 'Flat / Flush Marker', subtitle: 'Ground-level marker', icon: RectangleHorizontal, dbValue: 'flat_marker' },
+  { id: 'large', label: 'Large Monument', subtitle: 'Double stone, monument with base, or obelisk', icon: Landmark, dbValue: 'monument_base' },
+  { id: 'other', label: 'Other / Unique', subtitle: 'Mausoleum panel, bronze plaque, or custom shape', icon: Shapes, dbValue: 'obelisk_unique' },
+];
 
 const MATERIALS: { value: MaterialType; label: string }[] = [
   { value: 'granite', label: 'Granite' },
