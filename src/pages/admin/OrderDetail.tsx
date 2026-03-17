@@ -308,8 +308,8 @@ const AdminOrderDetail = () => {
             <Select value={offer} onValueChange={(v) => setOffer(v as OfferType)}>
               <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="A">Essential Clean</SelectItem>
-                <SelectItem value="B">Full Service Clean</SelectItem>
+                <SelectItem value="A">Standard Clean</SelectItem>
+                <SelectItem value="B">Restoration Clean</SelectItem>
               </SelectContent>
             </Select>
           </div>

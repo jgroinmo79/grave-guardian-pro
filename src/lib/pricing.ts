@@ -116,7 +116,7 @@ export const SEASONAL_BUNDLES = [
     id: 'memorial_day',
     label: 'The Memorial Day Bundle',
     price: 325,
-    description: 'Honor their service. Full Offer B cleaning, American flag placement, seasonal flower arrangement, condition report. Scheduled the week of Memorial Day.',
+    description: 'Honor their service. Full restoration cleaning, American flag placement, seasonal flower arrangement, condition report. Scheduled the week of Memorial Day.',
     savings: null,
   },
   {

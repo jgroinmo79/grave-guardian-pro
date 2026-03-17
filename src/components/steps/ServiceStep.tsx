@@ -68,7 +68,7 @@ const ServiceStep = ({ data, update }: Props) => {
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
-              <p className="font-display font-bold text-xl mt-1">Essential Clean</p>
+              <p className="font-display font-bold text-xl mt-1">Standard Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerA}
               </p>
@@ -93,13 +93,13 @@ const ServiceStep = ({ data, update }: Props) => {
               <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full">
                 Best Value
               </span>
-              <p className="font-display font-bold text-xl mt-1">Full Service Clean</p>
+              <p className="font-display font-bold text-xl mt-1">Restoration Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerB}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Essential Clean
+                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Standard Clean
                 </li>
                 {OFFER_B_EXTRAS.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">

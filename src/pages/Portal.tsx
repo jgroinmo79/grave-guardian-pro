@@ -335,7 +335,7 @@ const Portal = () => {
                       <div className="space-y-1">
                         <p className="text-xs font-mono text-muted-foreground">#{o.id.slice(0, 8)}</p>
                         <p className="text-sm font-semibold">
-                          {o.offer === "A" ? "Essential Clean" : "Full Service Clean"}
+                          {o.offer === "A" ? "Standard Clean" : "Restoration Clean"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Ordered {new Date(o.created_at).toLocaleDateString()}
