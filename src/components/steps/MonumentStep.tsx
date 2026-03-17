@@ -1,23 +1,23 @@
-import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType, MONUMENT_PRICES } from "@/lib/pricing";
+import { useState } from "react";
+import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType } from "@/lib/pricing";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Square, RectangleHorizontal, Columns2, Medal } from "lucide-react";
+import { Square, RectangleHorizontal, Landmark, Shapes, Medal } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
   update: (d: Partial<IntakeFormData>) => void;
 }
 
-const MONUMENT_ICONS: Record<MonumentType, { icon: typeof Square; style: string }> = {
-  single_upright: { icon: Square, style: 'rotate-0' },
-  flat_marker: { icon: RectangleHorizontal, style: 'rotate-0' },
-  double_companion: { icon: Columns2, style: 'rotate-0' },
-  monument_base: { icon: Square, style: 'rotate-0' },
-  bronze_plaque: { icon: RectangleHorizontal, style: 'rotate-0' },
-  obelisk_unique: { icon: Square, style: '-rotate-12' },
-  mausoleum_panel: { icon: RectangleHorizontal, style: 'rotate-0' },
-};
+type ConsolidatedType = 'upright' | 'flat' | 'large' | 'other';
+
+const CONSOLIDATED_MONUMENTS: { id: ConsolidatedType; label: string; subtitle: string; icon: typeof Square; dbValue: MonumentType }[] = [
+  { id: 'upright', label: 'Upright Headstone', subtitle: 'Standard standing headstone', icon: Square, dbValue: 'single_upright' },
+  { id: 'flat', label: 'Flat / Flush Marker', subtitle: 'Ground-level marker', icon: RectangleHorizontal, dbValue: 'flat_marker' },
+  { id: 'large', label: 'Large Monument', subtitle: 'Double stone, monument with base, or obelisk', icon: Landmark, dbValue: 'monument_base' },
+  { id: 'other', label: 'Other / Unique', subtitle: 'Mausoleum panel, bronze plaque, or custom shape', icon: Shapes, dbValue: 'obelisk_unique' },
+];
 
 const MATERIALS: { value: MaterialType; label: string }[] = [
   { value: 'granite', label: 'Granite' },
@@ -39,10 +39,32 @@ const VA_MATERIALS: { value: VeteranMaterialType; label: string }[] = [
 ];
 
 const MonumentStep = ({ data, update }: Props) => {
+  // Determine which consolidated type is currently selected based on DB value
+  const getConsolidatedFromDb = (dbVal: MonumentType | ''): ConsolidatedType | '' => {
+    if (!dbVal) return '';
+    const match = CONSOLIDATED_MONUMENTS.find(c => c.dbValue === dbVal);
+    if (match) return match.id;
+    // If stored value matches a large monument variant
+    if (['double_companion', 'monument_base', 'obelisk_unique'].includes(dbVal)) return 'large';
+    if (['mausoleum_panel', 'bronze_plaque'].includes(dbVal)) return 'other';
+    return '';
+  };
+
+  const [selectedGroup, setSelectedGroup] = useState<ConsolidatedType | ''>(getConsolidatedFromDb(data.monumentType));
+  const [otherDescription, setOtherDescription] = useState('');
+
+  const handleGroupSelect = (group: ConsolidatedType) => {
+    setSelectedGroup(group);
+    const consolidated = CONSOLIDATED_MONUMENTS.find(c => c.id === group)!;
+    update({ monumentType: consolidated.dbValue });
+    if (group !== 'other') setOtherDescription('');
+  };
+
   const handleVeteranToggle = (isVet: boolean) => {
+    setSelectedGroup('');
+    setOtherDescription('');
     update({
       isVeteran: isVet,
-      // Reset type/material selections when toggling
       veteranMonumentType: '',
       veteranMaterial: '',
       monumentType: '',
@@ -136,33 +158,45 @@ const MonumentStep = ({ data, update }: Props) => {
         {/* Non-veteran flow */}
         {!data.isVeteran && (
           <>
-            {/* Monument Type Grid */}
+            {/* Consolidated Monument Type Grid */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">Monument Type</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {(Object.entries(MONUMENT_PRICES) as [MonumentType, typeof MONUMENT_PRICES[MonumentType]][]).map(
-                  ([key, val]) => {
-                    const { icon: Icon, style } = MONUMENT_ICONS[key];
-                    const selected = data.monumentType === key;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => update({ monumentType: key })}
-                        className={`p-4 rounded-lg border text-left transition-all ${
-                          selected
-                            ? "border-primary bg-primary/10 shadow-patina"
-                            : "border-border bg-secondary/50 hover:border-muted-foreground/40"
-                        }`}
-                      >
-                        <Icon className={`w-6 h-6 mb-2 ${style} ${selected ? "text-primary" : "text-muted-foreground"}`} />
-                        <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{val.label}</p>
-                        <p className="text-xs text-muted-foreground">{val.description}</p>
-                      </button>
-                    );
-                  }
-                )}
+              <div className="grid grid-cols-2 gap-3">
+                {CONSOLIDATED_MONUMENTS.map((m) => {
+                  const selected = selectedGroup === m.id;
+                  const Icon = m.icon;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => handleGroupSelect(m.id)}
+                      className={`p-4 rounded-lg border text-left transition-all ${
+                        selected
+                          ? "border-primary bg-primary/10 shadow-patina"
+                          : "border-border bg-secondary/50 hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <Icon className={`w-6 h-6 mb-2 ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                      <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{m.label}</p>
+                      <p className="text-xs text-muted-foreground">{m.subtitle}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Other / Unique description */}
+            {selectedGroup === 'other' && (
+              <div className="space-y-2">
+                <Label htmlFor="other-desc" className="text-sm font-medium">Briefly describe your monument</Label>
+                <Input
+                  id="other-desc"
+                  placeholder="e.g. Bronze plaque on granite base"
+                  value={otherDescription}
+                  onChange={(e) => setOtherDescription(e.target.value)}
+                  className="bg-secondary border-border"
+                />
+              </div>
+            )}
 
             {/* Material */}
             <div className="space-y-3">
