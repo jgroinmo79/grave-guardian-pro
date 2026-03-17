@@ -97,7 +97,7 @@ const Index = () => {
             ].map((item) => (
               <span
                 key={item.text}
-                className={`font-trust text-[11px] sm:text-xs tracking-[0.12em] text-center ${
+                className={`font-trust text-base sm:text-lg tracking-[0.15em] text-center ${
                   item.gold ? "text-brand-gold" : "text-brand-cream"
                 }`}
               >
