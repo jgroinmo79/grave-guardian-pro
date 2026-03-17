@@ -99,7 +99,7 @@ const ServiceStep = ({ data, update }: Props) => {
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Essential Clean
+                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> Everything in Standard Clean
                 </li>
                 {OFFER_B_EXTRAS.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
