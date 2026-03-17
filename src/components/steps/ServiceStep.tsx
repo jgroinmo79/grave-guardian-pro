@@ -69,6 +69,7 @@ const ServiceStep = ({ data, update }: Props) => {
               }`}
             >
               <p className="font-display font-bold text-xl mt-1">Standard Clean</p>
+              <p className="text-xs text-muted-foreground mt-1">A thorough, gentle clean using CCUS-approved methods</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerA}
               </p>
