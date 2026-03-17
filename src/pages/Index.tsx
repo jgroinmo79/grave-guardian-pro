@@ -87,7 +87,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-16 grid grid-cols-2 sm:flex sm:flex-row sm:justify-center sm:gap-8 gap-x-4 gap-y-3 max-w-2xl mx-auto"
+            className="mt-16 flex flex-col items-center gap-3 max-w-2xl mx-auto"
           >
             {[
               { text: "$10,000,000 Liability Insured" },
