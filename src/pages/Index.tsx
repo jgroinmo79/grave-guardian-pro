@@ -61,28 +61,9 @@ const Index = () => {
               Benton, Missouri
             </p>
             <img src={logo} alt="Grave Detail Cleaning & Preservation" className="w-full max-w-md sm:max-w-lg mx-auto mb-6" />
-            <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-8 leading-relaxed">
+            <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-10 leading-relaxed">
               Time Takes a Toll. We Take It Back.
             </p>
-
-            {/* Trust indicators */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-center sm:gap-6 gap-x-4 gap-y-2 mb-10 max-w-2xl mx-auto">
-              {[
-                { text: "$10,000,000 Liability Insured" },
-                { text: "CCUS Certified Methods" },
-                { text: "Owner-Operated" },
-                { text: "5.0 ★★★★★", gold: true },
-              ].map((item) => (
-                <span
-                  key={item.text}
-                  className={`font-trust text-[11px] sm:text-xs tracking-[0.12em] text-center ${
-                    item.gold ? "text-brand-gold" : "text-brand-cream"
-                  }`}
-                >
-                  {item.text}
-                </span>
-              ))}
-            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -101,23 +82,27 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Trust signals */}
+          {/* Trust indicators */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-xl mx-auto"
+            className="mt-16 grid grid-cols-2 sm:flex sm:flex-row sm:justify-center sm:gap-8 gap-x-4 gap-y-3 max-w-2xl mx-auto"
           >
             {[
-              { icon: Shield, label: "Insured & Bonded", sub: "Full liability coverage" },
-              { icon: Star, label: "5-Star Rated", sub: "Trusted by families" },
-              { icon: Clock, label: "Same-Week Service", sub: "Priority scheduling" },
+              { text: "$10,000,000 Liability Insured" },
+              { text: "CCUS Certified Methods" },
+              { text: "Owner-Operated" },
+              { text: "5.0 ★★★★★", gold: true },
             ].map((item) => (
-              <div key={item.label} className="flex flex-col items-center gap-2">
-                <item.icon className="w-5 h-5 text-primary" />
-                <p className="text-sm font-semibold">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.sub}</p>
-              </div>
+              <span
+                key={item.text}
+                className={`font-trust text-[11px] sm:text-xs tracking-[0.12em] text-center ${
+                  item.gold ? "text-brand-gold" : "text-brand-cream"
+                }`}
+              >
+                {item.text}
+              </span>
             ))}
           </motion.div>
         </div>
