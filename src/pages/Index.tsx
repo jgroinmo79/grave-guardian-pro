@@ -61,9 +61,28 @@ const Index = () => {
               Benton, Missouri
             </p>
             <img src={logo} alt="Grave Detail Cleaning & Preservation" className="w-full max-w-md sm:max-w-lg mx-auto mb-6" />
-            <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-10 leading-relaxed">
+            <p className="font-display text-2xl sm:text-3xl text-gradient-patina italic max-w-lg mx-auto mb-8 leading-relaxed">
               Time Takes a Toll. We Take It Back.
             </p>
+
+            {/* Trust indicators */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-row sm:justify-center sm:gap-6 gap-x-4 gap-y-2 mb-10 max-w-2xl mx-auto">
+              {[
+                { text: "$10,000,000 Liability Insured" },
+                { text: "CCUS Certified Methods" },
+                { text: "Owner-Operated" },
+                { text: "5.0 ★★★★★", gold: true },
+              ].map((item) => (
+                <span
+                  key={item.text}
+                  className={`font-trust text-[11px] sm:text-xs tracking-[0.12em] text-center ${
+                    item.gold ? "text-brand-gold" : "text-brand-cream"
+                  }`}
+                >
+                  {item.text}
+                </span>
+              ))}
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -75,7 +94,7 @@ const Index = () => {
                 Book Your Service <ChevronRight className="w-5 h-5 ml-1" />
               </Button>
               <Link to="/portal">
-                <Button variant="outline" size="lg" className="h-14 px-8 text-base">
+                <Button variant="outline" size="lg" className="h-14 px-8 text-base border-brand-cream text-brand-cream hover:bg-brand-cream/10 hover:text-brand-cream">
                   My Portal
                 </Button>
               </Link>
