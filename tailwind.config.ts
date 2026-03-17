@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         display: ['"Playfair Display"', 'serif'],
         body: ['"DM Sans"', 'sans-serif'],
+        trust: ['"Cormorant Garamond"', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -63,6 +64,9 @@ export default {
           DEFAULT: "hsl(var(--granite))",
           light: "hsl(var(--granite-light))",
         },
+        "brand-gold": "hsl(var(--brand-gold))",
+        "brand-cream": "hsl(var(--brand-cream))",
+        "brand-charcoal": "hsl(var(--brand-charcoal))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
