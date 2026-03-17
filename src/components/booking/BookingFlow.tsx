@@ -44,10 +44,10 @@ const BookingFlow = () => {
         return data.monumentType !== '' && data.material !== '';
       case 3: // Condition
         return true;
-      case 4: // Intent
-        return true;
-      case 5: // Service Selection
+      case 4: // Service Selection (moved before Intent)
         return data.selectedOffer !== '';
+      case 5: // Intent / Tell Us More
+        return true;
       case 6: // Add-Ons
         return true;
       case 7: // Schedule Date
