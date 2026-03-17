@@ -68,7 +68,7 @@ const ServiceStep = ({ data, update }: Props) => {
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
-              <p className="font-display font-bold text-xl mt-1">Essential Clean</p>
+              <p className="font-display font-bold text-xl mt-1">Standard Clean</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 ${monument.offerA}
               </p>
