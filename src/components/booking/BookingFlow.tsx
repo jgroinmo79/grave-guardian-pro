@@ -44,10 +44,10 @@ const BookingFlow = () => {
         return data.monumentType !== '' && data.material !== '';
       case 3: // Condition
         return true;
-      case 4: // Intent
-        return true;
-      case 5: // Service Selection
+      case 4: // Service Selection (moved before Intent)
         return data.selectedOffer !== '';
+      case 5: // Intent / Tell Us More
+        return true;
       case 6: // Add-Ons
         return true;
       case 7: // Schedule Date
@@ -67,8 +67,8 @@ const BookingFlow = () => {
       case 1: return <ContactStep data={data} update={update} />;
       case 2: return <MonumentStep data={data} update={update} />;
       case 3: return <ConditionStep data={data} update={update} />;
-      case 4: return <IntentStep data={data} update={update} />;
-      case 5: return <ServiceStep data={data} update={update} />;
+      case 4: return <ServiceStep data={data} update={update} />;
+      case 5: return <IntentStep data={data} update={update} />;
       case 6: return <AddOnsStep data={data} update={update} />;
       case 7: return <ScheduleDateStep data={data} update={update} />;
       case 8: return <ConsentStep data={data} update={update} />;
