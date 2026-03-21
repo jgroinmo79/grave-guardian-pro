@@ -103,7 +103,7 @@ const ScheduleStep = ({ data, update }: Props) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <span className="text-sm font-semibold uppercase tracking-widest text-[#C9A84C]">Step 3</span>
+        <span className="text-sm font-semibold uppercase tracking-widest text-[#C9976B]">Step 3</span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Schedule</h2>
         <p className="text-muted-foreground">Pick your preferred date and location</p>
       </div>
@@ -152,7 +152,7 @@ const ScheduleStep = ({ data, update }: Props) => {
               }}
               placeholder="Start typing a cemetery name..."
               autoComplete="off"
-              className="w-full rounded-lg border border-border bg-secondary/50 text-foreground pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#C9A84C] placeholder:text-muted-foreground"
+              className="w-full rounded-lg border border-border bg-secondary/50 text-foreground pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#C9976B] placeholder:text-muted-foreground"
             />
             {loading && (
               <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
@@ -170,7 +170,7 @@ const ScheduleStep = ({ data, update }: Props) => {
                   className="w-full text-left px-4 py-3 text-sm hover:bg-accent/10 transition-colors border-b border-border last:border-0"
                 >
                   <div className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 text-[#C9A84C] mt-0.5 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-[#C9976B] mt-0.5 flex-shrink-0" />
                     <span>{p.description}</span>
                   </div>
                 </button>
@@ -199,7 +199,7 @@ const ScheduleStep = ({ data, update }: Props) => {
             onChange={(e) => update({ notes: e.target.value })}
             rows={4}
             placeholder="Special requests, access instructions, etc."
-            className="w-full rounded-lg border border-border bg-secondary/50 text-foreground px-4 py-3 text-sm focus:outline-none focus:border-[#C9A84C] placeholder:text-muted-foreground resize-none"
+            className="w-full rounded-lg border border-border bg-secondary/50 text-foreground px-4 py-3 text-sm focus:outline-none focus:border-[#C9976B] placeholder:text-muted-foreground resize-none"
           />
         </div>
       </div>
