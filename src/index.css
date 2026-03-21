@@ -71,30 +71,30 @@
 
 @layer utilities {
   .gradient-patina {
-    background: linear-gradient(135deg, hsl(93 15% 38%), hsl(93 15% 48%));
+    background: linear-gradient(135deg, hsl(27 32% 36%), hsl(27 38% 60%));
   }
   .gradient-bronze {
-    background: linear-gradient(135deg, hsl(32 38% 40%), hsl(32 42% 52%));
+    background: linear-gradient(135deg, hsl(27 38% 60%), hsl(27 42% 68%));
   }
   .gradient-dark {
-    background: linear-gradient(180deg, hsl(0 0% 11%), hsl(0 0% 6%));
+    background: linear-gradient(180deg, hsl(0 0% 8%), hsl(0 0% 5%));
   }
   .text-gradient-patina {
-    background: linear-gradient(135deg, hsl(93 15% 38%), hsl(93 15% 52%));
+    background: linear-gradient(135deg, hsl(27 38% 60%), hsl(27 42% 68%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-bronze {
-    background: linear-gradient(135deg, hsl(32 38% 40%), hsl(32 42% 55%));
+    background: linear-gradient(135deg, hsl(27 38% 60%), hsl(27 42% 68%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .shadow-patina {
-    box-shadow: 0 8px 32px -8px hsl(93 15% 38% / 0.3);
+    box-shadow: 0 8px 32px -8px hsl(27 32% 36% / 0.3);
   }
   .shadow-bronze {
-    box-shadow: 0 8px 32px -8px hsl(32 38% 40% / 0.3);
+    box-shadow: 0 8px 32px -8px hsl(27 38% 60% / 0.3);
   }
 }
