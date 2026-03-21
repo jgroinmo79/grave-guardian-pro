@@ -93,7 +93,7 @@ const ReviewStep = ({ data }: Props) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <span className="text-sm font-semibold uppercase tracking-widest text-[#C9A84C]">Step 4</span>
+        <span className="text-sm font-semibold uppercase tracking-widest text-[#C9976B]">Step 4</span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Review Your Booking</h2>
         <p className="text-muted-foreground">Confirm everything looks right</p>
       </div>
@@ -109,7 +109,7 @@ const ReviewStep = ({ data }: Props) => {
 
           <div className="border-t border-border pt-3 mt-3 flex items-center justify-between">
             <span className="font-display font-bold text-lg">Estimated Total</span>
-            <span className="font-display font-bold text-2xl text-[#C9A84C]">
+            <span className="font-display font-bold text-2xl text-[#C9976B]">
               ${estimatedTotal > 0 ? estimatedTotal : '—'}
             </span>
           </div>
@@ -118,7 +118,7 @@ const ReviewStep = ({ data }: Props) => {
 
         <Button
           variant="hero"
-          className="w-full mt-6 py-6 text-lg bg-[#8B6914] hover:bg-[#C9A84C] text-white"
+          className="w-full mt-6 py-6 text-lg bg-[#7A5C3E] hover:bg-[#C9976B] text-white"
           onClick={handleSubmit}
         >
           Submit Booking Request

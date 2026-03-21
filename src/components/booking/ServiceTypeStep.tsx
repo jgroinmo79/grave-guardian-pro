@@ -30,7 +30,7 @@ const SERVICES: { id: ServiceType; label: string; desc: string; icon: typeof Spa
 const ServiceTypeStep = ({ data, update }: Props) => (
   <div className="space-y-6 animate-fade-in">
     <div className="text-center mb-8">
-      <span className="text-sm font-semibold uppercase tracking-widest text-[#C9A84C]">Step 1</span>
+      <span className="text-sm font-semibold uppercase tracking-widest text-[#C9976B]">Step 1</span>
       <h2 className="text-3xl font-display font-bold mb-2 mt-2">Choose Your Service</h2>
       <p className="text-muted-foreground">What can we do for you?</p>
     </div>
@@ -54,11 +54,11 @@ const ServiceTypeStep = ({ data, update }: Props) => (
             })}
             className={`w-full p-5 rounded-lg border text-left transition-all flex items-start gap-4 ${
               selected
-                ? "border-[#C9A84C] bg-[#C9A84C]/10"
+                ? "border-[#C9976B] bg-[#C9976B]/10"
                 : "border-border bg-secondary/30 hover:border-muted-foreground/40"
             }`}
           >
-            <Icon className={`w-6 h-6 mt-0.5 shrink-0 ${selected ? "text-[#C9A84C]" : "text-muted-foreground"}`} />
+            <Icon className={`w-6 h-6 mt-0.5 shrink-0 ${selected ? "text-[#C9976B]" : "text-muted-foreground"}`} />
             <div>
               <p className="font-display font-bold text-lg">{s.label}</p>
               <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>

@@ -110,7 +110,7 @@ const BookingFlow = () => {
 
           {step < TOTAL_STEPS - 1 && (
             <Button
-              className="bg-[#8B6914] hover:bg-[#C9A84C] text-white"
+              className="bg-[#7A5C3E] hover:bg-[#C9976B] text-white"
               onClick={() => goToStep(Math.min(TOTAL_STEPS - 1, step + 1))}
               disabled={!canProceed()}
             >

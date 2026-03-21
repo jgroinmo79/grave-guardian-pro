@@ -21,7 +21,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
           <select
             value={data.monumentType}
             onChange={(e) => update({ monumentType: e.target.value as BookingMonumentType })}
-            className="w-full rounded-lg border border-border bg-secondary/50 text-foreground px-4 py-3 text-sm focus:outline-none focus:border-[#C9A84C]"
+            className="w-full rounded-lg border border-border bg-secondary/50 text-foreground px-4 py-3 text-sm focus:outline-none focus:border-[#C9976B]"
           >
             <option value="">Select monument type…</option>
             {MONUMENT_OPTIONS.map((o) => (
@@ -38,7 +38,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
               onClick={() => update({ cleaningTier: 'standard' })}
               className={`relative p-5 rounded-lg border text-left transition-all ${
                 data.cleaningTier === 'standard'
-                  ? "border-[#C9A84C] bg-[#C9A84C]/10"
+                  ? "border-[#C9976B] bg-[#C9976B]/10"
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
@@ -48,7 +48,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
               <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                 {STANDARD_INCLUDES.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#C9A84C] mt-0.5 shrink-0" /> {f}
+                    <Check className="w-3.5 h-3.5 text-[#C9976B] mt-0.5 shrink-0" /> {f}
                   </li>
                 ))}
               </ul>
@@ -59,11 +59,11 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
               onClick={() => update({ cleaningTier: 'premium' })}
               className={`relative p-5 rounded-lg border text-left transition-all ${
                 data.cleaningTier === 'premium'
-                  ? "border-[#C9A84C] bg-[#C9A84C]/10 shadow-bronze"
+                  ? "border-[#C9976B] bg-[#C9976B]/10 shadow-bronze"
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
-              <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider bg-[#8B6914] text-white px-2 py-0.5 rounded-full">
+              <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider bg-[#7A5C3E] text-white px-2 py-0.5 rounded-full">
                 Recommended
               </span>
               <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Premium</p>
@@ -72,7 +72,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
               <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                 {PREMIUM_INCLUDES.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Shield className="w-3.5 h-3.5 text-[#C9A84C] mt-0.5 shrink-0" /> {f}
+                    <Shield className="w-3.5 h-3.5 text-[#C9976B] mt-0.5 shrink-0" /> {f}
                   </li>
                 ))}
               </ul>
@@ -126,12 +126,12 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
               key={plan.id}
               className={`relative flex flex-col rounded-xl border bg-card text-card-foreground transition-all ${
                 selected
-                  ? "border-[#C9A84C] shadow-lg ring-1 ring-[#C9A84C]/30"
+                  ? "border-[#C9976B] shadow-lg ring-1 ring-[#C9976B]/30"
                   : "border-border hover:border-muted-foreground/40"
               }`}
             >
               {isBestValue && (
-                <span className="absolute -top-3 right-4 text-xs font-bold tracking-wide bg-[#8B6914] text-white px-3 py-1 rounded-md">
+                <span className="absolute -top-3 right-4 text-xs font-bold tracking-wide bg-[#7A5C3E] text-white px-3 py-1 rounded-md">
                   Best Value
                 </span>
               )}
@@ -159,7 +159,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
                   onClick={() => update({ carePlan: selected ? '' : plan.id })}
                   className={`w-full mt-6 py-3 rounded-lg text-sm font-semibold transition-all ${
                     selected
-                      ? "bg-[#8B6914] text-white hover:bg-[#C9A84C]"
+                      ? "bg-[#7A5C3E] text-white hover:bg-[#C9976B]"
                       : isBestValue
                         ? "bg-foreground text-background hover:bg-foreground/90"
                         : "border border-border text-foreground hover:bg-secondary/50"
@@ -188,7 +188,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
             onClick={() => update({ flowerOption: selected ? '' : opt.id })}
             className={`w-full p-5 rounded-lg border text-left transition-all ${
               selected
-                ? "border-[#C9A84C] bg-[#C9A84C]/10"
+                ? "border-[#C9976B] bg-[#C9976B]/10"
                 : "border-border bg-secondary/30 hover:border-muted-foreground/40"
             }`}
           >
@@ -213,7 +213,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <span className="text-sm font-semibold uppercase tracking-widest text-[#C9A84C]">Step 2</span>
+        <span className="text-sm font-semibold uppercase tracking-widest text-[#C9976B]">Step 2</span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">
           {data.serviceType === 'one_time' ? 'Cleaning Options' : data.serviceType === 'annual_plan' ? 'Choose Your Plan' : 'Flower Options'}
         </h2>
@@ -234,7 +234,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
           <span className="text-sm font-medium">I am booking for a veteran's grave.</span>
         </label>
         {data.isVeteran && (
-          <p className="text-xs text-[#C9A84C] font-semibold -mt-4 ml-11">
+          <p className="text-xs text-[#C9976B] font-semibold -mt-4 ml-11">
             10% veteran discount will be applied at checkout.
           </p>
         )}
@@ -248,7 +248,7 @@ const MonumentOptionsStep = ({ data, update }: Props) => {
           <span className="text-sm font-medium">This stone belongs to someone 17 or younger.</span>
         </label>
         {data.isMinor && (
-          <p className="text-xs text-[#C9A84C] font-semibold -mt-4 ml-11">
+          <p className="text-xs text-[#C9976B] font-semibold -mt-4 ml-11">
             17% discount will be applied at checkout.
           </p>
         )}
