@@ -91,9 +91,6 @@ const ServiceStep = ({ data, update }: Props) => {
                   : "border-border bg-secondary/30 hover:border-muted-foreground/40"
               }`}
             >
-              <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full">
-                Best Value
-              </span>
               <p className="font-display font-bold text-xl mt-1">Restoration Clean</p>
               <p className="text-xs text-muted-foreground mt-1">Deep clean plus biological treatment that prevents regrowth</p>
               <p className="text-3xl font-bold text-foreground mt-2">
