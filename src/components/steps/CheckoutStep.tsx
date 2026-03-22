@@ -103,23 +103,44 @@ const CheckoutStep = ({ data }: Props) => {
       <div className="max-w-md mx-auto">
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
           {basePrice > 0 && monument && (
-            <div className="flex justify-between text-sm">
-              <span>{monument.label} — {data.selectedOffer === 'B' ? 'Restoration Clean' : 'Standard Clean'}</span>
-              <span className="font-semibold">${basePrice}</span>
+            <div>
+              <div className="flex justify-between text-sm">
+                <span>{monument.label} — {data.selectedOffer === 'B' ? 'Restoration Clean' : 'Standard Clean'}</span>
+                <span className="font-semibold">${basePrice}</span>
+              </div>
+              <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>
+                {data.selectedOffer === 'B'
+                  ? 'D/2 Biological Solution treatment · Growth inhibitor · Plot edging · 4 photos delivered same day'
+                  : 'CCUS-standard Orvus WA Paste wash · 4 photos delivered same day · Condition assessment'}
+              </p>
             </div>
           )}
 
           {plan && (
-            <div className="flex justify-between text-sm">
-              <span>{plan.label} (annual plan)</span>
-              <span className="font-semibold">${plan.price}/yr</span>
+            <div>
+              <div className="flex justify-between text-sm">
+                <span>{plan.label} (annual plan)</span>
+                <span className="font-semibold">${plan.price}/yr</span>
+              </div>
+              <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>
+                {data.selectedPlan === 'keeper' && '2 cleanings per year (spring & fall) · Photos after each visit · Condition report · Priority scheduling'}
+                {data.selectedPlan === 'sentinel' && '3 cleanings per year · Photos after each visit · Condition report · Priority scheduling · 1 flower placement included'}
+                {data.selectedPlan === 'legacy' && '4 quarterly cleanings · Photos after each visit · 2 premium flower placements on your chosen dates · Annual preservation assessment'}
+              </p>
             </div>
           )}
 
           {bundle && (
-            <div className="flex justify-between text-sm">
-              <span>{bundle.label}</span>
-              <span className="font-semibold">${bundle.price}</span>
+            <div>
+              <div className="flex justify-between text-sm">
+                <span>{bundle.label}</span>
+                <span className="font-semibold">${bundle.price}</span>
+              </div>
+              <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>
+                {data.selectedBundle === 'memorial_day' && 'Full restoration clean + premium artificial flower arrangement · Scheduled the week of Memorial Day · Photo confirmation included'}
+                {data.selectedBundle === 'remembrance_trio' && '3 flower placements on your chosen dates (birthday, anniversary, holiday) · Coordination included'}
+                {data.selectedBundle === 'memorial_year' && '5 placements per year on your scheduled dates · Year-round remembrance'}
+              </p>
             </div>
           )}
 
