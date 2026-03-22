@@ -117,9 +117,14 @@ const ReviewStep = ({ data }: Props) => {
       <div className="max-w-lg mx-auto">
         <div className="rounded-lg border border-border bg-card p-6 space-y-3">
           {lines.map((l, i) => (
-            <div key={i} className="flex items-start justify-between text-sm gap-4">
-              <span className="text-muted-foreground">{l.label}</span>
-              <span className="font-semibold text-right">{l.value}</span>
+            <div key={i}>
+              <div className="flex items-start justify-between text-sm gap-4">
+                <span className="text-muted-foreground">{l.label}</span>
+                <span className="font-semibold text-right">{l.value}</span>
+              </div>
+              {l.description && (
+                <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>{l.description}</p>
+              )}
             </div>
           ))}
 
