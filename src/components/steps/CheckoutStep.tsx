@@ -18,10 +18,15 @@ const CheckoutStep = ({ data }: Props) => {
   const travelZone = getTravelFee(data.estimatedMiles);
   const travelFee = travelZone.fee;
 
-  // Plans and Memorial Day bundle already include cleaning — don't charge separately
+  // Plans include cleaning; Memorial Day bundle includes cleaning;
+  // Flower-only bundles (remembrance_trio, memorial_year) are standalone — no cleaning unless none selected
   const hasIncludedCleaning = !!data.selectedPlan || data.selectedBundle === 'memorial_day';
+  const isFlowerOnlyBundle = data.selectedBundle === 'remembrance_trio' || data.selectedBundle === 'memorial_year';
 
-  const basePrice = (!hasIncludedCleaning && monument)
+  // Show cleaning line ONLY when: no plan, no bundle that includes cleaning, and not a flower-only bundle
+  const showCleaningLine = !hasIncludedCleaning && !isFlowerOnlyBundle;
+
+  const basePrice = (showCleaningLine && monument)
     ? (data.selectedOffer === 'B' ? monument.offerB : monument.offerA)
     : 0;
   
