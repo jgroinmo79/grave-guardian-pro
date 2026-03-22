@@ -8,7 +8,7 @@ interface Props {
 }
 
 const ReviewStep = ({ data }: Props) => {
-  const lines: { label: string; value: string }[] = [];
+  const lines: { label: string; value: string; description?: string }[] = [];
 
   // Service type
   const serviceLabel = data.serviceType === 'one_time' ? 'One-Time Cleaning' : data.serviceType === 'annual_plan' ? 'Annual Care Plan' : 'Flower Placement';
