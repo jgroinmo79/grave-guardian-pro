@@ -145,9 +145,6 @@ const CheckoutStep = ({ data }: Props) => {
             <span className="font-display font-bold text-lg">Total Due Today</span>
             <span className="font-display font-bold text-2xl text-primary">${subtotal}</span>
           </div>
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Shopper info summary */}
