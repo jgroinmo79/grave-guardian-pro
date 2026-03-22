@@ -153,12 +153,17 @@ const ServiceStep = ({ data, update }: Props) => {
                   <button
                     key={b.id}
                     onClick={() => update({ selectedBundle: data.selectedBundle === b.id ? '' : b.id })}
-                    className={`w-full p-4 rounded-lg border text-left transition-all ${
+                    className={`relative w-full p-4 rounded-lg border text-left transition-all ${
                       data.selectedBundle === b.id
                         ? "border-accent bg-accent/10"
                         : "border-border bg-secondary/30 hover:border-muted-foreground/40"
                     }`}
                   >
+                    {b.id === 'memorial_day' && (
+                      <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full">
+                        Best Value
+                      </span>
+                    )}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="font-semibold text-sm">{b.label}</p>
