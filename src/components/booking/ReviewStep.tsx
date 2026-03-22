@@ -19,14 +19,19 @@ const ReviewStep = ({ data }: Props) => {
   if (data.serviceType === 'one_time') {
     const mt = MONUMENT_OPTIONS.find((o) => o.value === data.monumentType);
     if (mt) lines.push({ label: 'Monument', value: mt.label });
-    const tier = data.cleaningTier === 'premium' ? 'Premium' : 'Standard';
-    lines.push({ label: 'Tier', value: tier });
+    const tier = data.cleaningTier === 'premium' ? 'Restoration' : 'Standard';
     if (data.monumentType) {
       const price = data.cleaningTier === 'premium'
         ? PREMIUM_PRICES[data.monumentType]
         : STANDARD_PRICES[data.monumentType];
       subtotal += price;
-      lines.push({ label: `${tier} Clean`, value: `$${price}` });
+      lines.push({
+        label: `${tier} Clean`,
+        value: `$${price}`,
+        description: data.cleaningTier === 'premium'
+          ? 'D/2 Biological Solution treatment · Growth inhibitor · Plot edging · 4 photos delivered same day'
+          : 'CCUS-standard Orvus WA Paste wash · 4 photos delivered same day · Condition assessment',
+      });
     }
     if (data.addDamageReport) {
       subtotal += 65;
@@ -41,7 +46,12 @@ const ReviewStep = ({ data }: Props) => {
     const plan = CARE_PLANS_BOOKING.find((p) => p.id === data.carePlan);
     if (plan) {
       subtotal += plan.price;
-      lines.push({ label: plan.label, value: `$${plan.price}${plan.period}` });
+      const planDescriptions: Record<string, string> = {
+        keeper: '2 cleanings per year (spring & fall) · Photos after each visit · Condition report · Priority scheduling',
+        sentinel: '3 cleanings per year · Photos after each visit · Condition report · Priority scheduling · 1 flower placement included',
+        legacy: '4 quarterly cleanings · Photos after each visit · 2 premium flower placements on your chosen dates · Annual preservation assessment',
+      };
+      lines.push({ label: plan.label, value: `$${plan.price}${plan.period}`, description: planDescriptions[data.carePlan] });
     }
   }
 
@@ -49,7 +59,13 @@ const ReviewStep = ({ data }: Props) => {
     const opt = FLOWER_OPTIONS.find((o) => o.id === data.flowerOption);
     if (opt) {
       subtotal += opt.price;
-      lines.push({ label: opt.label, value: `$${opt.price}${opt.priceNote ? ' ' + opt.priceNote : ''}` });
+      const flowerDescriptions: Record<string, string> = {
+        single_arrangement: 'Premium artificial arrangement · Placed with care · Photo confirmation via text or email',
+        memorial_day: 'Full restoration clean + premium artificial flower arrangement · Scheduled the week of Memorial Day · Photo confirmation included',
+        remembrance_trio: '3 flower placements on your chosen dates (birthday, anniversary, holiday) · Coordination included',
+        memorial_year: '5 placements per year on your scheduled dates · Year-round remembrance',
+      };
+      lines.push({ label: opt.label, value: `$${opt.price}${opt.priceNote ? ' ' + opt.priceNote : ''}`, description: flowerDescriptions[data.flowerOption] });
     }
   }
 
