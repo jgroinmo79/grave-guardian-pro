@@ -17,7 +17,11 @@ const CheckoutStep = ({ data }: Props) => {
   const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
   const travelZone = getTravelFee(data.estimatedMiles);
   const travelFee = travelZone.fee;
-  const basePrice = monument
+
+  // Plans and Memorial Day bundle already include cleaning — don't charge separately
+  const hasIncludedCleaning = !!data.selectedPlan || data.selectedBundle === 'memorial_day';
+
+  const basePrice = (!hasIncludedCleaning && monument)
     ? (data.selectedOffer === 'B' ? monument.offerB : monument.offerA)
     : 0;
   
@@ -27,7 +31,7 @@ const CheckoutStep = ({ data }: Props) => {
   const bundle = SEASONAL_BUNDLES.find((b) => b.id === data.selectedBundle);
   const plan = data.selectedPlan ? CARE_PLANS[data.selectedPlan] : null;
 
-  let subtotal = basePrice + travelFee + addOnTotal + (bundle?.price ?? 0);
+  let subtotal = basePrice + travelFee + addOnTotal + (bundle?.price ?? 0) + (plan?.price ?? 0);
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
   const handleCheckout = async () => {
@@ -93,10 +97,24 @@ const CheckoutStep = ({ data }: Props) => {
 
       <div className="max-w-md mx-auto">
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-          {monument && (
+          {basePrice > 0 && monument && (
             <div className="flex justify-between text-sm">
               <span>{monument.label} — {data.selectedOffer === 'B' ? 'Restoration Clean' : 'Standard Clean'}</span>
               <span className="font-semibold">${basePrice}</span>
+            </div>
+          )}
+
+          {plan && (
+            <div className="flex justify-between text-sm">
+              <span>{plan.label} (annual plan)</span>
+              <span className="font-semibold">${plan.price}/yr</span>
+            </div>
+          )}
+
+          {bundle && (
+            <div className="flex justify-between text-sm">
+              <span>{bundle.label}</span>
+              <span className="font-semibold">${bundle.price}</span>
             </div>
           )}
 
@@ -114,18 +132,11 @@ const CheckoutStep = ({ data }: Props) => {
             </div>
           ))}
 
-          {bundle && (
-            <div className="flex justify-between text-sm">
-              <span>{bundle.label}</span>
-              <span className="font-semibold">${bundle.price}</span>
-            </div>
-          )}
-
           {data.isVeteran && (
             <div className="flex justify-between text-sm text-primary">
               <span>Veteran Discount (10%)</span>
               <span className="font-semibold">
-                -${Math.round((basePrice + travelFee + addOnTotal + (bundle?.price ?? 0)) * 0.1)}
+                -${Math.round((basePrice + travelFee + addOnTotal + (bundle?.price ?? 0) + (plan?.price ?? 0)) * 0.1)}
               </span>
             </div>
           )}
@@ -134,15 +145,6 @@ const CheckoutStep = ({ data }: Props) => {
             <span className="font-display font-bold text-lg">Total Due Today</span>
             <span className="font-display font-bold text-2xl text-primary">${subtotal}</span>
           </div>
-
-          {plan && (
-            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
-              <span className="font-semibold">{plan.label}:</span>{' '}
-              <span className="text-muted-foreground">
-                ${plan.price}{plan.period === 'year' ? '/yr' : ''} {plan.period === 'one-time' ? '(one-time)' : '(annual, starts after first service)'}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Shopper info summary */}
