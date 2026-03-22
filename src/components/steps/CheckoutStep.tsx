@@ -17,7 +17,11 @@ const CheckoutStep = ({ data }: Props) => {
   const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
   const travelZone = getTravelFee(data.estimatedMiles);
   const travelFee = travelZone.fee;
-  const basePrice = monument
+
+  // Plans and Memorial Day bundle already include cleaning — don't charge separately
+  const hasIncludedCleaning = !!data.selectedPlan || data.selectedBundle === 'memorial_day';
+
+  const basePrice = (!hasIncludedCleaning && monument)
     ? (data.selectedOffer === 'B' ? monument.offerB : monument.offerA)
     : 0;
   
@@ -27,7 +31,7 @@ const CheckoutStep = ({ data }: Props) => {
   const bundle = SEASONAL_BUNDLES.find((b) => b.id === data.selectedBundle);
   const plan = data.selectedPlan ? CARE_PLANS[data.selectedPlan] : null;
 
-  let subtotal = basePrice + travelFee + addOnTotal + (bundle?.price ?? 0);
+  let subtotal = basePrice + travelFee + addOnTotal + (bundle?.price ?? 0) + (plan?.price ?? 0);
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
   const handleCheckout = async () => {
