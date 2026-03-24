@@ -90,7 +90,7 @@ const Index = () => {
             className="mt-16 flex flex-col items-center gap-3 max-w-2xl mx-auto"
           >
             {[
-              { text: "$10,000,000 Liability Insured" },
+              { text: "$1,000,000 Liability Insured" },
               { text: "CCUS Certified Methods" },
               { text: "Owner-Operated" },
               { text: "5.0 ★★★★★", gold: true },
