@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import GraveDetail from "@/components/portal/GraveDetail";
 import PlanDetail from "@/components/portal/PlanDetail";
 import SupportForm from "@/components/portal/SupportForm";
+import HistoryTab from "@/components/portal/HistoryTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Portal = () => {
@@ -323,40 +324,7 @@ const Portal = () => {
 
           {/* Order History */}
           <TabsContent value="history" className="space-y-4">
-            {!orders?.length ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center">
-                <p className="text-muted-foreground text-sm">No orders yet.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {orders.map((o) => (
-                  <div key={o.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <p className="text-xs font-mono text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                        <p className="text-sm font-semibold">
-                          {o.offer === "A" ? "Standard Clean" : "Restoration Clean"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Ordered {new Date(o.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[o.status] ?? ""}`}>
-                          {statusLabels[o.status] ?? o.status}
-                        </span>
-                        <p className="font-display font-bold">${Number(o.total_price).toFixed(2)}</p>
-                      </div>
-                    </div>
-                    {o.scheduled_date && (
-                      <p className="text-xs text-muted-foreground">
-                        📅 Scheduled for <span className="font-medium text-foreground">{new Date(o.scheduled_date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</span>
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            <HistoryTab orders={orders ?? []} />
           </TabsContent>
 
           {/* Support */}
