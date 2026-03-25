@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import GraveDetail from "@/components/portal/GraveDetail";
 import PlanDetail from "@/components/portal/PlanDetail";
 import SupportForm from "@/components/portal/SupportForm";
+import HistoryTab from "@/components/portal/HistoryTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Portal = () => {
