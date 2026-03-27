@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   MapPin, Camera, Clock, FileText, Download, Shield, Share2, Check,
-  ClipboardList, Wrench, MessageSquare, CreditCard, ChevronDown, ChevronUp,
+  ClipboardList, Wrench, MessageSquare, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { MONUMENT_PRICES } from "@/lib/pricing";
 import type { MonumentType } from "@/lib/pricing";
@@ -322,7 +322,7 @@ const GraveDetail = ({ monumentId }: GraveDetailProps) => {
                       <span className="text-xs text-muted-foreground">{log.time_spent_minutes} min</span>
                     )}
                   </div>
-                  <LogSection log={log} copiedId={copiedId} onCopyShare={handleCopyShare} photos={[]} />
+                  <LogSection log={log} copiedId={copiedId} onCopyShare={handleCopyShare} />
                 </div>
               ))}
             </div>
@@ -502,13 +502,6 @@ function VisitCard({
       !p.description?.toLowerCase().includes("after")
   );
 
-  const invoiceStatusColors: Record<string, string> = {
-    draft: "bg-muted text-muted-foreground",
-    sent: "bg-accent/20 text-accent",
-    paid: "bg-primary/20 text-primary",
-    overdue: "bg-destructive/20 text-destructive",
-  };
-
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       {/* Header */}
@@ -576,7 +569,6 @@ function VisitCard({
               log={log}
               copiedId={copiedId}
               onCopyShare={onCopyShare}
-              photos={[]}
             />
           ))}
 
@@ -641,7 +633,6 @@ interface LogSectionProps {
   log: any;
   copiedId: string | null;
   onCopyShare: (log: any) => void;
-  photos: any[];
 }
 
 function LogSection({ log, copiedId, onCopyShare }: LogSectionProps) {
