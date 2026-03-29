@@ -4,6 +4,9 @@ import { Shield, Award, UserCheck } from "lucide-react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
 import cemeteryBg from "@/assets/cemetery-bg.jpg";
+import gallery1 from "@/assets/gallery-1.jpg";
+import gallery2 from "@/assets/gallery-2.jpg";
+import gallery3 from "@/assets/gallery-3.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -121,6 +124,38 @@ const Home = () => (
             <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>
               {step.desc}
             </p>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+
+    {/* Gallery */}
+    <section id="gallery" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+      <div className="max-w-4xl mx-auto text-center mb-14">
+        <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>
+          Our Work
+        </h2>
+        <p className="font-garamond text-lg" style={{ color: "#6B6B6B" }}>
+          Before &amp; after — every stone tells a story.
+        </p>
+      </div>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { src: gallery1, alt: "Schwitz monument name detail — before and after cleaning" },
+          { src: gallery2, alt: "Theodore W.A. Schwitz headstone — before and after cleaning" },
+          { src: gallery3, alt: "Karen S. Davis bronze marker — before and after cleaning" },
+        ].map((img, i) => (
+          <motion.div
+            key={i}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            transition={{ duration: 0.6, delay: i * 0.15 }}
+            className="rounded-lg overflow-hidden"
+            style={{ border: "1px solid #3a3a3a" }}
+          >
+            <img src={img.src} alt={img.alt} className="w-full h-auto" loading="lazy" />
           </motion.div>
         ))}
       </div>
