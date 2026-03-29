@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Shield, Award, UserCheck } from "lucide-react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
+import cemeteryBg from "@/assets/cemetery-bg.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -14,13 +15,17 @@ const Home = () => (
     <PublicNavbar />
 
     {/* Hero */}
-    <section className="relative px-6 py-28 sm:py-40 text-center" style={{ backgroundColor: "#141414" }}>
+    <section
+      className="relative px-6 py-28 sm:py-40 text-center bg-cover bg-center"
+      style={{ backgroundImage: `url(${cemeteryBg})` }}
+    >
+      <div className="absolute inset-0" style={{ backgroundColor: "rgba(20,20,20,0.75)" }} />
       <motion.div
         initial="hidden"
         animate="visible"
         variants={fadeUp}
         transition={{ duration: 0.8 }}
-        className="max-w-3xl mx-auto"
+        className="max-w-3xl mx-auto relative z-10"
       >
         <h1 className="font-cinzel text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6" style={{ color: "#E8E4DF" }}>
           Time Takes a Toll.<br />We Take It Back.
