@@ -25,7 +25,7 @@ const Home = () => (
         animate="visible"
         variants={fadeUp}
         transition={{ duration: 0.8 }}
-        className="max-w-3xl mx-auto"
+        className="max-w-3xl mx-auto relative z-10"
       >
         <h1 className="font-cinzel text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6" style={{ color: "#E8E4DF" }}>
           Time Takes a Toll.<br />We Take It Back.
