@@ -6,6 +6,7 @@ import {
   Users,
   LogOut,
   MessageSquare,
+  MapPin,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
