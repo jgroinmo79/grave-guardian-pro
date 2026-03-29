@@ -4,6 +4,9 @@ import { Shield, Award, UserCheck } from "lucide-react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
 import cemeteryBg from "@/assets/cemetery-bg.jpg";
+import gallery1 from "@/assets/gallery-1.jpg";
+import gallery2 from "@/assets/gallery-2.jpg";
+import gallery3 from "@/assets/gallery-3.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
