@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
+import Home from "./pages/Home";
 import Portal from "./pages/Portal";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
