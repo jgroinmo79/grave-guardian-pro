@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Shield, Award, UserCheck } from "lucide-react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
+import cemeteryBg from "@/assets/cemetery-bg.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
