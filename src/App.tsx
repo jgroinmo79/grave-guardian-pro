@@ -20,6 +20,7 @@ import AdminSchedule from "./pages/admin/Schedule";
 import AdminInvoices from "./pages/admin/Invoices";
 import AdminClients from "./pages/admin/Clients";
 import AdminTickets from "./pages/admin/Tickets";
+import AdminTravelZones from "./pages/admin/TravelZones";
 import SharedReport from "./pages/SharedReport";
 import NotFound from "./pages/NotFound";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
