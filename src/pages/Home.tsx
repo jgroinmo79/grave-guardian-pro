@@ -14,15 +14,15 @@ const fadeUp = {
 };
 
 const Home = () => (
-  <div className="min-h-screen" style={{ backgroundColor: "#141414" }}>
+  <div
+    className="min-h-screen bg-fixed bg-cover bg-center"
+    style={{ backgroundImage: `url(${cemeteryBg})` }}
+  >
     <PublicNavbar />
 
     {/* Hero */}
-    <section
-      className="relative px-6 py-28 sm:py-40 text-center bg-cover bg-center"
-      style={{ backgroundImage: `url(${cemeteryBg})` }}
-    >
-      <div className="absolute inset-0" style={{ backgroundColor: "rgba(20,20,20,0.75)" }} />
+    <section className="relative px-6 py-28 sm:py-40 text-center">
+      <div className="absolute inset-0" style={{ backgroundColor: "rgba(20,20,20,0.65)" }} />
       <motion.div
         initial="hidden"
         animate="visible"
