@@ -85,9 +85,11 @@ export default function FrameBuilder() {
   const [showTagline, setShowTagline] = useState(true);
   const [autoEnhance, setAutoEnhance] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const handleFile = useCallback(async (file: File, which: "before" | "after") => {
     if (!file) return;
