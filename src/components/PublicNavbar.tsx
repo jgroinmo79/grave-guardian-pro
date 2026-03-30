@@ -14,18 +14,22 @@ const PublicNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleNavClick = (hash: string) => {
+  const handleNavClick = (link: typeof NAV_LINKS[number]) => {
     setOpen(false);
-    if (!hash) {
+    if (link.route) {
+      navigate(link.route);
+      return;
+    }
+    if (!link.hash) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       if (location.pathname !== "/") navigate("/");
       return;
     }
     if (location.pathname !== "/") {
-      navigate("/#" + hash);
+      navigate("/#" + link.hash);
       return;
     }
-    const el = document.getElementById(hash);
+    const el = document.getElementById(link.hash);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
