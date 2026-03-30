@@ -156,6 +156,8 @@ export default function FrameBuilder() {
   const [manual, setManual] = useState<ManualAdjustments>(DEFAULT_ADJUSTMENTS);
   const [caption, setCaption] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
