@@ -22,6 +22,7 @@ import AdminInvoices from "./pages/admin/Invoices";
 import AdminClients from "./pages/admin/Clients";
 import AdminTickets from "./pages/admin/Tickets";
 import AdminTravelZones from "./pages/admin/TravelZones";
+import AdminGallery from "./pages/admin/Gallery";
 import SharedReport from "./pages/SharedReport";
 import NotFound from "./pages/NotFound";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="clients" element={<AdminClients />} />
               <Route path="tickets" element={<AdminTickets />} />
               <Route path="travel-zones" element={<AdminTravelZones />} />
+              <Route path="gallery" element={<AdminGallery />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
