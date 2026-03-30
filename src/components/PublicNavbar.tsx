@@ -1,17 +1,33 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Home", to: "/" },
-  { label: "About", to: "/#about" },
-  { label: "Services", to: "/#services" },
-  { label: "Gallery", to: "/#gallery" },
-  { label: "Contact", to: "/#contact" },
+  { label: "Home", hash: "" },
+  { label: "About", hash: "about" },
+  { label: "How It Works", hash: "how-it-works" },
+  { label: "Gallery", hash: "gallery" },
 ];
 
 const PublicNavbar = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavClick = (hash: string) => {
+    setOpen(false);
+    if (!hash) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (location.pathname !== "/") navigate("/");
+      return;
+    }
+    if (location.pathname !== "/") {
+      navigate("/#" + hash);
+      return;
+    }
+    const el = document.getElementById(hash);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "#141414", borderBottom: "1px solid #2C2C2C" }}>
@@ -23,16 +39,16 @@ const PublicNavbar = () => {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((l) => (
-            <Link
+            <button
               key={l.label}
-              to={l.to}
-              className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors"
+              onClick={() => handleNavClick(l.hash)}
+              className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer"
               style={{ color: "#6B6B6B" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
             >
               {l.label}
-            </Link>
+            </button>
           ))}
           <Link
             to="/auth"
@@ -55,7 +71,7 @@ const PublicNavbar = () => {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden" onClick={() => setOpen(!open)} style={{ color: "#E8E4DF" }}>
+        <button className="md:hidden bg-transparent border-0" onClick={() => setOpen(!open)} style={{ color: "#E8E4DF" }}>
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
@@ -64,15 +80,14 @@ const PublicNavbar = () => {
       {open && (
         <div className="md:hidden px-6 pb-6 space-y-4" style={{ backgroundColor: "#141414" }}>
           {NAV_LINKS.map((l) => (
-            <Link
+            <button
               key={l.label}
-              to={l.to}
-              onClick={() => setOpen(false)}
-              className="block font-cinzel text-sm tracking-[0.15em] uppercase"
+              onClick={() => handleNavClick(l.hash)}
+              className="block font-cinzel text-sm tracking-[0.15em] uppercase bg-transparent border-0 cursor-pointer"
               style={{ color: "#6B6B6B" }}
             >
               {l.label}
-            </Link>
+            </button>
           ))}
           <Link
             to="/auth"
