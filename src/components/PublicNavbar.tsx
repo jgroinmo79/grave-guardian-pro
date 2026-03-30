@@ -86,7 +86,7 @@ const PublicNavbar = () => {
           {NAV_LINKS.map((l) => (
             <button
               key={l.label}
-              onClick={() => handleNavClick(l.hash)}
+              onClick={() => handleNavClick(l)}
               className="block font-cinzel text-sm tracking-[0.15em] uppercase bg-transparent border-0 cursor-pointer"
               style={{ color: "#6B6B6B" }}
             >
