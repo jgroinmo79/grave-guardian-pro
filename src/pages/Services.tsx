@@ -9,23 +9,23 @@ const fadeUp = {
 };
 
 const standardPrices = [
-  ["Flat/Flush Marker", "$75"],
-  ["Single Upright", "$100"],
-  ["Double Upright", "$150"],
-  ["Monument with Base", "$175"],
-  ["Bronze Plaque", "$90"],
-  ["Obelisk/Pillar", "$200"],
-  ["Mausoleum Panel", "$175"],
+  ["Flat / Flush Marker", "$175"],
+  ["Single Upright", "$175"],
+  ["Double / Companion Stone", "$225"],
+  ["Monument with Base", "$275"],
+  ["Bronze Plaque", "$225"],
+  ["Obelisk / Pillar", "$275"],
+  ["Mausoleum Panel", "$375"],
 ];
 
 const premiumPrices = [
-  ["Flat/Flush Marker", "$125"],
-  ["Single Upright", "$150"],
-  ["Double Upright", "$200"],
-  ["Monument with Base", "$225"],
-  ["Bronze Plaque", "$140"],
-  ["Obelisk/Pillar", "$250"],
-  ["Mausoleum Panel", "$225"],
+  ["Flat / Flush Marker", "$225"],
+  ["Single Upright", "$225"],
+  ["Double / Companion Stone", "$275"],
+  ["Monument with Base", "$325"],
+  ["Bronze Plaque", "$275"],
+  ["Obelisk / Pillar", "$325"],
+  ["Mausoleum Panel", "$425"],
 ];
 
 const travelZones = [
@@ -97,9 +97,9 @@ const Services = () => (
       <SectionHeading title="Annual Care Plans" subtitle="Set it and forget it. We return on schedule so you never have to worry." />
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
-          { name: "The Keeper", price: "$475/year", desc: "One Premium cleaning per year with photos, condition report, and plot maintenance.", badge: null, border: "#3a3a3a" },
-          { name: "The Sentinel", price: "$575/year", desc: "Two visits per year. Spring and fall cleanings with full documentation each visit.", badge: "Most Popular", border: "#C9976B" },
-          { name: "The Legacy", price: "$1,200/year", desc: "Four quarterly visits. Full cleaning, seasonal flower placement, and priority scheduling.", badge: null, border: "#3a3a3a" },
+          { name: "The Keeper", price: "$475/year", visits: "2 visits", desc: "Spring and fall cleanings with photos after each visit, condition report, priority scheduling, and automatic damage documentation if deterioration is found.", badge: null, border: "#3a3a3a" },
+          { name: "The Sentinel", price: "$575/year", visits: "3 visits", desc: "Spring, summer, and fall cleanings with photos after each visit, condition report, priority scheduling, automatic damage documentation, and one complimentary flower placement.", badge: "Most Popular", border: "#C9976B" },
+          { name: "The Legacy", price: "$1,200/year", visits: "4 visits", desc: "Quarterly cleanings with photos after each visit, condition report, top-priority scheduling, automatic damage documentation, two premium flower placements on your chosen dates, and an annual preservation assessment.", badge: null, border: "#3a3a3a" },
         ].map((plan, i) => (
           <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.15 }}
             className="rounded-lg p-8 relative" style={{ backgroundColor: "#2C2C2C", border: `${plan.badge ? "2px" : "1px"} solid ${plan.border}` }}>
@@ -109,7 +109,8 @@ const Services = () => (
               </span>
             )}
             <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
-            <p className="font-cinzel text-sm font-bold mb-3" style={{ color: "#C9976B" }}>{plan.price}</p>
+            <p className="font-cinzel text-sm font-bold mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
+            <p className="font-cinzel text-xs tracking-[0.05em] uppercase mb-3" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
             <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
           </motion.div>
         ))}
