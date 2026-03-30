@@ -8,6 +8,7 @@ import {
   MessageSquare,
   MapPin,
   Image,
+  Frame,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -35,6 +36,7 @@ const items = [
   { title: "Tickets", url: "/admin/tickets", icon: MessageSquare },
   { title: "Travel Zones", url: "/admin/travel-zones", icon: MapPin },
   { title: "Gallery", url: "/admin/gallery", icon: Image },
+  { title: "Frame Builder", url: "/admin/frame-builder", icon: Frame },
 ];
 
 export function AdminSidebar() {
