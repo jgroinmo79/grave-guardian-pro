@@ -45,7 +45,7 @@ const PublicNavbar = () => {
           {NAV_LINKS.map((l) => (
             <button
               key={l.label}
-              onClick={() => handleNavClick(l.hash)}
+              onClick={() => handleNavClick(l)}
               className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer"
               style={{ color: "#6B6B6B" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
