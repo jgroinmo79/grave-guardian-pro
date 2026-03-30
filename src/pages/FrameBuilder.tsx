@@ -349,7 +349,7 @@ export default function FrameBuilder() {
         </button>
       )}
 
-      {!beforeImgRaw && !afterImgRaw && (
+      {!beforeImg && !afterImgRaw && (
         <div className="text-center py-5 italic text-sm" style={{ color: COLORS.greyGranite }}>
           Upload your before &amp; after photos to get started
         </div>
