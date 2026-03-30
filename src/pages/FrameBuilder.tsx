@@ -1,4 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const COLORS = {
   polishedBlack: "#141414",
@@ -153,6 +156,8 @@ export default function FrameBuilder() {
   const [manual, setManual] = useState<ManualAdjustments>(DEFAULT_ADJUSTMENTS);
   const [caption, setCaption] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
@@ -521,13 +526,41 @@ export default function FrameBuilder() {
       )}
 
       {previewUrl && (
-        <button
-          onClick={handleDownload}
-          className="w-full py-3.5 rounded-lg text-sm font-bold tracking-[3px] transition-colors bg-[#C9976B] text-[#141414] active:bg-[#7A5C3E]"
-          style={{ fontFamily: "'Cinzel', serif" }}
-        >
-          DOWNLOAD
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleDownload}
+            className="flex-1 py-3.5 rounded-lg text-sm font-bold tracking-[3px] transition-colors bg-[#C9976B] text-[#141414] active:bg-[#7A5C3E]"
+            style={{ fontFamily: "'Cinzel', serif" }}
+          >
+            DOWNLOAD
+          </button>
+          <button
+            disabled={uploading}
+            onClick={async () => {
+              if (!canvasRef.current) return;
+              setUploading(true);
+              try {
+                const blob = await new Promise<Blob>((res) => canvasRef.current!.toBlob((b) => res(b!), "image/png"));
+                const path = `gallery/${Date.now()}.png`;
+                const { error: upErr } = await supabase.storage.from("monument-photos").upload(path, blob, { contentType: "image/png" });
+                if (upErr) throw upErr;
+                const { data: { publicUrl } } = supabase.storage.from("monument-photos").getPublicUrl(path);
+                const { error: dbErr } = await supabase.from("gallery_photos").insert({ photo_url: publicUrl, alt_text: caption || "Before & After" });
+                if (dbErr) throw dbErr;
+                queryClient.invalidateQueries({ queryKey: ["gallery-photos"] });
+                toast.success("Added to gallery!");
+              } catch (err: any) {
+                toast.error(err.message || "Upload failed");
+              } finally {
+                setUploading(false);
+              }
+            }}
+            className="flex-1 py-3.5 rounded-lg text-sm font-bold tracking-[3px] transition-colors border border-[#C9976B] text-[#C9976B] active:bg-[#7A5C3E] active:text-[#141414] disabled:opacity-50"
+            style={{ fontFamily: "'Cinzel', serif", background: "transparent" }}
+          >
+            {uploading ? "UPLOADING…" : "ADD TO GALLERY"}
+          </button>
+        </div>
       )}
 
       {!beforeImgRaw && !afterImgRaw && (
