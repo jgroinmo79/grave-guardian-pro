@@ -25,6 +25,7 @@ import AdminTravelZones from "./pages/admin/TravelZones";
 import AdminGallery from "./pages/admin/Gallery";
 import FrameBuilder from "./pages/FrameBuilder";
 import SharedReport from "./pages/SharedReport";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
