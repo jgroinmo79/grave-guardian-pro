@@ -77,6 +77,14 @@ const PublicNavbar = () => {
           <Link
             to="/auth"
             onClick={() => setOpen(false)}
+            className="block font-cinzel text-sm tracking-[0.15em] uppercase"
+            style={{ color: "#C9976B" }}
+          >
+            Log In
+          </Link>
+          <Link
+            to="/auth"
+            onClick={() => setOpen(false)}
             className="block text-center font-cinzel text-sm tracking-[0.15em] uppercase px-5 py-2 rounded"
             style={{ backgroundColor: "#C9976B", color: "#141414" }}
           >
