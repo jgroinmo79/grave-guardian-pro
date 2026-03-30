@@ -3,10 +3,10 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Home", hash: "" },
-  { label: "About", hash: "about" },
-  { label: "How It Works", hash: "how-it-works" },
-  { label: "Gallery", hash: "gallery" },
+  { label: "Home", hash: "", route: null },
+  { label: "About", hash: "", route: "/about" },
+  { label: "How It Works", hash: "how-it-works", route: null },
+  { label: "Gallery", hash: "gallery", route: null },
 ];
 
 const PublicNavbar = () => {
@@ -14,18 +14,22 @@ const PublicNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleNavClick = (hash: string) => {
+  const handleNavClick = (link: typeof NAV_LINKS[number]) => {
     setOpen(false);
-    if (!hash) {
+    if (link.route) {
+      navigate(link.route);
+      return;
+    }
+    if (!link.hash) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       if (location.pathname !== "/") navigate("/");
       return;
     }
     if (location.pathname !== "/") {
-      navigate("/#" + hash);
+      navigate("/#" + link.hash);
       return;
     }
-    const el = document.getElementById(hash);
+    const el = document.getElementById(link.hash);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -41,7 +45,7 @@ const PublicNavbar = () => {
           {NAV_LINKS.map((l) => (
             <button
               key={l.label}
-              onClick={() => handleNavClick(l.hash)}
+              onClick={() => handleNavClick(l)}
               className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer"
               style={{ color: "#6B6B6B" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
@@ -82,7 +86,7 @@ const PublicNavbar = () => {
           {NAV_LINKS.map((l) => (
             <button
               key={l.label}
-              onClick={() => handleNavClick(l.hash)}
+              onClick={() => handleNavClick(l)}
               className="block font-cinzel text-sm tracking-[0.15em] uppercase bg-transparent border-0 cursor-pointer"
               style={{ color: "#6B6B6B" }}
             >

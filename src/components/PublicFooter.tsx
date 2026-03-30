@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const NAV_LINKS = [
   { label: "Home", to: "/" },
-  { label: "About", to: "/#about" },
+  { label: "About", to: "/about" },
   { label: "Services", to: "/#services" },
   { label: "Gallery", to: "/#gallery" },
   { label: "Contact", to: "/#contact" },
