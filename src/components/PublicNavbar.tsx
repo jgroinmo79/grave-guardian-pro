@@ -3,10 +3,10 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Home", hash: "" },
-  { label: "About", hash: "about" },
-  { label: "How It Works", hash: "how-it-works" },
-  { label: "Gallery", hash: "gallery" },
+  { label: "Home", hash: "", route: null },
+  { label: "About", hash: "", route: "/about" },
+  { label: "How It Works", hash: "how-it-works", route: null },
+  { label: "Gallery", hash: "gallery", route: null },
 ];
 
 const PublicNavbar = () => {
