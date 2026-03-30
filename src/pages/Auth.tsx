@@ -31,7 +31,7 @@ const Auth = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -42,7 +42,7 @@ const Auth = () => {
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
     } else {
-      navigate("/");
+      navigate("/dashboard");
     }
   };
 
