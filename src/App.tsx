@@ -27,6 +27,7 @@ import FrameBuilder from "./pages/FrameBuilder";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import ScrollToTop from "./components/ScrollToTop";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
 const queryClient = new QueryClient();
