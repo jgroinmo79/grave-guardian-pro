@@ -9,7 +9,28 @@ const COLORS = {
   agedBronze: "#7A5C3E",
 };
 
-function enhanceImage(srcImg: HTMLImageElement): Promise<HTMLImageElement> {
+type Layout = "sideBySide" | "topBottom" | "singleBefore" | "singleAfter";
+type FrameStyle = "classic" | "minimal" | "bold";
+
+interface ManualAdjustments {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  sharpness: number;
+}
+
+const DEFAULT_ADJUSTMENTS: ManualAdjustments = {
+  brightness: 0,
+  contrast: 0,
+  saturation: 0,
+  sharpness: 0,
+};
+
+function applyEnhancements(
+  srcImg: HTMLImageElement,
+  auto: boolean,
+  manual: ManualAdjustments
+): Promise<HTMLImageElement> {
   return new Promise((resolve) => {
     const c = document.createElement("canvas");
     const w = srcImg.width, h = srcImg.height;
@@ -19,9 +40,9 @@ function enhanceImage(srcImg: HTMLImageElement): Promise<HTMLImageElement> {
 
     const imageData = ctx.getImageData(0, 0, w, h);
     const d = imageData.data;
+
     let totalB = 0, totalS = 0;
     const count = w * h;
-
     for (let i = 0; i < d.length; i += 4) {
       const r = d[i], g = d[i + 1], b = d[i + 2];
       totalB += (r + g + b) / 3;
@@ -29,9 +50,18 @@ function enhanceImage(srcImg: HTMLImageElement): Promise<HTMLImageElement> {
       totalS += mx === 0 ? 0 : (mx - mn) / mx;
     }
     const avgB = totalB / count, avgS = totalS / count;
-    const brightBoost = avgB < 100 ? 18 : avgB < 140 ? 10 : 4;
-    const contFactor = avgB < 120 ? 1.15 : 1.08;
-    const satBoost = avgS < 0.3 ? 1.25 : avgS < 0.5 ? 1.12 : 1.05;
+
+    let brightBoost = manual.brightness;
+    let contFactor = 1 + manual.contrast / 100;
+    let satBoost = 1 + manual.saturation / 100;
+    let sharpAmt = manual.sharpness / 100;
+
+    if (auto) {
+      brightBoost += avgB < 100 ? 18 : avgB < 140 ? 10 : 4;
+      contFactor *= avgB < 120 ? 1.15 : 1.08;
+      satBoost *= avgS < 0.3 ? 1.25 : avgS < 0.5 ? 1.12 : 1.05;
+      sharpAmt += 0.45;
+    }
 
     for (let i = 0; i < d.length; i += 4) {
       let r = d[i] + brightBoost, g = d[i + 1] + brightBoost, b = d[i + 2] + brightBoost;
@@ -50,20 +80,56 @@ function enhanceImage(srcImg: HTMLImageElement): Promise<HTMLImageElement> {
     }
     ctx.putImageData(imageData, 0, 0);
 
-    const bc = document.createElement("canvas");
-    bc.width = w; bc.height = h;
-    const bx = bc.getContext("2d")!;
-    bx.filter = "blur(1.2px)";
-    bx.drawImage(c, 0, 0);
-    const blurD = bx.getImageData(0, 0, w, h).data;
-    const sharp = ctx.getImageData(0, 0, w, h);
-    const sd = sharp.data;
-    for (let i = 0; i < sd.length; i += 4) {
-      sd[i] = Math.max(0, Math.min(255, sd[i] + (sd[i] - blurD[i]) * 0.45));
-      sd[i + 1] = Math.max(0, Math.min(255, sd[i + 1] + (sd[i + 1] - blurD[i + 1]) * 0.45));
-      sd[i + 2] = Math.max(0, Math.min(255, sd[i + 2] + (sd[i + 2] - blurD[i + 2]) * 0.45));
+    if (sharpAmt > 0) {
+      const bc = document.createElement("canvas");
+      bc.width = w; bc.height = h;
+      const bx = bc.getContext("2d")!;
+      bx.filter = "blur(1.2px)";
+      bx.drawImage(c, 0, 0);
+      const blurD = bx.getImageData(0, 0, w, h).data;
+      const sharp = ctx.getImageData(0, 0, w, h);
+      const sd = sharp.data;
+      for (let i = 0; i < sd.length; i += 4) {
+        sd[i] = Math.max(0, Math.min(255, sd[i] + (sd[i] - blurD[i]) * sharpAmt));
+        sd[i + 1] = Math.max(0, Math.min(255, sd[i + 1] + (sd[i + 1] - blurD[i + 1]) * sharpAmt));
+        sd[i + 2] = Math.max(0, Math.min(255, sd[i + 2] + (sd[i + 2] - blurD[i + 2]) * sharpAmt));
+      }
+      ctx.putImageData(sharp, 0, 0);
     }
-    ctx.putImageData(sharp, 0, 0);
+
+    const out = new Image();
+    out.onload = () => resolve(out);
+    out.src = c.toDataURL();
+  });
+}
+
+function applyBeforeEnhancements(
+  srcImg: HTMLImageElement
+): Promise<HTMLImageElement> {
+  return new Promise((resolve) => {
+    const c = document.createElement("canvas");
+    const w = srcImg.width, h = srcImg.height;
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(srcImg, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const d = imageData.data;
+
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i], g = d[i + 1], b = d[i + 2];
+      const gray = r * 0.3 + g * 0.59 + b * 0.11;
+      r = r * 0.85 + gray * 0.15 + 3;
+      g = g * 0.85 + gray * 0.15;
+      b = b * 0.85 + gray * 0.15 - 3;
+      r = (r - 128) * 0.95 + 128;
+      g = (g - 128) * 0.95 + 128;
+      b = (b - 128) * 0.95 + 128;
+      d[i] = Math.max(0, Math.min(255, r));
+      d[i + 1] = Math.max(0, Math.min(255, g));
+      d[i + 2] = Math.max(0, Math.min(255, b));
+    }
+    ctx.putImageData(imageData, 0, 0);
 
     const out = new Image();
     out.onload = () => resolve(out);
@@ -72,20 +138,40 @@ function enhanceImage(srcImg: HTMLImageElement): Promise<HTMLImageElement> {
 }
 
 export default function FrameBuilder() {
-  const [beforeImg, setBeforeImg] = useState<HTMLImageElement | null>(null);
+  const [beforeImgRaw, setBeforeImgRaw] = useState<HTMLImageElement | null>(null);
+  const [beforeImgProcessed, setBeforeImgProcessed] = useState<HTMLImageElement | null>(null);
   const [afterImgRaw, setAfterImgRaw] = useState<HTMLImageElement | null>(null);
-  const [afterImgEnhanced, setAfterImgEnhanced] = useState<HTMLImageElement | null>(null);
+  const [afterImgProcessed, setAfterImgProcessed] = useState<HTMLImageElement | null>(null);
   const [beforePreview, setBeforePreview] = useState<string | null>(null);
   const [afterPreview, setAfterPreview] = useState<string | null>(null);
-  const [layout, setLayout] = useState<"sideBySide" | "stacked">("sideBySide");
-  const [frameStyle, setFrameStyle] = useState<"classic" | "minimal" | "bold">("classic");
+  const [layout, setLayout] = useState<Layout>("sideBySide");
+  const [frameStyle] = useState<FrameStyle>("classic");
   const [showBranding, setShowBranding] = useState(true);
   const [showTagline, setShowTagline] = useState(true);
   const [autoEnhance, setAutoEnhance] = useState(true);
+  const [showManual, setShowManual] = useState(false);
+  const [manual, setManual] = useState<ManualAdjustments>(DEFAULT_ADJUSTMENTS);
+  const [caption, setCaption] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (afterImgRaw) {
+      applyEnhancements(afterImgRaw, autoEnhance, manual).then(setAfterImgProcessed);
+    }
+  }, [afterImgRaw, autoEnhance, manual]);
+
+  useEffect(() => {
+    if (beforeImgRaw) {
+      if (autoEnhance) {
+        applyBeforeEnhancements(beforeImgRaw).then(setBeforeImgProcessed);
+      } else {
+        setBeforeImgProcessed(beforeImgRaw);
+      }
+    }
+  }, [beforeImgRaw, autoEnhance]);
 
   const handleFile = useCallback(async (file: File, which: "before" | "after") => {
     if (!file) return;
@@ -93,15 +179,13 @@ export default function FrameBuilder() {
     reader.onload = async (e) => {
       const dataUrl = e.target?.result as string;
       const img = new Image();
-      img.onload = async () => {
+      img.onload = () => {
         if (which === "before") {
-          setBeforeImg(img);
+          setBeforeImgRaw(img);
           setBeforePreview(dataUrl);
         } else {
           setAfterImgRaw(img);
           setAfterPreview(dataUrl);
-          const enhanced = await enhanceImage(img);
-          setAfterImgEnhanced(enhanced);
         }
       };
       img.src = dataUrl;
@@ -110,25 +194,36 @@ export default function FrameBuilder() {
   }, []);
 
   const drawFrame = useCallback(() => {
-    const activeAfter = autoEnhance ? afterImgEnhanced : afterImgRaw;
-    if (!beforeImg || !activeAfter || !canvasRef.current) return;
+    const beforeImg = beforeImgProcessed;
+    const afterImg = afterImgProcessed;
+    const isSingle = layout === "singleBefore" || layout === "singleAfter";
 
-    const canvas = canvasRef.current;
+    if (isSingle) {
+      const needed = layout === "singleBefore" ? beforeImg : afterImg;
+      if (!needed || !canvasRef.current) return;
+    } else {
+      if (!beforeImg || !afterImg || !canvasRef.current) return;
+    }
+
+    const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    const isSide = layout === "sideBySide";
     const fs = frameStyle;
     const pad = 24, gap = 12, labelH = 48, topBar = 6;
     const brandH = showBranding ? 64 : 0;
     const tagH = showTagline && showBranding ? 28 : 0;
+    const captionH = caption.trim() ? 44 : 0;
     const imgW = 540, imgH = 540;
 
     let W: number, H: number;
-    if (isSide) {
+    if (layout === "sideBySide") {
       W = pad + imgW + gap + imgW + pad;
-      H = topBar + pad + labelH + imgH + pad + brandH + tagH + (brandH ? 8 : 0);
+      H = topBar + pad + labelH + imgH + pad + captionH + brandH + tagH + (brandH ? 8 : 0);
+    } else if (layout === "topBottom") {
+      W = pad + imgW + pad;
+      H = topBar + pad + labelH + imgH + gap + labelH + imgH + pad + captionH + brandH + tagH + (brandH ? 8 : 0);
     } else {
       W = pad + imgW + pad;
-      H = topBar + pad + labelH + imgH + gap + labelH + imgH + pad + brandH + tagH + (brandH ? 8 : 0);
+      H = topBar + pad + labelH + imgH + pad + captionH + brandH + tagH + (brandH ? 8 : 0);
     }
     canvas.width = W; canvas.height = H;
 
@@ -144,10 +239,7 @@ export default function FrameBuilder() {
       else { sw = img.width; sh = sw / dr; sx = 0; sy = (img.height - sh) / 2; }
       if (fs === "classic") {
         const r = 6;
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, r);
-        ctx.clip();
+        ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip();
         ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
         ctx.restore();
         ctx.strokeStyle = COLORS.rawGranite; ctx.lineWidth = 2;
@@ -181,19 +273,33 @@ export default function FrameBuilder() {
       }
     }
 
-    if (isSide) {
-      const y0 = topBar + pad;
+    const y0 = topBar + pad;
+
+    if (layout === "sideBySide") {
       drawLabel("BEFORE", pad, y0, imgW);
       drawLabel("AFTER", pad + imgW + gap, y0, imgW);
-      cropDraw(beforeImg, pad, y0 + labelH, imgW, imgH);
-      cropDraw(activeAfter, pad + imgW + gap, y0 + labelH, imgW, imgH);
-    } else {
-      const y0 = topBar + pad;
+      cropDraw(beforeImg!, pad, y0 + labelH, imgW, imgH);
+      cropDraw(afterImg!, pad + imgW + gap, y0 + labelH, imgW, imgH);
+    } else if (layout === "topBottom") {
       drawLabel("BEFORE", pad, y0, imgW);
-      cropDraw(beforeImg, pad, y0 + labelH, imgW, imgH);
+      cropDraw(beforeImg!, pad, y0 + labelH, imgW, imgH);
       const y1 = y0 + labelH + imgH + gap;
       drawLabel("AFTER", pad, y1, imgW);
-      cropDraw(activeAfter, pad, y1 + labelH, imgW, imgH);
+      cropDraw(afterImg!, pad, y1 + labelH, imgW, imgH);
+    } else if (layout === "singleBefore") {
+      drawLabel("BEFORE", pad, y0, imgW);
+      cropDraw(beforeImg!, pad, y0 + labelH, imgW, imgH);
+    } else {
+      drawLabel("AFTER", pad, y0, imgW);
+      cropDraw(afterImg!, pad, y0 + labelH, imgW, imgH);
+    }
+
+    if (caption.trim()) {
+      const capY = H - captionH - brandH - tagH - (brandH ? 8 : 0);
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = COLORS.whiteMarble;
+      ctx.font = "italic 15px 'Cormorant Garamond', serif";
+      ctx.fillText(caption.trim(), W / 2, capY + captionH / 2);
     }
 
     if (showBranding) {
@@ -217,12 +323,17 @@ export default function FrameBuilder() {
     }
 
     setPreviewUrl(canvas.toDataURL("image/png"));
-  }, [beforeImg, afterImgRaw, afterImgEnhanced, autoEnhance, layout, frameStyle, showBranding, showTagline]);
+  }, [beforeImgProcessed, afterImgProcessed, layout, frameStyle, showBranding, showTagline, caption]);
 
   useEffect(() => {
-    const activeAfter = autoEnhance ? afterImgEnhanced : afterImgRaw;
-    if (beforeImg && activeAfter) drawFrame();
-  }, [beforeImg, afterImgRaw, afterImgEnhanced, autoEnhance, layout, frameStyle, showBranding, showTagline, drawFrame]);
+    const isSingle = layout === "singleBefore" || layout === "singleAfter";
+    if (isSingle) {
+      const needed = layout === "singleBefore" ? beforeImgProcessed : afterImgProcessed;
+      if (needed) drawFrame();
+    } else {
+      if (beforeImgProcessed && afterImgProcessed) drawFrame();
+    }
+  }, [beforeImgProcessed, afterImgProcessed, layout, frameStyle, showBranding, showTagline, caption, drawFrame]);
 
   const handleDownload = () => {
     if (!previewUrl) return;
@@ -234,107 +345,177 @@ export default function FrameBuilder() {
     document.body.removeChild(a);
   };
 
+  const layoutOptions: { key: Layout; label: string }[] = [
+    { key: "sideBySide", label: "Side by Side" },
+    { key: "topBottom", label: "Top / Bottom" },
+    { key: "singleBefore", label: "Single \u2014 Before" },
+    { key: "singleAfter", label: "Single \u2014 After" },
+  ];
+
   const pillClass = (active: boolean) =>
     `px-4 py-1.5 rounded-full text-xs tracking-wider cursor-pointer transition-all border ` +
     (active
       ? "border-[#C9976B] bg-[#C9976B] text-[#141414] font-bold"
       : "border-[#6B6B6B] bg-transparent text-[#E8E4DF]");
 
+  const sliderRow = (label: string, key: keyof ManualAdjustments, min: number, max: number) => (
+    <div className="flex items-center gap-3 mb-3" key={key}>
+      <span className="text-xs w-20 shrink-0" style={{ color: COLORS.greyGranite, fontFamily: "'Cinzel', serif", letterSpacing: 1 }}>
+        {label}
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={manual[key]}
+        onChange={(e) => setManual({ ...manual, [key]: Number(e.target.value) })}
+        className="flex-1 h-1 appearance-none rounded-full outline-none"
+        style={{ accentColor: COLORS.brightBronze, background: COLORS.rawGranite }}
+      />
+      <span className="text-xs w-8 text-right" style={{ color: COLORS.greyGranite }}>{manual[key]}</span>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen p-4 md:p-8 space-y-6" style={{ background: COLORS.polishedBlack, fontFamily: "'Cinzel', serif" }}>
+    <div className="min-h-screen bg-[#141414] text-[#E8E4DF] p-4 pb-24" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
 
-      <canvas ref={canvasRef} style={{ display: "none" }} />
-
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-widest" style={{ color: COLORS.whiteMarble }}>
-          FRAME BUILDER
-        </h1>
-        <div className="w-16 h-0.5 mx-auto" style={{ background: COLORS.brightBronze }} />
+      <div className="text-center mb-6">
+        <h1 className="text-lg font-semibold tracking-[4px] text-[#E8E4DF]" style={{ fontFamily: "'Cinzel', serif" }}>FRAME BUILDER</h1>
+        <div className="w-10 h-0.5 bg-[#C9976B] mx-auto mt-2" />
       </div>
 
-      <div className="flex gap-3">
-        {(["before", "after"] as const).map((which) => {
-          const preview = which === "before" ? beforePreview : afterPreview;
-          const inputRef = which === "before" ? beforeInputRef : afterInputRef;
-          return (
-            <div
-              key={which}
-              onClick={() => inputRef.current?.click()}
-              className="flex-1 min-h-[150px] rounded-lg flex flex-col items-center justify-center relative overflow-hidden cursor-pointer"
-              style={{
-                border: `2px dashed ${preview ? COLORS.brightBronze : COLORS.greyGranite}`,
-                background: preview ? "none" : COLORS.rawGranite,
-              }}
-            >
-              {preview && <img src={preview} alt={which} className="absolute inset-0 w-full h-full object-cover" />}
-              <div className="relative z-10 text-center" style={{ textShadow: preview ? "0 1px 4px #000" : "none" }}>
-                {!preview && <span className="text-3xl block mb-1" style={{ color: COLORS.brightBronze }}>+</span>}
-                <span
-                  className="text-xs uppercase tracking-widest block"
-                  style={{ color: preview ? COLORS.whiteMarble : COLORS.greyGranite }}
-                >
-                  {preview ? `Change ${which}` : which}
-                </span>
-                {!preview && <span className="text-[10px] block mt-1" style={{ color: COLORS.greyGranite }}>Tap to upload</span>}
-              </div>
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], which)}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-widest" style={{ color: COLORS.greyGranite }}>LAYOUT</p>
-        <div className="flex gap-2">
-          <span className={pillClass(layout === "sideBySide")} onClick={() => setLayout("sideBySide")} style={{ fontFamily: "'Cinzel', serif" }}>Side by Side</span>
-          <span className={pillClass(layout === "stacked")} onClick={() => setLayout("stacked")} style={{ fontFamily: "'Cinzel', serif" }}>Stacked</span>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-widest" style={{ color: COLORS.greyGranite }}>STYLE</p>
-        <div className="flex gap-2">
-          {(["classic", "minimal", "bold"] as const).map((s) => (
-            <span key={s} className={pillClass(frameStyle === s)} onClick={() => setFrameStyle(s)} style={{ fontFamily: "'Cinzel', serif" }}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </span>
+      <div className="mb-5">
+        <div className="text-[11px] tracking-[2px] mb-2" style={{ fontFamily: "'Cinzel', serif", color: COLORS.greyGranite }}>LAYOUT</div>
+        <div className="flex gap-2 flex-wrap">
+          {layoutOptions.map(({ key, label }) => (
+            <button key={key} className={pillClass(layout === key)} onClick={() => setLayout(key)} style={{ fontFamily: "'Cinzel', serif" }}>
+              {label}
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="flex gap-4 flex-wrap">
-        {([
-          ["autoEnhance", autoEnhance, setAutoEnhance, "Auto Enhance"],
-          ["branding", showBranding, setShowBranding, "Branding"],
-          ["tagline", showTagline, setShowTagline, "Tagline"],
-        ] as const).map(([key, val, setter, label]) => (
-          <div key={key as string} className="flex items-center gap-2 cursor-pointer" onClick={() => (setter as any)(!val)}>
+      <div className="mb-5">
+        <div className="text-[11px] tracking-[2px] mb-2" style={{ fontFamily: "'Cinzel', serif", color: COLORS.greyGranite }}>PHOTOS</div>
+        <div className="flex gap-3">
+          {(layout !== "singleAfter") && (
             <div
-              className="w-9 h-5 rounded-full relative transition-colors"
-              style={{ background: val ? COLORS.brightBronze : COLORS.greyGranite }}
+              onClick={() => beforeInputRef.current?.click()}
+              className="flex-1 min-h-[160px] rounded-lg flex flex-col items-center justify-center relative overflow-hidden cursor-pointer"
+              style={{
+                border: `2px dashed ${beforePreview ? COLORS.brightBronze : COLORS.greyGranite}`,
+                background: beforePreview ? "none" : COLORS.rawGranite,
+              }}
             >
-              <div
-                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform"
-                style={{ left: val ? "18px" : "2px" }}
-              />
+              {beforePreview && <img src={beforePreview} alt="Before" className="absolute inset-0 w-full h-full object-cover" />}
+              <div className={`relative z-10 flex flex-col items-center gap-1 p-3 rounded-md ${beforePreview ? "bg-black/70" : ""}`}>
+                {!beforePreview && <span className="text-3xl" style={{ color: COLORS.greyGranite }}>+</span>}
+                <span className="text-base tracking-wide" style={{ fontFamily: "'Cormorant Garamond', serif", color: beforePreview ? COLORS.brightBronze : COLORS.whiteMarble }}>
+                  {beforePreview ? "Change" : "Before"}
+                </span>
+                {!beforePreview && <span className="text-xs" style={{ color: COLORS.greyGranite }}>Tap to upload</span>}
+              </div>
+              <input ref={beforeInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], "before")} />
             </div>
-            <span className="text-xs tracking-wider" style={{ color: COLORS.whiteMarble }}>{label}</span>
+          )}
+          {(layout !== "singleBefore") && (
+            <div
+              onClick={() => afterInputRef.current?.click()}
+              className="flex-1 min-h-[160px] rounded-lg flex flex-col items-center justify-center relative overflow-hidden cursor-pointer"
+              style={{
+                border: `2px dashed ${afterPreview ? COLORS.brightBronze : COLORS.greyGranite}`,
+                background: afterPreview ? "none" : COLORS.rawGranite,
+              }}
+            >
+              {afterPreview && <img src={afterPreview} alt="After" className="absolute inset-0 w-full h-full object-cover" />}
+              <div className={`relative z-10 flex flex-col items-center gap-1 p-3 rounded-md ${afterPreview ? "bg-black/70" : ""}`}>
+                {!afterPreview && <span className="text-3xl" style={{ color: COLORS.greyGranite }}>+</span>}
+                <span className="text-base tracking-wide" style={{ fontFamily: "'Cormorant Garamond', serif", color: afterPreview ? COLORS.brightBronze : COLORS.whiteMarble }}>
+                  {afterPreview ? "Change" : "After"}
+                </span>
+                {!afterPreview && <span className="text-xs" style={{ color: COLORS.greyGranite }}>Tap to upload</span>}
+              </div>
+              <input ref={afterInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], "after")} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-lg p-4 mb-5" style={{ background: COLORS.rawGranite }}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[11px] tracking-[2px]" style={{ fontFamily: "'Cinzel', serif", color: COLORS.greyGranite }}>AUTO ENHANCE</span>
+          <div className="flex items-center cursor-pointer select-none" onClick={() => setAutoEnhance(!autoEnhance)}>
+            <div className={`w-10 h-[22px] rounded-full relative transition-colors ${autoEnhance ? "bg-[#C9976B]" : "bg-[#6B6B6B]"}`}>
+              <div className={`w-[18px] h-[18px] rounded-full bg-[#E8E4DF] absolute top-[2px] transition-all shadow ${autoEnhance ? "left-5" : "left-[2px]"}`} />
+            </div>
+          </div>
+        </div>
+        <p className="text-xs mb-3" style={{ color: COLORS.greyGranite }}>
+          Before: grime emphasis &middot; After: clean &amp; bright
+        </p>
+        <button
+          onClick={() => setShowManual(!showManual)}
+          className="text-[11px] tracking-[2px] cursor-pointer"
+          style={{ fontFamily: "'Cinzel', serif", color: COLORS.greyGranite, background: "none", border: "none", borderBottom: `1px solid ${COLORS.greyGranite}` }}
+        >
+          MANUAL ADJUSTMENTS {showManual ? "\u25B2" : "\u25BC"}
+        </button>
+        {showManual && (
+          <div className="mt-4">
+            {sliderRow("Bright", "brightness", -30, 30)}
+            {sliderRow("Contrast", "contrast", -30, 30)}
+            {sliderRow("Saturate", "saturation", -30, 30)}
+            {sliderRow("Sharp", "sharpness", 0, 100)}
+            <button
+              onClick={() => setManual(DEFAULT_ADJUSTMENTS)}
+              className="text-xs mt-1 px-3 py-1 rounded border cursor-pointer"
+              style={{ borderColor: COLORS.greyGranite, color: COLORS.greyGranite, background: "none" }}
+            >
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="mb-5">
+        <div className="text-[11px] tracking-[2px] mb-2" style={{ fontFamily: "'Cinzel', serif", color: COLORS.greyGranite }}>CAPTION (OPTIONAL)</div>
+        <input
+          type="text"
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="e.g. Schwitz Monument — Cape Girardeau, MO"
+          className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+          style={{
+            background: COLORS.rawGranite,
+            color: COLORS.whiteMarble,
+            border: `1px solid ${COLORS.greyGranite}`,
+            fontFamily: "'Cormorant Garamond', serif",
+          }}
+        />
+      </div>
+
+      <div className="flex gap-5 mb-6 flex-wrap">
+        {([
+          [showBranding, setShowBranding, "Branding"],
+          [showTagline, setShowTagline, "Tagline"],
+        ] as [boolean, React.Dispatch<React.SetStateAction<boolean>>, string][]).map(([val, setter, label]) => (
+          <div key={label} className="flex items-center gap-2.5 cursor-pointer select-none" onClick={() => setter(!val)}>
+            <div className={`w-10 h-[22px] rounded-full relative transition-colors ${val ? "bg-[#C9976B]" : "bg-[#6B6B6B]"}`}>
+              <div className={`w-[18px] h-[18px] rounded-full bg-[#E8E4DF] absolute top-[2px] transition-all shadow ${val ? "left-5" : "left-[2px]"}`} />
+            </div>
+            <span className="text-sm">{label}</span>
           </div>
         ))}
       </div>
 
+      <canvas ref={canvasRef} className="hidden" />
+
       {previewUrl && (
-        <div className="space-y-3">
-          <p className="text-[10px] uppercase tracking-widest text-center" style={{ color: COLORS.greyGranite }}>PREVIEW</p>
-          <div className="rounded-lg overflow-hidden border" style={{ borderColor: COLORS.rawGranite }}>
-            <img src={previewUrl} alt="preview" className="w-full" />
+        <div className="mb-5">
+          <div className="text-[11px] tracking-[2px] mb-2" style={{ fontFamily: "'Cinzel', serif", color: COLORS.greyGranite }}>PREVIEW</div>
+          <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${COLORS.rawGranite}` }}>
+            <img src={previewUrl} alt="Preview" className="w-full block" />
           </div>
         </div>
       )}
@@ -349,7 +530,7 @@ export default function FrameBuilder() {
         </button>
       )}
 
-      {!beforeImg && !afterImgRaw && (
+      {!beforeImgRaw && !afterImgRaw && (
         <div className="text-center py-5 italic text-sm" style={{ color: COLORS.greyGranite }}>
           Upload your before &amp; after photos to get started
         </div>
