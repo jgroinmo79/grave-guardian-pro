@@ -344,13 +344,66 @@ export default function FrameBuilder() {
       )}
 
       {previewUrl && (
-        <button
-          onClick={handleDownload}
-          className="w-full py-3 rounded-lg text-sm font-bold tracking-widest transition-colors"
-          style={{ background: COLORS.brightBronze, color: COLORS.polishedBlack }}
-        >
-          DOWNLOAD
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleDownload}
+            className="flex-1 py-3 rounded-lg text-sm font-bold tracking-widest transition-colors"
+            style={{ background: COLORS.brightBronze, color: COLORS.polishedBlack }}
+          >
+            DOWNLOAD
+          </button>
+          <button
+            disabled={uploading}
+            onClick={async () => {
+              if (!canvasRef.current) return;
+              setUploading(true);
+              try {
+                const blob = await new Promise<Blob>((res) =>
+                  canvasRef.current!.toBlob((b) => res(b!), "image/png")
+                );
+                const path = `gallery/${Date.now()}.png`;
+                const { error: uploadError } = await supabase.storage
+                  .from("monument-photos")
+                  .upload(path, blob, { contentType: "image/png" });
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabase.storage
+                  .from("monument-photos")
+                  .getPublicUrl(path);
+
+                const { data: existing } = await supabase
+                  .from("gallery_photos")
+                  .select("display_order")
+                  .order("display_order", { ascending: false })
+                  .limit(1);
+                const maxOrder = existing?.length ? existing[0].display_order : -1;
+
+                const { error: insertError } = await supabase.from("gallery_photos").insert({
+                  photo_url: urlData.publicUrl,
+                  alt_text: "Before and after monument cleaning",
+                  display_order: maxOrder + 1,
+                });
+                if (insertError) throw insertError;
+
+                queryClient.invalidateQueries({ queryKey: ["gallery-photos"] });
+                alert("Added to gallery!");
+              } catch (err: any) {
+                alert("Upload failed: " + err.message);
+              } finally {
+                setUploading(false);
+              }
+            }}
+            className="flex-1 py-3 rounded-lg text-sm font-bold tracking-widest transition-colors border"
+            style={{
+              background: "transparent",
+              color: COLORS.brightBronze,
+              borderColor: COLORS.brightBronze,
+              opacity: uploading ? 0.5 : 1,
+            }}
+          >
+            {uploading ? "UPLOADING…" : "ADD TO GALLERY"}
+          </button>
+        </div>
       )}
 
       {!beforeImg && !afterImgRaw && (
