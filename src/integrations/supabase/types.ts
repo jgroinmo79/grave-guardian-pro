@@ -59,6 +59,30 @@ export type Database = {
           },
         ]
       }
+      gallery_photos: {
+        Row: {
+          alt_text: string
+          created_at: string
+          display_order: number
+          id: string
+          photo_url: string
+        }
+        Insert: {
+          alt_text?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          photo_url: string
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          photo_url?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           created_at: string
