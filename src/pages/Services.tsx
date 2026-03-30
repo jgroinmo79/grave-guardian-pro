@@ -9,23 +9,23 @@ const fadeUp = {
 };
 
 const standardPrices = [
-  ["Flat/Flush Marker", "$75"],
-  ["Single Upright", "$100"],
-  ["Double Upright", "$150"],
-  ["Monument with Base", "$175"],
-  ["Bronze Plaque", "$90"],
-  ["Obelisk/Pillar", "$200"],
-  ["Mausoleum Panel", "$175"],
+  ["Flat / Flush Marker", "$175"],
+  ["Single Upright", "$175"],
+  ["Double / Companion Stone", "$225"],
+  ["Monument with Base", "$275"],
+  ["Bronze Plaque", "$225"],
+  ["Obelisk / Pillar", "$275"],
+  ["Mausoleum Panel", "$375"],
 ];
 
 const premiumPrices = [
-  ["Flat/Flush Marker", "$125"],
-  ["Single Upright", "$150"],
-  ["Double Upright", "$200"],
-  ["Monument with Base", "$225"],
-  ["Bronze Plaque", "$140"],
-  ["Obelisk/Pillar", "$250"],
-  ["Mausoleum Panel", "$225"],
+  ["Flat / Flush Marker", "$225"],
+  ["Single Upright", "$225"],
+  ["Double / Companion Stone", "$275"],
+  ["Monument with Base", "$325"],
+  ["Bronze Plaque", "$275"],
+  ["Obelisk / Pillar", "$325"],
+  ["Mausoleum Panel", "$425"],
 ];
 
 const travelZones = [
