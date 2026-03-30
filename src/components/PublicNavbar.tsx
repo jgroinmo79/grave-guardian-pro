@@ -36,6 +36,15 @@ const PublicNavbar = () => {
           ))}
           <Link
             to="/auth"
+            className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors"
+            style={{ color: "#6B6B6B" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+          >
+            Log In
+          </Link>
+          <Link
+            to="/auth"
             className="font-cinzel text-xs tracking-[0.15em] uppercase px-5 py-2 rounded transition-colors"
             style={{ backgroundColor: "#C9976B", color: "#141414" }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#7A5C3E")}
@@ -65,6 +74,14 @@ const PublicNavbar = () => {
               {l.label}
             </Link>
           ))}
+          <Link
+            to="/auth"
+            onClick={() => setOpen(false)}
+            className="block font-cinzel text-sm tracking-[0.15em] uppercase"
+            style={{ color: "#C9976B" }}
+          >
+            Log In
+          </Link>
           <Link
             to="/auth"
             onClick={() => setOpen(false)}
