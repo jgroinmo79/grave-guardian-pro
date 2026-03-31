@@ -97,9 +97,9 @@ const Services = () => (
       <SectionHeading title="Annual Care Plans" subtitle="Set it and forget it. We return on schedule so you never have to worry." />
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
-          { name: "The Keeper", price: "$475/year", visits: "2 visits", desc: "Spring and fall cleanings with photos after each visit, condition report, priority scheduling, and automatic damage documentation if deterioration is found.", badge: null, border: "#3a3a3a" },
-          { name: "The Sentinel", price: "$575/year", visits: "3 visits", desc: "Spring, summer, and fall cleanings with photos after each visit, condition report, priority scheduling, automatic damage documentation, and one complimentary flower placement.", badge: "Most Popular", border: "#C9976B" },
-          { name: "The Legacy", price: "$1,200/year", visits: "4 visits", desc: "Quarterly cleanings with photos after each visit, condition report, top-priority scheduling, automatic damage documentation, two premium flower placements on your chosen dates, and an annual preservation assessment.", badge: null, border: "#3a3a3a" },
+          { name: "The Keeper", price: "$525/year", visits: "2 visits · 1 flower placement", desc: "Two cleanings per year with photos after each visit, condition report, priority scheduling, automatic damage documentation, and one included flower placement. Choose 1 holiday: Memorial Day, Christmas, Mother's Day, or Father's Day.", badge: null, border: "#3a3a3a" },
+          { name: "The Sentinel", price: "$675/year", visits: "3 visits · 2 flower placements", desc: "Three cleanings per year with photos after each visit, condition report, priority scheduling, automatic damage documentation, and two included flower placements. Choose 2 holidays from: Memorial Day, Christmas, Mother's Day, or Father's Day.", badge: "Most Popular", border: "#C9976B" },
+          { name: "The Legacy", price: "$1,200/year", visits: "4 visits · 3 flower placements", desc: "Quarterly cleanings with photos after each visit, condition report, top-priority scheduling, automatic damage documentation, three premium flower placements, and an annual preservation assessment. Choose 3 dates from: Memorial Day, Christmas, Mother's Day, Father's Day, deceased's birthday, or deceased's anniversary.", badge: null, border: "#3a3a3a" },
         ].map((plan, i) => (
           <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.15 }}
             className="rounded-lg p-8 relative" style={{ backgroundColor: "#2C2C2C", border: `${plan.badge ? "2px" : "1px"} solid ${plan.border}` }}>
@@ -114,6 +114,13 @@ const Services = () => (
             <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
           </motion.div>
         ))}
+      </div>
+      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
+        className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
+        <p className="font-garamond text-sm leading-relaxed italic text-center" style={{ color: "#6B6B6B" }}>
+          Visits are scheduled around your chosen holidays, with remaining cleanings spaced evenly throughout the year to keep your stone maintained year-round. Flower placements are paired with a cleaning visit on or near each selected holiday.
+        </p>
+      </motion.div>
       </div>
     </section>
 
