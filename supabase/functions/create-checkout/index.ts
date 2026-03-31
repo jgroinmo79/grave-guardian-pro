@@ -201,7 +201,33 @@ serve(async (req) => {
       throw new Error("Failed to save order data");
     }
 
-    // 3. Save client-uploaded photos as photo_records
+    // 3. Create subscription if annual plan selected
+    if (selectedPlan && CARE_PLANS[selectedPlan]) {
+      // Build important_dates string: "Memorial Day,Deceased's Birthday|03-15"
+      const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
+        const custom = (holidayCustomDates as Record<string, string>)[h];
+        return custom ? `${h}|${custom}` : h;
+      }).join(",");
+
+      const { error: subError } = await supabaseAdmin
+        .from("subscriptions")
+        .insert({
+          user_id: effectiveUserId,
+          monument_id: monumentRecord.id,
+          plan: selectedPlan,
+          price: CARE_PLANS[selectedPlan].price,
+          period: "annual",
+          status: "active",
+          important_dates: importantDatesStr || null,
+          start_date: new Date().toISOString().split("T")[0],
+        });
+      if (subError) {
+        console.error("[create-checkout] Subscription insert error:", subError);
+        // Non-fatal
+      }
+    }
+
+    // 4. Save client-uploaded photos as photo_records
     if (photos && photos.length > 0) {
       const photoRows = photos.map((url: string) => ({
         monument_id: monumentRecord.id,
