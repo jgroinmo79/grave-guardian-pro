@@ -55,10 +55,11 @@ export const CARE_PLANS_BOOKING = [
   {
     id: 'keeper' as const,
     label: 'The Keeper',
-    price: 475,
+    price: 525,
     period: '/yr',
     features: [
       '2 visits per year (spring + fall)',
+      '1 included flower placement — choose 1 holiday',
       '4 photos after each visit',
       'Condition report',
       'Priority scheduling',
@@ -68,15 +69,15 @@ export const CARE_PLANS_BOOKING = [
   {
     id: 'sentinel' as const,
     label: 'The Sentinel',
-    price: 575,
+    price: 675,
     period: '/yr',
     features: [
       '3 visits per year (spring, summer, fall)',
+      '2 included flower placements — choose 2 holidays',
       '4 photos after each visit',
       'Condition report',
       'Priority scheduling',
-      'Auto damage doc',
-      '1 complimentary flower placement included',
+      'Automatic damage documentation',
     ],
   },
   {
@@ -86,11 +87,11 @@ export const CARE_PLANS_BOOKING = [
     period: '/yr',
     features: [
       '4 visits per year (quarterly)',
+      '3 included flower placements — choose 3 dates',
       '4 photos after each visit',
       'Condition report',
       'Top-priority scheduling',
-      'Auto damage doc',
-      '2 premium flower placements on customer-chosen dates',
+      'Automatic damage documentation',
       'Annual preservation assessment',
     ],
   },
@@ -129,11 +130,11 @@ export const FLOWER_OPTIONS = [
 
 export const TRAVEL_ZONES_BOOKING = [
   { label: 'Zone 1', range: '0–25 miles from Benton', fee: 'No charge' },
-  { label: 'Zone 2', range: '26–50 miles', fee: '$35' },
+  { label: 'Zone 2', range: '26–50 miles', fee: '$40' },
   { label: 'Zone 3', range: '51–75 miles', fee: '$70' },
-  { label: 'Zone 4', range: '76–100 miles', fee: '$105' },
-  { label: 'Zone 5', range: '101–125 miles', fee: '$140' },
-  { label: 'Zone 6', range: '126+ miles', fee: 'Quoted at booking ($0.70/mile round-trip)' },
+  { label: 'Zone 4', range: '76–100 miles', fee: '$100' },
+  { label: 'Zone 5', range: '101–150 miles', fee: '$150' },
+  { label: 'Zone 6', range: '150+ miles', fee: 'Custom Quote' },
 ];
 
 export type ServiceType = 'one_time' | 'annual_plan' | 'flower_placement';
