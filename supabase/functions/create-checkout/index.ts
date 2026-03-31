@@ -129,8 +129,9 @@ serve(async (req) => {
     }
 
     const bundlePrice = selectedBundle && BUNDLES[selectedBundle] ? BUNDLES[selectedBundle].price : 0;
+    const planPrice = selectedPlan && CARE_PLANS[selectedPlan] ? CARE_PLANS[selectedPlan].price : 0;
 
-    let subtotal = basePrice + travelFee + addOnTotal + bundlePrice;
+    let subtotal = basePrice + travelFee + addOnTotal + bundlePrice + planPrice;
     if (isVeteran) subtotal = Math.round(subtotal * 0.9);
 
     const effectiveUserId = userId;
