@@ -121,7 +121,6 @@ const Services = () => (
           Visits are scheduled around your chosen holidays, with remaining cleanings spaced evenly throughout the year to keep your stone maintained year-round. Flower placements are paired with a cleaning visit on or near each selected holiday.
         </p>
       </motion.div>
-      </div>
     </section>
 
     {/* Flower Placement */}
