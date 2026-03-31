@@ -34,6 +34,12 @@ const ADD_ONS: Record<string, { label: string; price: number }> = {
   flag_placement: { label: "Flag Placement", price: 35 },
 };
 
+const CARE_PLANS: Record<string, { label: string; price: number }> = {
+  keeper: { label: "The Keeper", price: 525 },
+  sentinel: { label: "The Sentinel", price: 675 },
+  legacy: { label: "The Legacy", price: 1200 },
+};
+
 const BUNDLES: Record<string, { label: string; price: number }> = {
   memorial_day: { label: "Memorial Day Bundle", price: 325 },
   remembrance_trio: { label: "Remembrance Trio", price: 450 },
