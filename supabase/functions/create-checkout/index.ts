@@ -296,6 +296,18 @@ serve(async (req) => {
       });
     }
 
+    if (selectedPlan && CARE_PLANS[selectedPlan]) {
+      const plan = CARE_PLANS[selectedPlan];
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: `${plan.label} (Annual Care Plan)` },
+          unit_amount: plan.price * 100,
+        },
+        quantity: 1,
+      });
+    }
+
     if (isVeteran) {
       for (const item of lineItems) {
         if (item.price_data) {
