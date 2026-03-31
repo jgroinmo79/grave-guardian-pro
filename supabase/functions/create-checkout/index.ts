@@ -34,6 +34,12 @@ const ADD_ONS: Record<string, { label: string; price: number }> = {
   flag_placement: { label: "Flag Placement", price: 35 },
 };
 
+const CARE_PLANS: Record<string, { label: string; price: number }> = {
+  keeper: { label: "The Keeper", price: 525 },
+  sentinel: { label: "The Sentinel", price: 675 },
+  legacy: { label: "The Legacy", price: 1200 },
+};
+
 const BUNDLES: Record<string, { label: string; price: number }> = {
   memorial_day: { label: "Memorial Day Bundle", price: 325 },
   remembrance_trio: { label: "Remembrance Trio", price: 450 },
@@ -101,6 +107,9 @@ serve(async (req) => {
       consentPhotos,
       photos = [],
       preferredDate,
+      selectedPlan,
+      selectedHolidays = [],
+      holidayCustomDates = {},
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
@@ -120,8 +129,9 @@ serve(async (req) => {
     }
 
     const bundlePrice = selectedBundle && BUNDLES[selectedBundle] ? BUNDLES[selectedBundle].price : 0;
+    const planPrice = selectedPlan && CARE_PLANS[selectedPlan] ? CARE_PLANS[selectedPlan].price : 0;
 
-    let subtotal = basePrice + travelFee + addOnTotal + bundlePrice;
+    let subtotal = basePrice + travelFee + addOnTotal + bundlePrice + planPrice;
     if (isVeteran) subtotal = Math.round(subtotal * 0.9);
 
     const effectiveUserId = userId;
@@ -191,7 +201,33 @@ serve(async (req) => {
       throw new Error("Failed to save order data");
     }
 
-    // 3. Save client-uploaded photos as photo_records
+    // 3. Create subscription if annual plan selected
+    if (selectedPlan && CARE_PLANS[selectedPlan]) {
+      // Build important_dates string: "Memorial Day,Deceased's Birthday|03-15"
+      const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
+        const custom = (holidayCustomDates as Record<string, string>)[h];
+        return custom ? `${h}|${custom}` : h;
+      }).join(",");
+
+      const { error: subError } = await supabaseAdmin
+        .from("subscriptions")
+        .insert({
+          user_id: effectiveUserId,
+          monument_id: monumentRecord.id,
+          plan: selectedPlan,
+          price: CARE_PLANS[selectedPlan].price,
+          period: "annual",
+          status: "active",
+          important_dates: importantDatesStr || null,
+          start_date: new Date().toISOString().split("T")[0],
+        });
+      if (subError) {
+        console.error("[create-checkout] Subscription insert error:", subError);
+        // Non-fatal
+      }
+    }
+
+    // 4. Save client-uploaded photos as photo_records
     if (photos && photos.length > 0) {
       const photoRows = photos.map((url: string) => ({
         monument_id: monumentRecord.id,
@@ -255,6 +291,18 @@ serve(async (req) => {
           currency: "usd",
           product_data: { name: bundle.label },
           unit_amount: bundle.price * 100,
+        },
+        quantity: 1,
+      });
+    }
+
+    if (selectedPlan && CARE_PLANS[selectedPlan]) {
+      const plan = CARE_PLANS[selectedPlan];
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: `${plan.label} (Annual Care Plan)` },
+          unit_amount: plan.price * 100,
         },
         quantity: 1,
       });

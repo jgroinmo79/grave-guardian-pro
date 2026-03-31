@@ -74,6 +74,10 @@ const CheckoutStep = ({ data }: Props) => {
           consentPhotos: data.consentPhotos,
           // Preferred date
           preferredDate: data.preferredDate ? data.preferredDate.toISOString().split('T')[0] : null,
+          // Annual plan
+          selectedPlan: data.selectedPlan || null,
+          selectedHolidays: data.selectedHolidays || [],
+          holidayCustomDates: data.holidayCustomDates || {},
         },
       });
 
