@@ -29,11 +29,11 @@ export const MONUMENT_PRICES: Record<MonumentType, MonumentPricing> = {
 
 export const TRAVEL_ZONES = [
   { maxMiles: 25, fee: 0, label: 'Zone 1 (0–25 mi)', feeLabel: 'Included' },
-  { maxMiles: 50, fee: 35, label: 'Zone 2 (26–50 mi)', feeLabel: '$35' },
+  { maxMiles: 50, fee: 40, label: 'Zone 2 (26–50 mi)', feeLabel: '$40' },
   { maxMiles: 75, fee: 70, label: 'Zone 3 (51–75 mi)', feeLabel: '$70' },
-  { maxMiles: 100, fee: 105, label: 'Zone 4 (76–100 mi)', feeLabel: '$105' },
-  { maxMiles: 125, fee: 140, label: 'Zone 5 (101–125 mi)', feeLabel: '$140' },
-  { maxMiles: 150, fee: 210, label: 'Zone 6 (126–150 mi)', feeLabel: '$210' },
+  { maxMiles: 100, fee: 100, label: 'Zone 4 (76–100 mi)', feeLabel: '$100' },
+  { maxMiles: 150, fee: 150, label: 'Zone 5 (101–150 mi)', feeLabel: '$150' },
+  { maxMiles: Infinity, fee: 0, label: 'Zone 6 (150+ mi)', feeLabel: 'Custom Quote' },
 ];
 
 export function getTravelFee(miles: number) {
