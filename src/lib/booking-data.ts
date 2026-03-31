@@ -130,11 +130,11 @@ export const FLOWER_OPTIONS = [
 
 export const TRAVEL_ZONES_BOOKING = [
   { label: 'Zone 1', range: '0–25 miles from Benton', fee: 'No charge' },
-  { label: 'Zone 2', range: '26–50 miles', fee: '$35' },
+  { label: 'Zone 2', range: '26–50 miles', fee: '$40' },
   { label: 'Zone 3', range: '51–75 miles', fee: '$70' },
-  { label: 'Zone 4', range: '76–100 miles', fee: '$105' },
-  { label: 'Zone 5', range: '101–125 miles', fee: '$140' },
-  { label: 'Zone 6', range: '126+ miles', fee: 'Quoted at booking ($0.70/mile round-trip)' },
+  { label: 'Zone 4', range: '76–100 miles', fee: '$100' },
+  { label: 'Zone 5', range: '101–150 miles', fee: '$150' },
+  { label: 'Zone 6', range: '150+ miles', fee: 'Custom Quote' },
 ];
 
 export type ServiceType = 'one_time' | 'annual_plan' | 'flower_placement';
