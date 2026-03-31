@@ -101,6 +101,9 @@ serve(async (req) => {
       consentPhotos,
       photos = [],
       preferredDate,
+      selectedPlan,
+      selectedHolidays = [],
+      holidayCustomDates = {},
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
