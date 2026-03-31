@@ -2,9 +2,10 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, MapPin, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Flower2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { computeSubscriptionVisits, type SubscriptionVisit } from "@/lib/subscription-schedule";
 
 interface ScheduleOrder {
   id: string;
@@ -12,6 +13,8 @@ interface ScheduleOrder {
   scheduled_date: string | null;
   total_price: number;
   offer: string;
+  bundle_id: string | null;
+  shopper_name: string | null;
   monuments: {
     cemetery_name: string;
     monument_type: string;
@@ -22,10 +25,29 @@ interface ScheduleOrder {
   } | null;
 }
 
+/** Unified calendar entry */
+interface CalendarEntry {
+  id: string;
+  date: string;
+  type: "order" | "subscription_visit" | "flower_booking";
+  label: string; // e.g. "Cleaning + Flowers"
+  customerName: string;
+  cemeteryName: string;
+  isFlower: boolean;
+  status?: string;
+  price?: number;
+  plan?: string;
+  orderId?: string;
+  monument?: ScheduleOrder["monuments"];
+}
+
 export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) => void }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  const year = currentMonth.getFullYear();
+
+  // Fetch orders (including bundle_id and shopper_name)
   const { data: orders } = useQuery({
     queryKey: ["admin-calendar-orders", format(currentMonth, "yyyy-MM")],
     queryFn: async () => {
@@ -33,7 +55,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
       const end = endOfMonth(currentMonth);
       const { data, error } = await supabase
         .from("orders")
-        .select(`id, status, scheduled_date, total_price, offer, monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)`)
+        .select(`id, status, scheduled_date, total_price, offer, bundle_id, shopper_name, monuments (cemetery_name, monument_type, material, estimated_miles, section, lot_number)`)
         .not("scheduled_date", "is", null)
         .neq("status", "cancelled")
         .gte("scheduled_date", format(start, "yyyy-MM-dd"))
@@ -44,17 +66,92 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
     },
   });
 
-  const ordersByDate = useMemo(() => {
-    const map = new Map<string, ScheduleOrder[]>();
-    orders?.forEach((o) => {
-      if (o.scheduled_date) {
-        const key = o.scheduled_date;
-        if (!map.has(key)) map.set(key, []);
-        map.get(key)!.push(o);
+  // Fetch active subscriptions for the year
+  const { data: subscriptions } = useQuery({
+    queryKey: ["admin-calendar-subscriptions", year],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select(`id, plan, status, important_dates, start_date, user_id, monuments (cemetery_name)`)
+        .eq("status", "active");
+      if (error) throw error;
+
+      // Fetch profile names for those user_ids
+      const userIds = [...new Set((data ?? []).map((s: any) => s.user_id))];
+      let profileMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+        profiles?.forEach((p: any) => {
+          profileMap[p.user_id] = p.full_name || "Unknown";
+        });
       }
+
+      return (data ?? []).map((s: any) => ({
+        ...s,
+        customerName: profileMap[s.user_id] || "Unknown",
+        cemeteryName: (s.monuments as any)?.cemetery_name || "Unknown",
+      }));
+    },
+  });
+
+  // Compute all calendar entries
+  const entriesByDate = useMemo(() => {
+    const map = new Map<string, CalendarEntry[]>();
+    const addEntry = (entry: CalendarEntry) => {
+      if (!map.has(entry.date)) map.set(entry.date, []);
+      map.get(entry.date)!.push(entry);
+    };
+
+    // Regular orders
+    orders?.forEach((o) => {
+      if (!o.scheduled_date) return;
+      const isFlowerBundle = o.bundle_id && ["memorial_day", "remembrance_trio", "memorial_year"].includes(o.bundle_id);
+      addEntry({
+        id: `order-${o.id}`,
+        date: o.scheduled_date,
+        type: isFlowerBundle ? "flower_booking" : "order",
+        label: isFlowerBundle ? "Flower Placement" : (o.offer === "B" ? "Restoration Clean" : "Standard Clean"),
+        customerName: o.shopper_name || "Unknown",
+        cemeteryName: o.monuments?.cemetery_name || "Unknown",
+        isFlower: !!isFlowerBundle,
+        status: o.status,
+        price: o.total_price,
+        orderId: o.id,
+        monument: o.monuments,
+      });
     });
+
+    // Subscription visits
+    subscriptions?.forEach((sub: any) => {
+      const visits = computeSubscriptionVisits({
+        id: sub.id,
+        plan: sub.plan,
+        status: sub.status,
+        important_dates: sub.important_dates,
+        start_date: sub.start_date,
+        customerName: sub.customerName,
+        cemeteryName: sub.cemeteryName,
+      }, year);
+
+      visits.forEach((v) => {
+        addEntry({
+          id: v.id,
+          date: v.date,
+          type: "subscription_visit",
+          label: v.type === "cleaning_flowers" ? "Cleaning + Flowers" : "Cleaning Only",
+          customerName: v.customerName,
+          cemeteryName: v.cemeteryName,
+          isFlower: v.isFlower,
+          plan: v.plan,
+        });
+      });
+    });
+
     return map;
-  }, [orders]);
+  }, [orders, subscriptions, year]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -62,20 +159,34 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  const selectedDayOrders = selectedDate
-    ? ordersByDate.get(format(selectedDate, "yyyy-MM-dd")) ?? []
+  const selectedDayEntries = selectedDate
+    ? entriesByDate.get(format(selectedDate, "yyyy-MM-dd")) ?? []
     : [];
 
-  const statusColor: Record<string, string> = {
-    pending: "bg-orange-500",
-    scheduled: "bg-emerald-500",
-    confirmed: "bg-emerald-500",
-    in_progress: "bg-emerald-600",
-    completed: "bg-red-500",
+  const dotColor = (entry: CalendarEntry) => {
+    if (entry.isFlower) return "bg-yellow-500";
+    if (entry.type === "subscription_visit") return "bg-sky-500";
+    // Order status colors
+    const sc: Record<string, string> = {
+      pending: "bg-orange-500",
+      scheduled: "bg-emerald-500",
+      confirmed: "bg-emerald-500",
+      in_progress: "bg-emerald-600",
+      completed: "bg-red-500",
+    };
+    return sc[entry.status ?? ""] ?? "bg-muted-foreground";
   };
 
   return (
     <div className="space-y-4">
+      {/* Legend */}
+      <div className="flex flex-wrap gap-3 text-[10px] font-medium text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Order</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500 inline-block" /> Plan Visit</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500 inline-block" /> Flowers</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" /> Unconfirmed</span>
+      </div>
+
       {/* Month nav */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
@@ -96,9 +207,10 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
         ))}
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
-          const dayOrders = ordersByDate.get(dateKey) ?? [];
+          const dayEntries = entriesByDate.get(dateKey) ?? [];
           const inMonth = isSameMonth(day, currentMonth);
           const selected = selectedDate && isSameDay(day, selectedDate);
+          const hasFlower = dayEntries.some(e => e.isFlower);
 
           return (
             <button
@@ -108,7 +220,8 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
                 "bg-card min-h-[70px] p-1.5 text-left transition-colors hover:bg-muted/50 relative",
                 !inMonth && "opacity-30",
                 selected && "ring-2 ring-primary ring-inset",
-                isToday(day) && "bg-muted/30"
+                isToday(day) && "bg-muted/30",
+                hasFlower && "bg-yellow-500/5"
               )}
             >
               <span className={cn(
@@ -117,14 +230,17 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
               )}>
                 {format(day, "d")}
               </span>
-              {dayOrders.length > 0 && (
+              {dayEntries.length > 0 && (
                 <div className="mt-1 space-y-0.5">
-                  {dayOrders.map((o) => (
+                  {dayEntries.slice(0, 4).map((e) => (
                     <div
-                      key={o.id}
-                      className={cn("h-1.5 rounded-full", statusColor[o.status] ?? "bg-muted-foreground")}
+                      key={e.id}
+                      className={cn("h-1.5 rounded-full", dotColor(e))}
                     />
                   ))}
+                  {dayEntries.length > 4 && (
+                    <span className="text-[8px] text-muted-foreground">+{dayEntries.length - 4}</span>
+                  )}
                 </div>
               )}
             </button>
@@ -136,44 +252,55 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
       {selectedDate && (
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-muted-foreground">
-            {format(selectedDate, "EEEE, MMMM d")} · {selectedDayOrders.length} job{selectedDayOrders.length !== 1 ? "s" : ""}
+            {format(selectedDate, "EEEE, MMMM d")} · {selectedDayEntries.length} visit{selectedDayEntries.length !== 1 ? "s" : ""}
           </h4>
-          {selectedDayOrders.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No jobs scheduled for this day.</p>
+          {selectedDayEntries.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No visits scheduled for this day.</p>
           ) : (
             <div className="grid gap-2">
-              {selectedDayOrders.map((o) => {
-                const m = o.monuments;
-                return (
-                  <button
-                    key={o.id}
-                    onClick={() => onSelectOrder?.(o.id)}
-                    className="rounded-lg border border-border bg-card/80 p-3 text-left hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold flex items-center gap-1.5">
+              {selectedDayEntries.map((entry) => (
+                <button
+                  key={entry.id}
+                  onClick={() => entry.orderId && onSelectOrder?.(entry.orderId)}
+                  className={cn(
+                    "rounded-lg border p-3 text-left transition-colors",
+                    entry.isFlower
+                      ? "border-yellow-500/40 bg-yellow-500/10 hover:bg-yellow-500/15"
+                      : "border-border bg-card/80 hover:bg-muted/50",
+                    !entry.orderId && "cursor-default"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold flex items-center gap-1.5">
+                      {entry.isFlower ? (
+                        <Flower2 className="w-3 h-3 text-yellow-600" />
+                      ) : (
                         <MapPin className="w-3 h-3 text-primary" />
-                        {m?.cemetery_name}
-                      </p>
-                      <span className={cn(
-                        "text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap",
-                        o.status === "pending" && "bg-orange-500/20 text-orange-500",
-                        (o.status === "scheduled" || o.status === "confirmed" || o.status === "in_progress") && "bg-emerald-500/20 text-emerald-600",
-                        o.status === "completed" && "bg-red-500/20 text-red-500",
-                        !["pending","scheduled","confirmed","in_progress","completed"].includes(o.status) && "bg-muted text-muted-foreground"
-                      )}>
-                        {o.status === "pending" ? "unconfirmed" : o.status.replace(/_/g, " ")}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {m?.monument_type?.replace(/_/g, " ")} · {m?.material}
-                      {m?.section ? ` · Sec ${m.section}` : ""}
-                      {m?.lot_number ? `, Lot ${m.lot_number}` : ""}
+                      )}
+                      {entry.cemeteryName}
                     </p>
-                    <p className="text-xs font-semibold text-accent mt-1">${Number(o.total_price).toFixed(0)}</p>
-                  </button>
-                );
-              })}
+                    <span className={cn(
+                      "text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap",
+                      entry.isFlower && "bg-yellow-500/20 text-yellow-700",
+                      entry.type === "subscription_visit" && !entry.isFlower && "bg-sky-500/20 text-sky-600",
+                      entry.type === "order" && entry.status === "pending" && "bg-orange-500/20 text-orange-500",
+                      entry.type === "order" && ["scheduled","confirmed","in_progress"].includes(entry.status ?? "") && "bg-emerald-500/20 text-emerald-600",
+                      entry.type === "order" && entry.status === "completed" && "bg-red-500/20 text-red-500",
+                      entry.type === "flower_booking" && "bg-yellow-500/20 text-yellow-700"
+                    )}>
+                      {entry.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {entry.customerName}
+                    {entry.plan && ` · ${entry.plan.charAt(0).toUpperCase() + entry.plan.slice(1)} Plan`}
+                    {entry.monument?.monument_type && ` · ${entry.monument.monument_type.replace(/_/g, " ")}`}
+                  </p>
+                  {entry.price != null && (
+                    <p className="text-xs font-semibold text-accent mt-1">${Number(entry.price).toFixed(0)}</p>
+                  )}
+                </button>
+              ))}
             </div>
           )}
         </div>
