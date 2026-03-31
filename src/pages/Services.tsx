@@ -128,15 +128,29 @@ const Services = () => (
       <SectionHeading title="Flower Placement" subtitle="Artificial arrangements delivered and placed with care." />
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
-          { name: "Single Placement", price: "$100 + travel fee", desc: "One artificial arrangement placed at the monument on your chosen date." },
-          { name: "Remembrance Trio", price: "$450", desc: "3 placements on your chosen dates (birthday, anniversary, holiday). Coordination included." },
-          { name: "Memorial Year Plan", price: "$650/year", desc: "5 placements per year on your scheduled dates. Year-round remembrance." },
+          { name: "Single Placement", price: "$100 + travel fee", desc: "One artificial arrangement placed at the monument on your chosen date.", datePick: null },
+          { name: "Remembrance Trio", price: "$450", desc: "3 placements on your chosen dates. Coordination included.", datePick: 3 },
+          { name: "Memorial Year Plan", price: "$650/year", desc: "5 placements per year on your scheduled dates. Year-round remembrance.", datePick: 5 },
         ].map((item, i) => (
           <motion.div key={item.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.15 }}
             className="rounded-lg p-8" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
             <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{item.name}</h3>
             <p className="font-cinzel text-sm font-bold mb-3" style={{ color: "#C9976B" }}>{item.price}</p>
             <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>{item.desc}</p>
+            {item.datePick && (
+              <div className="mt-4 pt-4" style={{ borderTop: "1px solid #3a3a3a" }}>
+                <p className="font-cinzel text-xs tracking-[0.1em] uppercase mb-2" style={{ color: "#C9976B" }}>
+                  Choose {item.datePick} placement dates from:
+                </p>
+                <ul className="space-y-1">
+                  {["Memorial Day", "Mother's Day", "Father's Day", "Christmas", "Deceased's Birthday", "Deceased's Anniversary"].map((date) => (
+                    <li key={date} className="font-garamond text-sm flex items-center gap-2" style={{ color: "#E8E4DF" }}>
+                      <span style={{ color: "#C9976B" }}>·</span> {date}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>
