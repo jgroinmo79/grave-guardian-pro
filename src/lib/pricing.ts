@@ -179,6 +179,9 @@ export interface IntakeFormData {
   selectedBundle: string;
   // Step 6
   addOns: string[];
+  // Holiday picker for annual plans
+  selectedHolidays: string[];
+  holidayCustomDates: Record<string, string>; // e.g. { "Deceased's Birthday": "03-15" }
   // Preferred date
   preferredDate: Date | null;
   // Step 7
@@ -221,6 +224,8 @@ export const initialFormData: IntakeFormData = {
   selectedPlan: '',
   selectedBundle: '',
   addOns: [],
+  selectedHolidays: [],
+  holidayCustomDates: {},
   preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,
