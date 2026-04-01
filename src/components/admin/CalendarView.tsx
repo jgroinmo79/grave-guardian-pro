@@ -2,10 +2,21 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, MapPin, Flower2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Flower2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { computeSubscriptionVisits, type SubscriptionVisit } from "@/lib/subscription-schedule";
+
+const HOLIDAYS: Record<string, string> = {
+  "2026-05-10": "Mother's Day",
+  "2026-05-25": "Memorial Day",
+  "2026-06-21": "Father's Day",
+  "2026-12-25": "Christmas",
+  "2027-05-09": "Mother's Day",
+  "2027-05-31": "Memorial Day",
+  "2027-06-20": "Father's Day",
+  "2027-12-25": "Christmas",
+};
 
 interface ScheduleOrder {
   id: string;
@@ -185,6 +196,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500 inline-block" /> Plan Visit</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500 inline-block" /> Flowers</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" /> Unconfirmed</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary inline-block" /> Holiday</span>
       </div>
 
       {/* Month nav */}
@@ -211,6 +223,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
           const inMonth = isSameMonth(day, currentMonth);
           const selected = selectedDate && isSameDay(day, selectedDate);
           const hasFlower = dayEntries.some(e => e.isFlower);
+          const holiday = HOLIDAYS[dateKey];
 
           return (
             <button
@@ -221,7 +234,8 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
                 !inMonth && "opacity-30",
                 selected && "ring-2 ring-primary ring-inset",
                 isToday(day) && "bg-muted/30",
-                hasFlower && "bg-yellow-500/5"
+                hasFlower && "bg-yellow-500/5",
+                holiday && "bg-primary/5"
               )}
             >
               <span className={cn(
@@ -230,16 +244,21 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
               )}>
                 {format(day, "d")}
               </span>
+              {holiday && (
+                <div className="text-[7px] leading-tight font-semibold text-primary truncate mt-0.5">
+                  {holiday}
+                </div>
+              )}
               {dayEntries.length > 0 && (
-                <div className="mt-1 space-y-0.5">
-                  {dayEntries.slice(0, 4).map((e) => (
+                <div className="mt-0.5 space-y-0.5">
+                  {dayEntries.slice(0, 3).map((e) => (
                     <div
                       key={e.id}
                       className={cn("h-1.5 rounded-full", dotColor(e))}
                     />
                   ))}
-                  {dayEntries.length > 4 && (
-                    <span className="text-[8px] text-muted-foreground">+{dayEntries.length - 4}</span>
+                  {dayEntries.length > 3 && (
+                    <span className="text-[8px] text-muted-foreground">+{dayEntries.length - 3}</span>
                   )}
                 </div>
               )}
@@ -253,6 +272,11 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-muted-foreground">
             {format(selectedDate, "EEEE, MMMM d")} · {selectedDayEntries.length} visit{selectedDayEntries.length !== 1 ? "s" : ""}
+            {HOLIDAYS[format(selectedDate, "yyyy-MM-dd")] && (
+              <span className="ml-2 text-primary font-bold">
+                🎗️ {HOLIDAYS[format(selectedDate, "yyyy-MM-dd")]}
+              </span>
+            )}
           </h4>
           {selectedDayEntries.length === 0 ? (
             <p className="text-xs text-muted-foreground">No visits scheduled for this day.</p>
