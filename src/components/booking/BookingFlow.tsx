@@ -33,6 +33,8 @@ const BookingFlow = () => {
   };
 
   const hasAnnualPlan = data.selectedPlan !== '';
+  const needsFlowerDates = ['single_arrangement', 'remembrance_trio', 'memorial_year'].includes(data.selectedBundle);
+  const flowerPickLimit = data.selectedBundle === 'single_arrangement' ? 1 : data.selectedBundle === 'remembrance_trio' ? 3 : data.selectedBundle === 'memorial_year' ? 5 : 0;
 
   const steps: StepDef[] = useMemo(() => {
     const base: StepDef[] = [
