@@ -196,6 +196,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500 inline-block" /> Plan Visit</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500 inline-block" /> Flowers</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" /> Unconfirmed</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary inline-block" /> Holiday</span>
       </div>
 
       {/* Month nav */}
