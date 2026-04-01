@@ -97,6 +97,23 @@ const BookingFlow = () => {
       });
     }
 
+    // Insert flower date picker step if a standalone flower bundle needing dates is selected
+    if (needsFlowerDates) {
+      base.push({
+        id: 'flower-dates',
+        render: (d, u) => <FlowerDatePickerStep data={d} update={u} />,
+        canProceed: (d) => {
+          if (d.flowerHolidays.length !== flowerPickLimit) return false;
+          for (const h of d.flowerHolidays) {
+            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.flowerCustomDates[h]?.trim()) {
+              return false;
+            }
+          }
+          return true;
+        },
+      });
+    }
+
     base.push(
       {
         id: 'schedule',
@@ -116,7 +133,7 @@ const BookingFlow = () => {
     );
 
     return base;
-  }, [hasAnnualPlan, data.selectedPlan]);
+  }, [hasAnnualPlan, data.selectedPlan, needsFlowerDates, flowerPickLimit]);
 
   const totalSteps = steps.length;
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];
