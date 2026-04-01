@@ -189,6 +189,9 @@ export interface IntakeFormData {
   // Holiday picker for annual plans
   selectedHolidays: string[];
   holidayCustomDates: Record<string, string>; // e.g. { "Deceased's Birthday": "03-15" }
+  // Flower date picker for standalone flower bookings
+  flowerHolidays: string[];
+  flowerCustomDates: Record<string, string>;
   // Preferred date
   preferredDate: Date | null;
   // Step 7
