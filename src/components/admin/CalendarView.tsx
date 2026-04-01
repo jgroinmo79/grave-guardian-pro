@@ -222,6 +222,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
           const inMonth = isSameMonth(day, currentMonth);
           const selected = selectedDate && isSameDay(day, selectedDate);
           const hasFlower = dayEntries.some(e => e.isFlower);
+          const holiday = HOLIDAYS[dateKey];
 
           return (
             <button
@@ -232,7 +233,8 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
                 !inMonth && "opacity-30",
                 selected && "ring-2 ring-primary ring-inset",
                 isToday(day) && "bg-muted/30",
-                hasFlower && "bg-yellow-500/5"
+                hasFlower && "bg-yellow-500/5",
+                holiday && "bg-primary/5"
               )}
             >
               <span className={cn(
@@ -241,16 +243,21 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
               )}>
                 {format(day, "d")}
               </span>
+              {holiday && (
+                <div className="text-[7px] leading-tight font-semibold text-primary truncate mt-0.5">
+                  {holiday}
+                </div>
+              )}
               {dayEntries.length > 0 && (
-                <div className="mt-1 space-y-0.5">
-                  {dayEntries.slice(0, 4).map((e) => (
+                <div className="mt-0.5 space-y-0.5">
+                  {dayEntries.slice(0, 3).map((e) => (
                     <div
                       key={e.id}
                       className={cn("h-1.5 rounded-full", dotColor(e))}
                     />
                   ))}
-                  {dayEntries.length > 4 && (
-                    <span className="text-[8px] text-muted-foreground">+{dayEntries.length - 4}</span>
+                  {dayEntries.length > 3 && (
+                    <span className="text-[8px] text-muted-foreground">+{dayEntries.length - 3}</span>
                   )}
                 </div>
               )}
