@@ -72,29 +72,34 @@ Deno.serve(async (req) => {
     // Get distance from Benton, MO to a place
     if (action === "distance") {
       const placeId = url.searchParams.get("place_id");
-      if (!placeId) {
-        return new Response(JSON.stringify({ error: "place_id required" }), {
+      const description = url.searchParams.get("description")?.trim();
+      if (!placeId && !description) {
+        return new Response(JSON.stringify({ error: "place_id or description required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Try place_id first
-      let params = new URLSearchParams({
-        origins: BENTON_MO,
-        destinations: `place_id:${placeId}`,
-        units: "imperial",
-        key: apiKey,
-      });
+      let element: any = null;
 
-      let res = await fetch(
-        `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
-      );
-      let data = await res.json();
-      let element = data.rows?.[0]?.elements?.[0];
+      if (placeId) {
+        const params = new URLSearchParams({
+          origins: BENTON_MO,
+          destinations: `place_id:${placeId}`,
+          units: "imperial",
+          key: apiKey,
+        });
 
-      // Fallback: resolve place_id to lat/lng via geocoding, then retry
-      if (element?.status !== "OK") {
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
+        );
+        const data = await res.json();
+        element = data.rows?.[0]?.elements?.[0];
+      }
+
+      let fallbackLocation: { lat: number; lng: number } | null = null;
+
+      if (element?.status !== "OK" && placeId) {
         const geoParams = new URLSearchParams({ place_id: placeId, key: apiKey });
         const geoRes = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
@@ -103,23 +108,40 @@ Deno.serve(async (req) => {
         const geoLoc = geoData.results?.[0]?.geometry?.location;
 
         if (geoLoc) {
-          params = new URLSearchParams({
-            origins: BENTON_MO,
-            destinations: `${geoLoc.lat},${geoLoc.lng}`,
-            units: "imperial",
-            key: apiKey,
-          });
-          res = await fetch(
-            `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
-          );
-          data = await res.json();
-          element = data.rows?.[0]?.elements?.[0];
+          fallbackLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
         }
       }
 
+      if (element?.status !== "OK" && !fallbackLocation && description) {
+        const geoParams = new URLSearchParams({ address: description, key: apiKey });
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
+        );
+        const geoData = await geoRes.json();
+        const geoLoc = geoData.results?.[0]?.geometry?.location;
+
+        if (geoLoc) {
+          fallbackLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
+        }
+      }
+
+      if (element?.status !== "OK" && fallbackLocation) {
+        const params = new URLSearchParams({
+          origins: BENTON_MO,
+          destinations: `${fallbackLocation.lat},${fallbackLocation.lng}`,
+          units: "imperial",
+          key: apiKey,
+        });
+
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
+        );
+        const data = await res.json();
+        element = data.rows?.[0]?.elements?.[0];
+      }
+
       if (element?.status !== "OK") {
-        return new Response(JSON.stringify({ error: "Could not calculate distance", raw: element }), {
-          status: 400,
+        return new Response(JSON.stringify({ error: "Could not calculate distance", raw: element ?? null, resolved: false }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -130,6 +152,7 @@ Deno.serve(async (req) => {
         miles,
         distance_text: element.distance.text,
         duration_text: element.duration.text,
+        resolved: true,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
