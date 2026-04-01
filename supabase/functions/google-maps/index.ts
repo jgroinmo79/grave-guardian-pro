@@ -79,19 +79,44 @@ Deno.serve(async (req) => {
         });
       }
 
-      const params = new URLSearchParams({
+      // Try place_id first
+      let params = new URLSearchParams({
         origins: BENTON_MO,
         destinations: `place_id:${placeId}`,
         units: "imperial",
         key: apiKey,
       });
 
-      const res = await fetch(
+      let res = await fetch(
         `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
       );
-      const data = await res.json();
+      let data = await res.json();
+      let element = data.rows?.[0]?.elements?.[0];
 
-      const element = data.rows?.[0]?.elements?.[0];
+      // Fallback: resolve place_id to lat/lng via geocoding, then retry
+      if (element?.status !== "OK") {
+        const geoParams = new URLSearchParams({ place_id: placeId, key: apiKey });
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
+        );
+        const geoData = await geoRes.json();
+        const geoLoc = geoData.results?.[0]?.geometry?.location;
+
+        if (geoLoc) {
+          params = new URLSearchParams({
+            origins: BENTON_MO,
+            destinations: `${geoLoc.lat},${geoLoc.lng}`,
+            units: "imperial",
+            key: apiKey,
+          });
+          res = await fetch(
+            `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
+          );
+          data = await res.json();
+          element = data.rows?.[0]?.elements?.[0];
+        }
+      }
+
       if (element?.status !== "OK") {
         return new Response(JSON.stringify({ error: "Could not calculate distance", raw: element }), {
           status: 400,
@@ -99,7 +124,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Convert meters to miles
       const miles = Math.round(element.distance.value / 1609.34);
 
       return new Response(JSON.stringify({
@@ -121,9 +145,10 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Try Place Details first
       const params = new URLSearchParams({
         place_id: placeId,
-        fields: "geometry",
+        fields: "geometry,formatted_address",
         key: apiKey,
       });
 
@@ -133,14 +158,31 @@ Deno.serve(async (req) => {
       const detailData = await res.json();
       const loc = detailData.result?.geometry?.location;
 
-      if (!loc) {
-        return new Response(JSON.stringify({ error: "Could not get location" }), {
-          status: 400,
+      if (loc) {
+        return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
+      // Fallback: use Geocoding API with the place_id
+      const geoParams = new URLSearchParams({
+        place_id: placeId,
+        key: apiKey,
+      });
+      const geoRes = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
+      );
+      const geoData = await geoRes.json();
+      const geoLoc = geoData.results?.[0]?.geometry?.location;
+
+      if (geoLoc) {
+        return new Response(JSON.stringify({ lat: geoLoc.lat, lng: geoLoc.lng }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ error: "Could not get location" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
