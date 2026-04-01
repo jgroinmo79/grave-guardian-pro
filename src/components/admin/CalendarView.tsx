@@ -272,6 +272,11 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-muted-foreground">
             {format(selectedDate, "EEEE, MMMM d")} · {selectedDayEntries.length} visit{selectedDayEntries.length !== 1 ? "s" : ""}
+            {HOLIDAYS[format(selectedDate, "yyyy-MM-dd")] && (
+              <span className="ml-2 text-primary font-bold">
+                🎗️ {HOLIDAYS[format(selectedDate, "yyyy-MM-dd")]}
+              </span>
+            )}
           </h4>
           {selectedDayEntries.length === 0 ? (
             <p className="text-xs text-muted-foreground">No visits scheduled for this day.</p>
