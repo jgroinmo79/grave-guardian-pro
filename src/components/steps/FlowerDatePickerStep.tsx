@@ -12,6 +12,7 @@ const ALL_HOLIDAYS = [
   "Memorial Day",
   "Mother's Day",
   "Father's Day",
+  "Easter",
   "Christmas",
   "Deceased's Birthday",
   "Deceased's Anniversary",

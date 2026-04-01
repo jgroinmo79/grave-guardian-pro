@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
 import { computeSubscriptionVisits, type SubscriptionVisit } from "@/lib/subscription-schedule";
 
 const HOLIDAYS: Record<string, string> = {
+  "2026-04-05": "Easter",
   "2026-05-10": "Mother's Day",
   "2026-05-25": "Memorial Day",
   "2026-06-21": "Father's Day",
   "2026-12-25": "Christmas",
+  "2027-03-28": "Easter",
   "2027-05-09": "Mother's Day",
   "2027-05-31": "Memorial Day",
   "2027-06-20": "Father's Day",
