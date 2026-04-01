@@ -105,6 +105,13 @@ export const CARE_PLANS = {
 
 export const SEASONAL_BUNDLES = [
   {
+    id: 'single_arrangement',
+    label: 'Single Arrangement & Placement',
+    price: 100,
+    description: 'One arrangement delivered and placed on your chosen date. Photo confirmation sent same day. Travel fee applies.',
+    savings: null,
+  },
+  {
     id: 'memorial_day',
     label: 'The Memorial Day Bundle',
     price: 325,
@@ -182,6 +189,9 @@ export interface IntakeFormData {
   // Holiday picker for annual plans
   selectedHolidays: string[];
   holidayCustomDates: Record<string, string>; // e.g. { "Deceased's Birthday": "03-15" }
+  // Flower date picker for standalone flower bookings
+  flowerHolidays: string[];
+  flowerCustomDates: Record<string, string>;
   // Preferred date
   preferredDate: Date | null;
   // Step 7
@@ -226,6 +236,8 @@ export const initialFormData: IntakeFormData = {
   addOns: [],
   selectedHolidays: [],
   holidayCustomDates: {},
+  flowerHolidays: [],
+  flowerCustomDates: {},
   preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,

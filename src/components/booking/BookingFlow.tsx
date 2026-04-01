@@ -12,6 +12,7 @@ import IntentStep from "@/components/steps/IntentStep";
 import ServiceStep from "@/components/steps/ServiceStep";
 import AddOnsStep from "@/components/steps/AddOnsStep";
 import HolidayPickerStep from "@/components/steps/HolidayPickerStep";
+import FlowerDatePickerStep from "@/components/steps/FlowerDatePickerStep";
 import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
@@ -32,6 +33,8 @@ const BookingFlow = () => {
   };
 
   const hasAnnualPlan = data.selectedPlan !== '';
+  const needsFlowerDates = ['single_arrangement', 'remembrance_trio', 'memorial_year'].includes(data.selectedBundle);
+  const flowerPickLimit = data.selectedBundle === 'single_arrangement' ? 1 : data.selectedBundle === 'remembrance_trio' ? 3 : data.selectedBundle === 'memorial_year' ? 5 : 0;
 
   const steps: StepDef[] = useMemo(() => {
     const base: StepDef[] = [
@@ -94,6 +97,23 @@ const BookingFlow = () => {
       });
     }
 
+    // Insert flower date picker step if a standalone flower bundle needing dates is selected
+    if (needsFlowerDates) {
+      base.push({
+        id: 'flower-dates',
+        render: (d, u) => <FlowerDatePickerStep data={d} update={u} />,
+        canProceed: (d) => {
+          if (d.flowerHolidays.length !== flowerPickLimit) return false;
+          for (const h of d.flowerHolidays) {
+            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.flowerCustomDates[h]?.trim()) {
+              return false;
+            }
+          }
+          return true;
+        },
+      });
+    }
+
     base.push(
       {
         id: 'schedule',
@@ -113,7 +133,7 @@ const BookingFlow = () => {
     );
 
     return base;
-  }, [hasAnnualPlan, data.selectedPlan]);
+  }, [hasAnnualPlan, data.selectedPlan, needsFlowerDates, flowerPickLimit]);
 
   const totalSteps = steps.length;
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];
