@@ -121,9 +121,10 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Try Place Details first
       const params = new URLSearchParams({
         place_id: placeId,
-        fields: "geometry",
+        fields: "geometry,formatted_address",
         key: apiKey,
       });
 
@@ -133,14 +134,31 @@ Deno.serve(async (req) => {
       const detailData = await res.json();
       const loc = detailData.result?.geometry?.location;
 
-      if (!loc) {
-        return new Response(JSON.stringify({ error: "Could not get location" }), {
-          status: 400,
+      if (loc) {
+        return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
+      // Fallback: use Geocoding API with the place_id
+      const geoParams = new URLSearchParams({
+        place_id: placeId,
+        key: apiKey,
+      });
+      const geoRes = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
+      );
+      const geoData = await geoRes.json();
+      const geoLoc = geoData.results?.[0]?.geometry?.location;
+
+      if (geoLoc) {
+        return new Response(JSON.stringify({ lat: geoLoc.lat, lng: geoLoc.lng }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ error: "Could not get location" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
