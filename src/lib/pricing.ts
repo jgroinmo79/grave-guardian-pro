@@ -236,6 +236,8 @@ export const initialFormData: IntakeFormData = {
   addOns: [],
   selectedHolidays: [],
   holidayCustomDates: {},
+  flowerHolidays: [],
+  flowerCustomDates: {},
   preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,
