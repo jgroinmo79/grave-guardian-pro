@@ -2,10 +2,21 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, MapPin, Flower2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Flower2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { computeSubscriptionVisits, type SubscriptionVisit } from "@/lib/subscription-schedule";
+
+const HOLIDAYS: Record<string, string> = {
+  "2026-05-10": "Mother's Day",
+  "2026-05-25": "Memorial Day",
+  "2026-06-21": "Father's Day",
+  "2026-12-25": "Christmas",
+  "2027-05-09": "Mother's Day",
+  "2027-05-31": "Memorial Day",
+  "2027-06-20": "Father's Day",
+  "2027-12-25": "Christmas",
+};
 
 interface ScheduleOrder {
   id: string;
