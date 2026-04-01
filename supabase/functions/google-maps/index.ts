@@ -6,7 +6,117 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const BENTON_MO = "37.0978,-89.5625"; // lat,lng
+const BENTON_MO = "37.0978,-89.5625";
+
+type LatLng = {
+  lat: number;
+  lng: number;
+};
+
+const jsonResponse = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const getJson = async (url: string) => {
+  const res = await fetch(url);
+  return await res.json();
+};
+
+const getLocationFromPlaceDetails = async (placeId: string, apiKey: string): Promise<LatLng | null> => {
+  const params = new URLSearchParams({
+    place_id: placeId,
+    fields: "geometry,formatted_address",
+    key: apiKey,
+  });
+
+  const data = await getJson(
+    `https://maps.googleapis.com/maps/api/place/details/json?${params}`
+  );
+  const loc = data.result?.geometry?.location;
+  return loc ? { lat: loc.lat, lng: loc.lng } : null;
+};
+
+const getLocationFromGeocodePlaceId = async (placeId: string, apiKey: string): Promise<LatLng | null> => {
+  const params = new URLSearchParams({
+    place_id: placeId,
+    key: apiKey,
+  });
+
+  const data = await getJson(
+    `https://maps.googleapis.com/maps/api/geocode/json?${params}`
+  );
+  const loc = data.results?.[0]?.geometry?.location;
+  return loc ? { lat: loc.lat, lng: loc.lng } : null;
+};
+
+const getLocationFromFindPlace = async (description: string, apiKey: string): Promise<LatLng | null> => {
+  const params = new URLSearchParams({
+    input: description,
+    inputtype: "textquery",
+    fields: "geometry,formatted_address,name,place_id",
+    locationbias: `circle:250000@${BENTON_MO}`,
+    key: apiKey,
+  });
+
+  const data = await getJson(
+    `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?${params}`
+  );
+  const loc = data.candidates?.[0]?.geometry?.location;
+  return loc ? { lat: loc.lat, lng: loc.lng } : null;
+};
+
+const getLocationFromGeocodeAddress = async (description: string, apiKey: string): Promise<LatLng | null> => {
+  const params = new URLSearchParams({
+    address: description,
+    key: apiKey,
+  });
+
+  const data = await getJson(
+    `https://maps.googleapis.com/maps/api/geocode/json?${params}`
+  );
+  const loc = data.results?.[0]?.geometry?.location;
+  return loc ? { lat: loc.lat, lng: loc.lng } : null;
+};
+
+const resolveLocation = async (
+  apiKey: string,
+  placeId?: string | null,
+  description?: string | null
+): Promise<LatLng | null> => {
+  if (placeId) {
+    const detailsLoc = await getLocationFromPlaceDetails(placeId, apiKey);
+    if (detailsLoc) return detailsLoc;
+
+    const geocodePlaceLoc = await getLocationFromGeocodePlaceId(placeId, apiKey);
+    if (geocodePlaceLoc) return geocodePlaceLoc;
+  }
+
+  if (description) {
+    const findPlaceLoc = await getLocationFromFindPlace(description, apiKey);
+    if (findPlaceLoc) return findPlaceLoc;
+
+    const geocodeAddressLoc = await getLocationFromGeocodeAddress(description, apiKey);
+    if (geocodeAddressLoc) return geocodeAddressLoc;
+  }
+
+  return null;
+};
+
+const getDistanceFromCoordinates = async (apiKey: string, lat: string | number, lng: string | number) => {
+  const params = new URLSearchParams({
+    origins: BENTON_MO,
+    destinations: `${lat},${lng}`,
+    units: "imperial",
+    key: apiKey,
+  });
+
+  const data = await getJson(
+    `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
+  );
+  return data.rows?.[0]?.elements?.[0] ?? null;
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -15,23 +125,17 @@ Deno.serve(async (req) => {
 
   const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: "API key not configured" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "API key not configured" }, 500);
   }
 
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 
   try {
-    // Autocomplete for cemetery search
     if (action === "autocomplete") {
       const input = url.searchParams.get("input");
       if (!input) {
-        return new Response(JSON.stringify({ predictions: [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ predictions: [] });
       }
 
       const params = new URLSearchParams({
@@ -39,208 +143,100 @@ Deno.serve(async (req) => {
         types: "establishment",
         keyword: "cemetery church",
         location: BENTON_MO,
-        radius: "250000", // 250km radius
+        radius: "250000",
         key: apiKey,
       });
 
-      const res = await fetch(
+      const data = await getJson(
         `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params}`
       );
-      const data = await res.json();
 
-      // Strict filter: only return results matching cemetery/church keywords
       const allowedKeywords = [
-        "cemetery", "church", "memorial", "funeral", "burial",
-        "graveyard", "mausoleum", "mortuary", "chapel", "parish",
-        "tabernacle", "temple", "synagogue", "mosque",
+        "cemetery",
+        "church",
+        "memorial",
+        "funeral",
+        "burial",
+        "graveyard",
+        "mausoleum",
+        "mortuary",
+        "chapel",
+        "parish",
+        "tabernacle",
+        "temple",
+        "synagogue",
+        "mosque",
       ];
+
       const filtered = (data.predictions || []).filter((p: any) => {
         const desc = p.description.toLowerCase();
         return allowedKeywords.some((kw) => desc.includes(kw));
       });
 
-      return new Response(JSON.stringify({
+      return jsonResponse({
         predictions: filtered.map((p: any) => ({
           place_id: p.place_id,
           description: p.description,
         })),
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Get distance from Benton, MO to a place
     if (action === "distance") {
       const placeId = url.searchParams.get("place_id");
-      const description = url.searchParams.get("description")?.trim();
+      const description = url.searchParams.get("description");
+
       if (!placeId && !description) {
-        return new Response(JSON.stringify({ error: "place_id or description required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return jsonResponse({ error: "place_id or description required" }, 400);
+      }
+
+      const location = await resolveLocation(apiKey, placeId, description);
+      if (!location) {
+        return jsonResponse({
+          error: "Could not calculate distance",
+          raw: { status: "NOT_FOUND" },
+          resolved: false,
         });
       }
 
-      let element: any = null;
-
-      if (placeId) {
-        const params = new URLSearchParams({
-          origins: BENTON_MO,
-          destinations: `place_id:${placeId}`,
-          units: "imperial",
-          key: apiKey,
-        });
-
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
-        );
-        const data = await res.json();
-        element = data.rows?.[0]?.elements?.[0];
-      }
-
-      let fallbackLocation: { lat: number; lng: number } | null = null;
-
-      if (element?.status !== "OK" && placeId) {
-        const geoParams = new URLSearchParams({ place_id: placeId, key: apiKey });
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
-        );
-        const geoData = await geoRes.json();
-        const geoLoc = geoData.results?.[0]?.geometry?.location;
-
-        if (geoLoc) {
-          fallbackLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
-        }
-      }
-
-      if (element?.status !== "OK" && !fallbackLocation && description) {
-        const geoParams = new URLSearchParams({ address: description, key: apiKey });
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
-        );
-        const geoData = await geoRes.json();
-        const geoLoc = geoData.results?.[0]?.geometry?.location;
-
-        if (geoLoc) {
-          fallbackLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
-        }
-      }
-
-      if (element?.status !== "OK" && fallbackLocation) {
-        const params = new URLSearchParams({
-          origins: BENTON_MO,
-          destinations: `${fallbackLocation.lat},${fallbackLocation.lng}`,
-          units: "imperial",
-          key: apiKey,
-        });
-
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
-        );
-        const data = await res.json();
-        element = data.rows?.[0]?.elements?.[0];
-      }
-
+      const element = await getDistanceFromCoordinates(apiKey, location.lat, location.lng);
       if (element?.status !== "OK") {
-        return new Response(JSON.stringify({ error: "Could not calculate distance", raw: element ?? null, resolved: false }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return jsonResponse({
+          error: "Could not calculate distance",
+          raw: element ?? { status: "NOT_FOUND" },
+          resolved: false,
         });
       }
 
       const miles = Math.round(element.distance.value / 1609.34);
-
-      return new Response(JSON.stringify({
+      return jsonResponse({
         miles,
         distance_text: element.distance.text,
         duration_text: element.duration.text,
         resolved: true,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Get place details (lat/lng) from place_id
     if (action === "place_details") {
       const placeId = url.searchParams.get("place_id");
-      const description = url.searchParams.get("description")?.trim();
+      const description = url.searchParams.get("description");
+
       if (!placeId && !description) {
-        return new Response(JSON.stringify({ error: "place_id or description required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "place_id or description required" }, 400);
       }
 
-      let resolvedLocation: { lat: number; lng: number } | null = null;
-
-      if (placeId) {
-        const params = new URLSearchParams({
-          place_id: placeId,
-          fields: "geometry,formatted_address",
-          key: apiKey,
-        });
-
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/place/details/json?${params}`
-        );
-        const detailData = await res.json();
-        const loc = detailData.result?.geometry?.location;
-
-        if (loc) {
-          resolvedLocation = { lat: loc.lat, lng: loc.lng };
-        }
+      const location = await resolveLocation(apiKey, placeId, description);
+      if (!location) {
+        return jsonResponse({ error: "Could not get location", resolved: false });
       }
 
-      if (!resolvedLocation && placeId) {
-        const geoParams = new URLSearchParams({
-          place_id: placeId,
-          key: apiKey,
-        });
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
-        );
-        const geoData = await geoRes.json();
-        const geoLoc = geoData.results?.[0]?.geometry?.location;
-
-        if (geoLoc) {
-          resolvedLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
-        }
-      }
-
-      if (!resolvedLocation && description) {
-        const geoParams = new URLSearchParams({
-          address: description,
-          key: apiKey,
-        });
-        const geoRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
-        );
-        const geoData = await geoRes.json();
-        const geoLoc = geoData.results?.[0]?.geometry?.location;
-
-        if (geoLoc) {
-          resolvedLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
-        }
-      }
-
-      if (!resolvedLocation) {
-        return new Response(JSON.stringify({ error: "Could not get location", resolved: false }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      return new Response(JSON.stringify({ lat: resolvedLocation.lat, lng: resolvedLocation.lng, resolved: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ lat: location.lat, lng: location.lng, resolved: true });
     }
 
-    // Reverse geocode: lat/lng → formatted address
     if (action === "reverse_geocode") {
       const lat = url.searchParams.get("lat");
       const lng = url.searchParams.get("lng");
       if (!lat || !lng) {
-        return new Response(JSON.stringify({ error: "lat and lng required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "lat and lng required" }, 400);
       }
 
       const params = new URLSearchParams({
@@ -248,77 +244,47 @@ Deno.serve(async (req) => {
         key: apiKey,
       });
 
-      const res = await fetch(
+      const data = await getJson(
         `https://maps.googleapis.com/maps/api/geocode/json?${params}`
       );
-      const data = await res.json();
       const result = data.results?.[0];
 
       if (!result) {
-        return new Response(JSON.stringify({ error: "No address found", formatted_address: "" }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "No address found", formatted_address: "" });
       }
 
-      return new Response(JSON.stringify({
+      return jsonResponse({
         formatted_address: result.formatted_address,
         place_id: result.place_id,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Distance from lat/lng coordinates (no place_id needed)
     if (action === "distance_latlng") {
       const lat = url.searchParams.get("lat");
       const lng = url.searchParams.get("lng");
       if (!lat || !lng) {
-        return new Response(JSON.stringify({ error: "lat and lng required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: "lat and lng required" }, 400);
       }
 
-      const params = new URLSearchParams({
-        origins: BENTON_MO,
-        destinations: `${lat},${lng}`,
-        units: "imperial",
-        key: apiKey,
-      });
-
-      const res = await fetch(
-        `https://maps.googleapis.com/maps/api/distancematrix/json?${params}`
-      );
-      const data = await res.json();
-
-      const element = data.rows?.[0]?.elements?.[0];
+      const element = await getDistanceFromCoordinates(apiKey, lat, lng);
       if (element?.status !== "OK") {
-        return new Response(JSON.stringify({ error: "Could not calculate distance", raw: element }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return jsonResponse({
+          error: "Could not calculate distance",
+          raw: element ?? { status: "NOT_FOUND" },
         });
       }
 
       const miles = Math.round(element.distance.value / 1609.34);
-
-      return new Response(JSON.stringify({
+      return jsonResponse({
         miles,
         distance_text: element.distance.text,
         duration_text: element.duration.text,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Invalid action" }, 400);
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return jsonResponse({ error: message }, 500);
   }
 });
