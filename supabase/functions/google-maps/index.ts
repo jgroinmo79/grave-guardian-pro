@@ -161,51 +161,73 @@ Deno.serve(async (req) => {
     // Get place details (lat/lng) from place_id
     if (action === "place_details") {
       const placeId = url.searchParams.get("place_id");
-      if (!placeId) {
-        return new Response(JSON.stringify({ error: "place_id required" }), {
+      const description = url.searchParams.get("description")?.trim();
+      if (!placeId && !description) {
+        return new Response(JSON.stringify({ error: "place_id or description required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Try Place Details first
-      const params = new URLSearchParams({
-        place_id: placeId,
-        fields: "geometry,formatted_address",
-        key: apiKey,
-      });
+      let resolvedLocation: { lat: number; lng: number } | null = null;
 
-      const res = await fetch(
-        `https://maps.googleapis.com/maps/api/place/details/json?${params}`
-      );
-      const detailData = await res.json();
-      const loc = detailData.result?.geometry?.location;
+      if (placeId) {
+        const params = new URLSearchParams({
+          place_id: placeId,
+          fields: "geometry,formatted_address",
+          key: apiKey,
+        });
 
-      if (loc) {
-        return new Response(JSON.stringify({ lat: loc.lat, lng: loc.lng }), {
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/place/details/json?${params}`
+        );
+        const detailData = await res.json();
+        const loc = detailData.result?.geometry?.location;
+
+        if (loc) {
+          resolvedLocation = { lat: loc.lat, lng: loc.lng };
+        }
+      }
+
+      if (!resolvedLocation && placeId) {
+        const geoParams = new URLSearchParams({
+          place_id: placeId,
+          key: apiKey,
+        });
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
+        );
+        const geoData = await geoRes.json();
+        const geoLoc = geoData.results?.[0]?.geometry?.location;
+
+        if (geoLoc) {
+          resolvedLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
+        }
+      }
+
+      if (!resolvedLocation && description) {
+        const geoParams = new URLSearchParams({
+          address: description,
+          key: apiKey,
+        });
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
+        );
+        const geoData = await geoRes.json();
+        const geoLoc = geoData.results?.[0]?.geometry?.location;
+
+        if (geoLoc) {
+          resolvedLocation = { lat: geoLoc.lat, lng: geoLoc.lng };
+        }
+      }
+
+      if (!resolvedLocation) {
+        return new Response(JSON.stringify({ error: "Could not get location", resolved: false }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Fallback: use Geocoding API with the place_id
-      const geoParams = new URLSearchParams({
-        place_id: placeId,
-        key: apiKey,
-      });
-      const geoRes = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?${geoParams}`
-      );
-      const geoData = await geoRes.json();
-      const geoLoc = geoData.results?.[0]?.geometry?.location;
-
-      if (geoLoc) {
-        return new Response(JSON.stringify({ lat: geoLoc.lat, lng: geoLoc.lng }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      return new Response(JSON.stringify({ error: "Could not get location" }), {
-        status: 400,
+      return new Response(JSON.stringify({ lat: resolvedLocation.lat, lng: resolvedLocation.lng, resolved: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
