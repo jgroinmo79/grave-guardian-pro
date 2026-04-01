@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
+import aboutOwner from "@/assets/about-owner.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -35,6 +36,18 @@ const About = () => (
           <br /><br />
           Every cleaning is performed personally by the business owner using CCUS-certified preservation methods. No contractors. No rushed jobs. No shortcuts. Just careful, methodical work that honors the stone and the story it carries.
         </p>
+      </motion.div>
+    </section>
+
+    {/* Owner Photo */}
+    <section className="px-6 py-16 sm:py-20" style={{ backgroundColor: "#141414" }}>
+      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
+        <img
+          src={aboutOwner}
+          alt="Owner of Grave Detail at a family cemetery"
+          className="w-full rounded-lg shadow-xl"
+          style={{ border: "1px solid #3a3a3a" }}
+        />
       </motion.div>
     </section>
 
