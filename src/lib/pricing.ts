@@ -105,6 +105,13 @@ export const CARE_PLANS = {
 
 export const SEASONAL_BUNDLES = [
   {
+    id: 'single_arrangement',
+    label: 'Single Arrangement & Placement',
+    price: 100,
+    description: 'One arrangement delivered and placed on your chosen date. Photo confirmation sent same day. Travel fee applies.',
+    savings: null,
+  },
+  {
     id: 'memorial_day',
     label: 'The Memorial Day Bundle',
     price: 325,
