@@ -12,6 +12,7 @@ const STANDARD_HOLIDAYS = [
   "Memorial Day",
   "Mother's Day",
   "Father's Day",
+  "Easter",
   "Christmas",
 ];
 
