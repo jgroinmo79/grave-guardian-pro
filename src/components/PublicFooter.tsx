@@ -49,6 +49,15 @@ const PublicFooter = () => (
           Contact
         </p>
         <a
+          href="tel:+15735455759"
+          className="block font-garamond text-sm transition-colors"
+          style={{ color: "#6B6B6B" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+        >
+          (573) 545-5759
+        </a>
+        <a
           href="mailto:info@gravedetail.net"
           className="block font-garamond text-sm transition-colors"
           style={{ color: "#6B6B6B" }}
