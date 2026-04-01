@@ -185,6 +185,46 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Contact */}
+      <section id="contact" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeUp}
+          transition={{ duration: 0.8 }}
+          className="max-w-3xl mx-auto text-center space-y-6"
+        >
+          <h2 className="font-cinzel text-3xl sm:text-4xl font-bold" style={{ color: "#E8E4DF" }}>
+            Get in Touch
+          </h2>
+          <p className="font-garamond text-lg leading-relaxed" style={{ color: "#6B6B6B" }}>
+            Have questions or ready to schedule? Reach out anytime.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <a
+              href="tel:+15735455759"
+              className="font-garamond text-lg transition-colors"
+              style={{ color: "#C9976B" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#7A5C3E")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#C9976B")}
+            >
+              (573) 545-5759
+            </a>
+            <span className="hidden sm:inline font-garamond" style={{ color: "#3a3a3a" }}>·</span>
+            <a
+              href="mailto:info@gravedetail.net"
+              className="font-garamond text-lg transition-colors"
+              style={{ color: "#C9976B" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#7A5C3E")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#C9976B")}
+            >
+              info@gravedetail.net
+            </a>
+          </div>
+        </motion.div>
+      </section>
+
       {/* CTA Banner */}
       <section className="px-6 py-20" style={{ backgroundColor: "#2C2C2C" }}>
         <motion.div
