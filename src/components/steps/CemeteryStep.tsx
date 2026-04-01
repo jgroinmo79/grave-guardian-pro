@@ -90,22 +90,34 @@ const CemeteryStep = ({ data, update }: Props) => {
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       
       // Fetch place details for lat/lng
-      const detailsUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=place_details&place_id=${encodeURIComponent(prediction.place_id)}`;
+      const detailsUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=place_details&place_id=${encodeURIComponent(prediction.place_id)}&description=${encodeURIComponent(prediction.description)}`;
       const detailsRes = await fetch(detailsUrl, {
         headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
       });
       const detailsJson = await detailsRes.json();
-      if (detailsJson.lat !== undefined && detailsJson.lng !== undefined) {
-        update({ cemeteryLat: detailsJson.lat, cemeteryLng: detailsJson.lng });
+      const lat = typeof detailsJson.lat === "number" ? detailsJson.lat : null;
+      const lng = typeof detailsJson.lng === "number" ? detailsJson.lng : null;
+
+      if (lat !== null && lng !== null) {
+        update({ cemeteryLat: lat, cemeteryLng: lng });
+
+        const distUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance_latlng&lat=${lat}&lng=${lng}`;
+        const distRes = await fetch(distUrl, {
+          headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
+        });
+        const distJson = await distRes.json();
+        if (typeof distJson.miles === "number") {
+          update({ estimatedMiles: distJson.miles });
+        }
+        return;
       }
 
-      // Fetch distance
-      const distUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance&place_id=${encodeURIComponent(prediction.place_id)}`;
+      const distUrl = `https://${projectId}.supabase.co/functions/v1/google-maps?action=distance&place_id=${encodeURIComponent(prediction.place_id)}&description=${encodeURIComponent(prediction.description)}`;
       const distRes = await fetch(distUrl, {
         headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
       });
       const distJson = await distRes.json();
-      if (distJson.miles !== undefined) {
+      if (typeof distJson.miles === "number") {
         update({ estimatedMiles: distJson.miles });
       }
     } catch (err) {

@@ -83,12 +83,12 @@ const ScheduleStep = ({ data, update }: Props) => {
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const url = `https://${projectId}.supabase.co/functions/v1/google-maps?action=place_details&place_id=${encodeURIComponent(prediction.place_id)}`;
+      const url = `https://${projectId}.supabase.co/functions/v1/google-maps?action=place_details&place_id=${encodeURIComponent(prediction.place_id)}&description=${encodeURIComponent(prediction.description)}`;
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${anonKey}`, apikey: anonKey },
       });
       const json = await res.json();
-      if (json.lat !== undefined && json.lng !== undefined) {
+      if (typeof json.lat === "number" && typeof json.lng === "number") {
         update({ cemeteryLat: json.lat, cemeteryLng: json.lng });
       }
     } catch (err) {
