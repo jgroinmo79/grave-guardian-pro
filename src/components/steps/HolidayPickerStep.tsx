@@ -23,10 +23,7 @@ const HolidayPickerStep = ({ data, update }: Props) => {
   const planInfo = plan ? CARE_PLANS[plan] : null;
 
   const maxPicks = plan === 'keeper' ? 1 : plan === 'sentinel' ? 2 : 3;
-  const isLegacy = plan === 'legacy';
-  const availableHolidays = isLegacy
-    ? [...STANDARD_HOLIDAYS, ...LEGACY_EXTRAS]
-    : STANDARD_HOLIDAYS;
+  const availableHolidays = ALL_HOLIDAYS;
 
   const needsCustomDate = (holiday: string) =>
     holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
