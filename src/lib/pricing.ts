@@ -59,7 +59,7 @@ export const CARE_PLANS = {
     label: 'The Keeper',
     price: 525,
     period: 'year',
-    description: '2 visits · 1 flower placement. Choose 1 holiday: Memorial Day, Christmas, Mother\'s Day, or Father\'s Day.',
+    description: '2 visits · 1 flower placement. Choose 1 date: Memorial Day, Easter, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
     features: [
       '2 full cleaning visits (spring + fall)',
       '1 included flower placement on your chosen holiday',
@@ -74,7 +74,7 @@ export const CARE_PLANS = {
     label: 'The Sentinel',
     price: 675,
     period: 'year',
-    description: '3 visits · 2 flower placements. Choose 2 holidays: Memorial Day, Christmas, Mother\'s Day, or Father\'s Day.',
+    description: '3 visits · 2 flower placements. Choose 2 dates: Memorial Day, Easter, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
     features: [
       '3 full cleaning visits (spring, summer, fall)',
       '2 included flower placements on your chosen holidays',

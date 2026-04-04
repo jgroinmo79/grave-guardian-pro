@@ -8,15 +8,12 @@ interface Props {
   update: (d: Partial<IntakeFormData>) => void;
 }
 
-const STANDARD_HOLIDAYS = [
+const ALL_HOLIDAYS = [
   "Memorial Day",
   "Mother's Day",
   "Father's Day",
   "Easter",
   "Christmas",
-];
-
-const LEGACY_EXTRAS = [
   "Deceased's Birthday",
   "Deceased's Anniversary",
 ];
@@ -26,10 +23,7 @@ const HolidayPickerStep = ({ data, update }: Props) => {
   const planInfo = plan ? CARE_PLANS[plan] : null;
 
   const maxPicks = plan === 'keeper' ? 1 : plan === 'sentinel' ? 2 : 3;
-  const isLegacy = plan === 'legacy';
-  const availableHolidays = isLegacy
-    ? [...STANDARD_HOLIDAYS, ...LEGACY_EXTRAS]
-    : STANDARD_HOLIDAYS;
+  const availableHolidays = ALL_HOLIDAYS;
 
   const needsCustomDate = (holiday: string) =>
     holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
