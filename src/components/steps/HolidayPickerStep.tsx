@@ -8,15 +8,12 @@ interface Props {
   update: (d: Partial<IntakeFormData>) => void;
 }
 
-const STANDARD_HOLIDAYS = [
+const ALL_HOLIDAYS = [
   "Memorial Day",
   "Mother's Day",
   "Father's Day",
   "Easter",
   "Christmas",
-];
-
-const LEGACY_EXTRAS = [
   "Deceased's Birthday",
   "Deceased's Anniversary",
 ];

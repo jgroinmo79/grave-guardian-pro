@@ -74,7 +74,7 @@ export const CARE_PLANS = {
     label: 'The Sentinel',
     price: 675,
     period: 'year',
-    description: '3 visits · 2 flower placements. Choose 2 holidays: Memorial Day, Christmas, Mother\'s Day, or Father\'s Day.',
+    description: '3 visits · 2 flower placements. Choose 2 dates: Memorial Day, Easter, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
     features: [
       '3 full cleaning visits (spring, summer, fall)',
       '2 included flower placements on your chosen holidays',
