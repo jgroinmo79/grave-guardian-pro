@@ -59,7 +59,7 @@ export const CARE_PLANS = {
     label: 'The Keeper',
     price: 525,
     period: 'year',
-    description: '2 visits · 1 flower placement. Choose 1 holiday: Memorial Day, Christmas, Mother\'s Day, or Father\'s Day.',
+    description: '2 visits · 1 flower placement. Choose 1 date: Memorial Day, Easter, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
     features: [
       '2 full cleaning visits (spring + fall)',
       '1 included flower placement on your chosen holiday',
