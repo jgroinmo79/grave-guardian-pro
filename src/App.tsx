@@ -79,6 +79,7 @@ const App = () => (
               <Route path="travel-zones" element={<AdminTravelZones />} />
               <Route path="gallery" element={<AdminGallery />} />
               <Route path="frame-builder" element={<FrameBuilder />} />
+              <Route path="signups" element={<AdminSignups />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
