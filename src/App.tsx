@@ -9,6 +9,8 @@ import AdminRoute from "@/components/AdminRoute";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
+import ComingSoon from "./pages/ComingSoon";
+import AdminSignups from "./pages/AdminSignups";
 import Portal from "./pages/Portal";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
