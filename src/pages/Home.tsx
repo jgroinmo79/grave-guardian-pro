@@ -223,7 +223,7 @@ const Home = () => {
       </section>
 
       {/* CTA Banner */}
-      <section className="px-6 py-20" style={{ backgroundColor: "#2C2C2C" }}>
+      <section className="px-6 py-20" style={{ backgroundColor: "rgba(44,44,44,0.85)" }}>
         <motion.div
           initial="hidden"
           whileInView="visible"
