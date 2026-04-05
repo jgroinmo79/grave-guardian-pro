@@ -214,21 +214,23 @@ export default function FrameBuilder() {
     const ctx = canvas.getContext("2d")!;
     const fs = frameStyle;
     const pad = 24, gap = 12, labelH = 48, topBar = 6;
-    const brandH = showBranding ? 64 : 0;
-    const tagH = showTagline && showBranding ? 28 : 0;
+    const logoBarH = showBranding ? 80 : 0;
+    const tagH = showTagline && showBranding ? 36 : 0;
+    const ruleH = showTagline && showBranding ? 2 : 0;
     const captionH = caption.trim() ? 44 : 0;
     const imgW = 540, imgH = 540;
+    const bottomZone = captionH + ruleH + tagH + logoBarH;
 
     let W: number, H: number;
     if (layout === "sideBySide") {
       W = pad + imgW + gap + imgW + pad;
-      H = topBar + pad + labelH + imgH + pad + captionH + brandH + tagH + (brandH ? 8 : 0);
+      H = topBar + pad + labelH + imgH + pad + bottomZone;
     } else if (layout === "topBottom") {
       W = pad + imgW + pad;
-      H = topBar + pad + labelH + imgH + gap + labelH + imgH + pad + captionH + brandH + tagH + (brandH ? 8 : 0);
+      H = topBar + pad + labelH + imgH + gap + labelH + imgH + pad + bottomZone;
     } else {
       W = pad + imgW + pad;
-      H = topBar + pad + labelH + imgH + pad + captionH + brandH + tagH + (brandH ? 8 : 0);
+      H = topBar + pad + labelH + imgH + pad + bottomZone;
     }
     canvas.width = W; canvas.height = H;
 
@@ -256,26 +258,16 @@ export default function FrameBuilder() {
 
     function drawLabel(text: string, x: number, y: number, w: number) {
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      if (fs === "bold") {
-        ctx.fillStyle = text === "BEFORE" ? COLORS.greyGranite : COLORS.brightBronze;
-        ctx.font = "bold 22px 'Cinzel', serif";
-      } else if (fs === "minimal") {
-        ctx.fillStyle = COLORS.greyGranite;
-        ctx.font = "600 14px 'Cinzel', serif";
-      } else {
-        ctx.fillStyle = COLORS.whiteMarble;
-        ctx.font = "600 16px 'Cinzel', serif";
-      }
-      const sp = text.split("").join("\u200A");
-      ctx.fillText(sp, x + w / 2, y + labelH / 2);
-      if (fs === "classic") {
-        const tw = ctx.measureText(sp).width;
-        const half = tw / 2 + 16;
-        ctx.strokeStyle = COLORS.greyGranite; ctx.lineWidth = 1; ctx.globalAlpha = 0.4;
-        ctx.beginPath(); ctx.moveTo(x + w / 2 - half - 40, y + labelH / 2); ctx.lineTo(x + w / 2 - half, y + labelH / 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(x + w / 2 + half, y + labelH / 2); ctx.lineTo(x + w / 2 + half + 40, y + labelH / 2); ctx.stroke();
-        ctx.globalAlpha = 1;
-      }
+      const labelText = text.split("").join("\u200A");
+      ctx.font = "bold 20px 'Cinzel', serif";
+      const tw = ctx.measureText(labelText).width;
+      const pillW = tw + 32, pillH = 32;
+      const px = x + w / 2 - pillW / 2, py = y + labelH / 2 - pillH / 2;
+      ctx.fillStyle = COLORS.brightBronze;
+      ctx.beginPath(); ctx.roundRect(px, py, pillW, pillH, 16); ctx.fill();
+      ctx.fillStyle = COLORS.polishedBlack;
+      ctx.font = "bold 20px 'Cinzel', serif";
+      ctx.fillText(labelText, x + w / 2, y + labelH / 2);
     }
 
     const y0 = topBar + pad;
@@ -299,8 +291,10 @@ export default function FrameBuilder() {
       cropDraw(afterImg!, pad, y0 + labelH, imgW, imgH);
     }
 
+    // Caption
+    let cursorY = H - bottomZone + captionH; // end of caption area
     if (caption.trim()) {
-      const capY = H - captionH - brandH - tagH - (brandH ? 8 : 0);
+      const capY = H - bottomZone;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillStyle = COLORS.whiteMarble;
       ctx.font = "italic 15px 'Cormorant Garamond', serif";
@@ -308,23 +302,41 @@ export default function FrameBuilder() {
     }
 
     if (showBranding) {
-      const by = H - brandH - tagH;
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillStyle = fs === "bold" ? COLORS.brightBronze : COLORS.whiteMarble;
-      ctx.font = fs === "bold" ? "700 26px 'Cinzel', serif" : "600 22px 'Cinzel', serif";
-      ctx.fillText("G\u200A\u200AR\u200A\u200AA\u200A\u200AV\u200A\u200AE\u200A\u200A \u200A\u200AD\u200A\u200AE\u200A\u200AT\u200A\u200AA\u200A\u200AI\u200A\u200AL", W / 2, by + brandH / 2);
-      if (fs !== "minimal") {
-        ctx.strokeStyle = COLORS.brightBronze; ctx.lineWidth = 1; ctx.globalAlpha = 0.6;
-        ctx.beginPath(); ctx.moveTo(W / 2 - 60, by + brandH / 2 + 18); ctx.lineTo(W / 2 + 60, by + brandH / 2 + 18); ctx.stroke();
-        ctx.globalAlpha = 1;
+      // Bronze rule above tagline
+      if (showTagline) {
+        const ruleY = H - logoBarH - tagH - ruleH;
+        ctx.fillStyle = COLORS.brightBronze;
+        ctx.fillRect(pad, ruleY, W - pad * 2, 2);
+
+        // Tagline
+        const tagY = ruleY + ruleH;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillStyle = COLORS.whiteMarble;
+        ctx.font = "italic 16px 'Cormorant Garamond', serif";
+        ctx.fillText("Time Takes a Toll. We Take It Back.", W / 2, tagY + tagH / 2);
       }
-    }
-    if (showBranding && showTagline) {
-      const ty = H - tagH - 4;
+
+      // Logo bar
+      const barY = H - logoBarH;
+      ctx.fillStyle = COLORS.polishedBlack;
+      ctx.fillRect(0, barY, W, logoBarH);
+
+      // Business name
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = COLORS.brightBronze;
+      ctx.font = "700 28px 'Cinzel', serif";
+      ctx.fillText("G\u200A\u200AR\u200A\u200AA\u200A\u200AV\u200A\u200AE\u200A\u200A \u200A\u200AD\u200A\u200AE\u200A\u200AT\u200A\u200AA\u200A\u200AI\u200A\u200AL", W / 2, barY + logoBarH / 2 - 8);
+
+      // Website URL
+      ctx.fillStyle = COLORS.whiteMarble;
+      ctx.font = "400 13px 'Cinzel', serif";
+      ctx.fillText("gravedetail.net", W / 2, barY + logoBarH / 2 + 14);
+
+      // Social handle
+      ctx.textAlign = "right"; ctx.textBaseline = "bottom";
       ctx.fillStyle = COLORS.greyGranite;
-      ctx.font = "italic 13px 'Cormorant Garamond', serif";
-      ctx.fillText("Time Takes a Toll. We Take It Back.", W / 2, ty + tagH / 2);
+      ctx.font = "400 11px 'Cinzel', serif";
+      ctx.fillText("@Grave_Detail", W - pad, barY + logoBarH - 10);
     }
 
     setPreviewUrl(canvas.toDataURL("image/png"));
