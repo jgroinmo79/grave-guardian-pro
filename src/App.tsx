@@ -9,6 +9,8 @@ import AdminRoute from "@/components/AdminRoute";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
+import ComingSoon from "./pages/ComingSoon";
+import AdminSignups from "./pages/AdminSignups";
 import Portal from "./pages/Portal";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -55,7 +57,8 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<ComingSoon />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/services" element={<Services />} />
             <Route path="/about" element={<About />} />
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -76,6 +79,7 @@ const App = () => (
               <Route path="travel-zones" element={<AdminTravelZones />} />
               <Route path="gallery" element={<AdminGallery />} />
               <Route path="frame-builder" element={<FrameBuilder />} />
+              <Route path="signups" element={<AdminSignups />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
