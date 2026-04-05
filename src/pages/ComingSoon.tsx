@@ -70,6 +70,9 @@ const ComingSoon = () => {
           style={{ fontFamily: "Cinzel, serif", color: "#E8E4DF" }}
         >
           Grave Detail
+          <span className="block text-lg sm:text-xl tracking-[0.2em] mt-1" style={{ color: "#C9976B" }}>
+            Cleaning &amp; Preservation
+          </span>
         </motion.h1>
 
         {/* Tagline */}
