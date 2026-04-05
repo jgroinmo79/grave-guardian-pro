@@ -74,7 +74,7 @@ const Home = () => {
       </section>
 
       {/* Three-card feature section */}
-      <section id="about" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#2C2C2C" }}>
+      <section id="about" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(44,44,44,0.85)" }}>
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
