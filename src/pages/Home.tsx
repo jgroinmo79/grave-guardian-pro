@@ -116,7 +116,7 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+      <section id="how-it-works" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <div className="max-w-4xl mx-auto text-center mb-14">
           <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>
             How It Works
