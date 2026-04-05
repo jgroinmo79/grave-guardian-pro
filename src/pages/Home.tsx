@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
-import cemeteryBg from "@/assets/cemetery-bg.jpg";
+
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
 import gallery3 from "@/assets/gallery-3.jpg";
@@ -42,10 +42,7 @@ const Home = () => {
   ];
 
   return (
-    <div
-      className="min-h-screen bg-fixed bg-cover bg-center"
-      style={{ backgroundImage: `url(${cemeteryBg})` }}
-    >
+    <div className="min-h-screen">
       <PublicNavbar />
 
       {/* Hero */}
@@ -77,7 +74,7 @@ const Home = () => {
       </section>
 
       {/* Three-card feature section */}
-      <section id="about" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#2C2C2C" }}>
+      <section id="about" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(44,44,44,0.85)" }}>
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
@@ -119,7 +116,7 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+      <section id="how-it-works" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <div className="max-w-4xl mx-auto text-center mb-14">
           <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>
             How It Works
@@ -158,7 +155,7 @@ const Home = () => {
       </section>
 
       {/* Gallery */}
-      <section id="gallery" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+      <section id="gallery" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <div className="max-w-4xl mx-auto text-center mb-14">
           <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>
             Our Work
@@ -186,7 +183,7 @@ const Home = () => {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+      <section id="contact" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -226,7 +223,7 @@ const Home = () => {
       </section>
 
       {/* CTA Banner */}
-      <section className="px-6 py-20" style={{ backgroundColor: "#2C2C2C" }}>
+      <section className="px-6 py-20" style={{ backgroundColor: "rgba(44,44,44,0.85)" }}>
         <motion.div
           initial="hidden"
           whileInView="visible"
