@@ -183,7 +183,7 @@ const Home = () => {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+      <section id="contact" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <motion.div
           initial="hidden"
           whileInView="visible"
