@@ -553,7 +553,9 @@ export default function FrameBuilder() {
               setUploading(true);
               try {
                 const blob = await new Promise<Blob>((res) => canvasRef.current!.toBlob((b) => res(b!), "image/png"));
-                const path = `gallery/${Date.now()}.png`;
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                if (!currentUser) throw new Error("Not authenticated");
+                const path = `${currentUser.id}/gallery/${Date.now()}.png`;
                 const { error: upErr } = await supabase.storage.from("monument-photos").upload(path, blob, { contentType: "image/png" });
                 if (upErr) throw upErr;
                 const { data: { publicUrl } } = supabase.storage.from("monument-photos").getPublicUrl(path);

@@ -53,8 +53,10 @@ const ConditionStep = ({ data, update }: Props) => {
         continue;
       }
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("Please sign in first"); continue; }
       const ext = file.name.split(".").pop();
-      const path = `intake/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const path = `${user.id}/intake/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error } = await supabase.storage
         .from("monument-photos")

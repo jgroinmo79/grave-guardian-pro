@@ -42,8 +42,10 @@ export default function AdminGallery() {
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop();
-      const path = `gallery/${Date.now()}.${ext}`;
+      const path = `${user.id}/gallery/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("monument-photos")
