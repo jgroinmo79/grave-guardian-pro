@@ -9,6 +9,8 @@ import {
   MapPin,
   Image,
   Frame,
+  BarChart3,
+  UserX,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
