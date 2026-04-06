@@ -32,6 +32,7 @@ import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
 import ScrollToTop from "./components/ScrollToTop";
+import PageViewTracker from "./components/PageViewTracker";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
 const queryClient = new QueryClient();
