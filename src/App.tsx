@@ -30,6 +30,7 @@ import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
+import Unsubscribe from "./pages/Unsubscribe";
 import ScrollToTop from "./components/ScrollToTop";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
