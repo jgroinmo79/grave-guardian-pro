@@ -39,7 +39,9 @@ const ComingSoon = () => {
     e.preventDefault();
     if (!email.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("email_signups" as any).insert({ email: email.trim() } as any);
+    const trimmedEmail = email.trim();
+    const signupId = crypto.randomUUID();
+    const { error } = await supabase.from("email_signups" as any).insert({ id: signupId, email: trimmedEmail } as any);
     setSubmitting(false);
     if (error) {
       if (error.code === "23505") {
@@ -50,6 +52,14 @@ const ComingSoon = () => {
     } else {
       toast.success("You're on the list! We'll notify you at launch.");
       setEmail("");
+      // Send confirmation email (fire-and-forget)
+      supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "signup-confirmation",
+          recipientEmail: trimmedEmail,
+          idempotencyKey: `signup-confirm-${signupId}`,
+        },
+      });
     }
   };
 

@@ -83,6 +83,7 @@ const App = () => (
               <Route path="signups" element={<AdminSignups />} />
             </Route>
 
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
