@@ -40,8 +40,10 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
         const ext = file.name.split(".").pop();
-        const path = `${monumentId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const path = `${user.id}/${monumentId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
         const { error: uploadErr } = await supabase.storage
           .from("monument-photos")
