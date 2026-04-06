@@ -55,6 +55,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <PageViewTracker />
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
