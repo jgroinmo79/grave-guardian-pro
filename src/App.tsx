@@ -25,6 +25,8 @@ import AdminClients from "./pages/admin/Clients";
 import AdminTickets from "./pages/admin/Tickets";
 import AdminTravelZones from "./pages/admin/TravelZones";
 import AdminGallery from "./pages/admin/Gallery";
+import AdminAnalytics from "./pages/admin/Analytics";
+import AdminLeads from "./pages/admin/Leads";
 import FrameBuilder from "./pages/FrameBuilder";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
