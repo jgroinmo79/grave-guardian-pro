@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      abandoned_leads: {
+        Row: {
+          converted: boolean
+          created_at: string
+          email: string | null
+          form_data: Json | null
+          id: string
+          name: string | null
+          phone: string | null
+          session_id: string
+          step_index: number
+          step_reached: string
+          updated_at: string
+        }
+        Insert: {
+          converted?: boolean
+          created_at?: string
+          email?: string | null
+          form_data?: Json | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          session_id: string
+          step_index?: number
+          step_reached?: string
+          updated_at?: string
+        }
+        Update: {
+          converted?: boolean
+          created_at?: string
+          email?: string | null
+          form_data?: Json | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          session_id?: string
+          step_index?: number
+          step_reached?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       damage_reports: {
         Row: {
           created_at: string
@@ -436,6 +478,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          referrer: string | null
+          screen_width: number | null
+          session_id: string | null
+          url: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referrer?: string | null
+          screen_width?: number | null
+          session_id?: string | null
+          url: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referrer?: string | null
+          screen_width?: number | null
+          session_id?: string | null
+          url?: string
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       photo_records: {
         Row: {

@@ -9,6 +9,8 @@ import {
   MapPin,
   Image,
   Frame,
+  BarChart3,
+  UserX,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -34,6 +36,8 @@ const items = [
   { title: "Invoices", url: "/admin/invoices", icon: FileText },
   { title: "Clients", url: "/admin/clients", icon: Users },
   { title: "Tickets", url: "/admin/tickets", icon: MessageSquare },
+  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
+  { title: "Leads", url: "/admin/leads", icon: UserX },
   { title: "Travel Zones", url: "/admin/travel-zones", icon: MapPin },
   { title: "Gallery", url: "/admin/gallery", icon: Image },
   { title: "Frame Builder", url: "/admin/frame-builder", icon: Frame },

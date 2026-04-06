@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -17,6 +17,8 @@ import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
 import { IntakeFormData, initialFormData } from "@/lib/pricing";
+import { supabase } from "@/integrations/supabase/client";
+import { getSessionId } from "@/components/PageViewTracker";
 
 type StepDef = {
   id: string;
@@ -27,6 +29,7 @@ type StepDef = {
 const BookingFlow = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<IntakeFormData>(initialFormData);
+  const leadIdRef = useRef<string | null>(null);
 
   const update = (partial: Partial<IntakeFormData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -134,6 +137,44 @@ const BookingFlow = () => {
 
     return base;
   }, [hasAnnualPlan, data.selectedPlan, needsFlowerDates, flowerPickLimit]);
+
+  // Track abandoned lead on step changes
+  useEffect(() => {
+    const sessionId = getSessionId();
+    const saveProgress = async () => {
+      const stepId = steps[Math.min(stepIndex, steps.length - 1)]?.id || "cemetery";
+      const leadData: any = {
+        session_id: sessionId,
+        step_reached: stepId,
+        step_index: stepIndex,
+        email: data.shopperEmail || null,
+        name: data.shopperName || null,
+        phone: data.shopperPhone || null,
+        form_data: {
+          cemeteryName: data.cemeteryName,
+          monumentType: data.monumentType,
+          selectedOffer: data.selectedOffer,
+        },
+      };
+
+      if (!leadIdRef.current) {
+        const { data: inserted } = await supabase
+          .from("abandoned_leads" as any)
+          .insert(leadData as any)
+          .select("id")
+          .single();
+        if (inserted) leadIdRef.current = (inserted as any).id;
+      } else {
+        await supabase
+          .from("abandoned_leads" as any)
+          .update(leadData as any)
+          .eq("id", leadIdRef.current);
+      }
+    };
+
+    const timer = setTimeout(saveProgress, 1500);
+    return () => clearTimeout(timer);
+  }, [stepIndex, data.shopperEmail, data.shopperName, data.shopperPhone, data.cemeteryName, steps]);
 
   const totalSteps = steps.length;
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];

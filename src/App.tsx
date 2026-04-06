@@ -25,6 +25,8 @@ import AdminClients from "./pages/admin/Clients";
 import AdminTickets from "./pages/admin/Tickets";
 import AdminTravelZones from "./pages/admin/TravelZones";
 import AdminGallery from "./pages/admin/Gallery";
+import AdminAnalytics from "./pages/admin/Analytics";
+import AdminLeads from "./pages/admin/Leads";
 import FrameBuilder from "./pages/FrameBuilder";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
@@ -32,6 +34,7 @@ import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
 import ScrollToTop from "./components/ScrollToTop";
+import PageViewTracker from "./components/PageViewTracker";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
 
 const queryClient = new QueryClient();
@@ -54,6 +57,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <PageViewTracker />
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -81,6 +85,8 @@ const App = () => (
               <Route path="gallery" element={<AdminGallery />} />
               <Route path="frame-builder" element={<FrameBuilder />} />
               <Route path="signups" element={<AdminSignups />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="leads" element={<AdminLeads />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
