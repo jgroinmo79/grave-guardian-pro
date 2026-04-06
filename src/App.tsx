@@ -85,6 +85,8 @@ const App = () => (
               <Route path="gallery" element={<AdminGallery />} />
               <Route path="frame-builder" element={<FrameBuilder />} />
               <Route path="signups" element={<AdminSignups />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="leads" element={<AdminLeads />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
