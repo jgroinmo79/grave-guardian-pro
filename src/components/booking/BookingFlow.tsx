@@ -138,6 +138,44 @@ const BookingFlow = () => {
     return base;
   }, [hasAnnualPlan, data.selectedPlan, needsFlowerDates, flowerPickLimit]);
 
+  // Track abandoned lead on step changes
+  useEffect(() => {
+    const sessionId = getSessionId();
+    const saveProgress = async () => {
+      const stepId = steps[Math.min(stepIndex, steps.length - 1)]?.id || "cemetery";
+      const leadData: any = {
+        session_id: sessionId,
+        step_reached: stepId,
+        step_index: stepIndex,
+        email: data.shopperEmail || null,
+        name: data.shopperName || null,
+        phone: data.shopperPhone || null,
+        form_data: {
+          cemeteryName: data.cemeteryName,
+          monumentType: data.monumentType,
+          selectedOffer: data.selectedOffer,
+        },
+      };
+
+      if (!leadIdRef.current) {
+        const { data: inserted } = await supabase
+          .from("abandoned_leads" as any)
+          .insert(leadData as any)
+          .select("id")
+          .single();
+        if (inserted) leadIdRef.current = (inserted as any).id;
+      } else {
+        await supabase
+          .from("abandoned_leads" as any)
+          .update(leadData as any)
+          .eq("id", leadIdRef.current);
+      }
+    };
+
+    const timer = setTimeout(saveProgress, 1500);
+    return () => clearTimeout(timer);
+  }, [stepIndex, data.shopperEmail, data.shopperName, data.shopperPhone, data.cemeteryName, steps]);
+
   const totalSteps = steps.length;
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
