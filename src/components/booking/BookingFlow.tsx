@@ -17,6 +17,8 @@ import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
 import { IntakeFormData, initialFormData } from "@/lib/pricing";
+import { supabase } from "@/integrations/supabase/client";
+import { getSessionId } from "@/components/PageViewTracker";
 
 type StepDef = {
   id: string;
