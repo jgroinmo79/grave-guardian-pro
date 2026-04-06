@@ -35,47 +35,6 @@ const BookingFlow = () => {
     setData((prev) => ({ ...prev, ...partial }));
   };
 
-  // Track abandoned lead on step changes
-  useEffect(() => {
-    const sessionId = getSessionId();
-    const saveProgress = async () => {
-      const stepId = steps[Math.min(stepIndex, steps.length - 1)]?.id || "cemetery";
-      const leadData: any = {
-        session_id: sessionId,
-        step_reached: stepId,
-        step_index: stepIndex,
-        email: data.shopperEmail || null,
-        name: data.shopperName || null,
-        phone: data.shopperPhone || null,
-        form_data: {
-          cemeteryName: data.cemeteryName,
-          monumentType: data.monumentType,
-          selectedOffer: data.selectedOffer,
-        },
-      };
-
-      if (!leadIdRef.current) {
-        // Insert new lead
-        const { data: inserted } = await supabase
-          .from("abandoned_leads" as any)
-          .insert(leadData as any)
-          .select("id")
-          .single();
-        if (inserted) leadIdRef.current = (inserted as any).id;
-      } else {
-        // Update existing lead
-        await supabase
-          .from("abandoned_leads" as any)
-          .update(leadData as any)
-          .eq("id", leadIdRef.current);
-      }
-    };
-
-    // Debounce to avoid too many writes
-    const timer = setTimeout(saveProgress, 1500);
-    return () => clearTimeout(timer);
-  }, [stepIndex, data.shopperEmail, data.shopperName, data.shopperPhone, data.cemeteryName]);
-
   const hasAnnualPlan = data.selectedPlan !== '';
   const needsFlowerDates = ['single_arrangement', 'remembrance_trio', 'memorial_year'].includes(data.selectedBundle);
   const flowerPickLimit = data.selectedBundle === 'single_arrangement' ? 1 : data.selectedBundle === 'remembrance_trio' ? 3 : data.selectedBundle === 'memorial_year' ? 5 : 0;
