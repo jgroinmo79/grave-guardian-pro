@@ -220,19 +220,29 @@ function MemorialDetail({ memorial, onBack, onPinLocation, onNavigate }: {
   onNavigate: (lat: number, lng: number) => void;
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [photos, setPhotos] = useState<{ id: string; photo_url: string; description: string | null; taken_at: string | null; order_id: string | null }[]>([]);
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [heroPhoto, setHeroPhoto] = useState<string | null>(null);
 
-  // Fetch photos for all monument_ids in this memorial's orders
+  // Fetch the most recent "after" photo (from completed orders)
   useEffect(() => {
+    const completedOrderIds = memorial.orders.filter(o => o.status === "completed").map(o => o.id);
     const monumentIds = [...new Set(memorial.orders.map(o => o.monument_id))];
     if (!monumentIds.length) return;
-    supabase
+
+    const query = supabase
       .from("photo_records")
-      .select("id, photo_url, description, taken_at, order_id")
+      .select("photo_url, order_id")
       .in("monument_id", monumentIds)
       .order("taken_at", { ascending: false })
-      .then(({ data }) => setPhotos(data || []));
+      .limit(1);
+
+    // Prefer photos linked to completed orders (after photos)
+    if (completedOrderIds.length) {
+      query.in("order_id", completedOrderIds);
+    }
+
+    query.then(({ data }) => {
+      if (data?.[0]) setHeroPhoto(data[0].photo_url);
+    });
   }, [memorial.orders]);
 
   useEffect(() => {
