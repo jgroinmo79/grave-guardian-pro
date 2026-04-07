@@ -220,6 +220,20 @@ function MemorialDetail({ memorial, onBack, onPinLocation, onNavigate }: {
   onNavigate: (lat: number, lng: number) => void;
 }) {
   const mapRef = useRef<HTMLDivElement>(null);
+  const [photos, setPhotos] = useState<{ id: string; photo_url: string; description: string | null; taken_at: string | null; order_id: string | null }[]>([]);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  // Fetch photos for all monument_ids in this memorial's orders
+  useEffect(() => {
+    const monumentIds = [...new Set(memorial.orders.map(o => o.monument_id))];
+    if (!monumentIds.length) return;
+    supabase
+      .from("photo_records")
+      .select("id, photo_url, description, taken_at, order_id")
+      .in("monument_id", monumentIds)
+      .order("taken_at", { ascending: false })
+      .then(({ data }) => setPhotos(data || []));
+  }, [memorial.orders]);
 
   useEffect(() => {
     if (!mapRef.current || !memorial.savedLocation) return;
@@ -257,6 +271,30 @@ function MemorialDetail({ memorial, onBack, onPinLocation, onNavigate }: {
         <Button variant="secondary" className="w-full gap-2" onClick={onPinLocation}>
           <MapPin className="h-4 w-4" /> Pin Location
         </Button>
+      )}
+
+      {/* Photo gallery */}
+      {photos.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold">Photos ({photos.length})</h2>
+          <div className="grid grid-cols-3 gap-1.5">
+            {photos.map(photo => (
+              <button key={photo.id} onClick={() => setLightbox(photo.photo_url)} className="aspect-square rounded-md overflow-hidden bg-muted">
+                <img src={photo.photo_url} alt={photo.description || "Memorial photo"} className="w-full h-full object-cover" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-white hover:bg-white/20" onClick={() => setLightbox(null)}>
+            <X className="h-6 w-6" />
+          </Button>
+          <img src={lightbox} alt="Full size" className="max-w-full max-h-full object-contain rounded" />
+        </div>
       )}
 
       <div className="space-y-2">
