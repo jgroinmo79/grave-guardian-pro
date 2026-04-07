@@ -11,6 +11,7 @@ import {
   Frame,
   BarChart3,
   UserX,
+  Landmark,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
