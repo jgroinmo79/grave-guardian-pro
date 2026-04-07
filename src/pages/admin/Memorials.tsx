@@ -283,27 +283,10 @@ function MemorialDetail({ memorial, onBack, onPinLocation, onNavigate }: {
         </Button>
       )}
 
-      {/* Photo gallery */}
-      {photos.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold">Photos ({photos.length})</h2>
-          <div className="grid grid-cols-3 gap-1.5">
-            {photos.map(photo => (
-              <button key={photo.id} onClick={() => setLightbox(photo.photo_url)} className="aspect-square rounded-md overflow-hidden bg-muted">
-                <img src={photo.photo_url} alt={photo.description || "Memorial photo"} className="w-full h-full object-cover" loading="lazy" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Lightbox */}
-      {lightbox && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
-          <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-white hover:bg-white/20" onClick={() => setLightbox(null)}>
-            <X className="h-6 w-6" />
-          </Button>
-          <img src={lightbox} alt="Full size" className="max-w-full max-h-full object-contain rounded" />
+      {/* Hero after photo */}
+      {heroPhoto && (
+        <div className="rounded-lg overflow-hidden">
+          <img src={heroPhoto} alt={`${memorial.deceasedName} after cleaning`} className="w-full h-48 object-cover" loading="lazy" />
         </div>
       )}
 
