@@ -42,6 +42,7 @@ const items = [
   { title: "Travel Zones", url: "/admin/travel-zones", icon: MapPin },
   { title: "Gallery", url: "/admin/gallery", icon: Image },
   { title: "Frame Builder", url: "/admin/frame-builder", icon: Frame },
+  { title: "Memorials", url: "/admin/memorials", icon: Landmark },
 ];
 
 export function AdminSidebar() {
