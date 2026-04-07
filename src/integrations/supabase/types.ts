@@ -318,6 +318,42 @@ export type Database = {
           },
         ]
       }
+      memorial_locations: {
+        Row: {
+          cemetery_name: string
+          created_at: string
+          deceased_first_name: string
+          deceased_last_name: string
+          gps_accuracy_meters: number | null
+          id: string
+          latitude: number
+          longitude: number
+          updated_at: string
+        }
+        Insert: {
+          cemetery_name: string
+          created_at?: string
+          deceased_first_name: string
+          deceased_last_name: string
+          gps_accuracy_meters?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          updated_at?: string
+        }
+        Update: {
+          cemetery_name?: string
+          created_at?: string
+          deceased_first_name?: string
+          deceased_last_name?: string
+          gps_accuracy_meters?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       monuments: {
         Row: {
           approximate_height: string | null

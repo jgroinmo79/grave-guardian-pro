@@ -28,6 +28,7 @@ import AdminGallery from "./pages/admin/Gallery";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminLeads from "./pages/admin/Leads";
 import FrameBuilder from "./pages/FrameBuilder";
+import AdminMemorials from "./pages/admin/Memorials";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="signups" element={<AdminSignups />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="leads" element={<AdminLeads />} />
+              <Route path="memorials" element={<AdminMemorials />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
