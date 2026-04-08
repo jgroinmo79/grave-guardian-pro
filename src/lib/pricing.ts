@@ -240,6 +240,7 @@ export const initialFormData: IntakeFormData = {
   holidayCustomDates: {},
   flowerHolidays: [],
   flowerCustomDates: {},
+  selectedArrangementId: '',
   preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,
