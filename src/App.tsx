@@ -29,6 +29,7 @@ import AdminAnalytics from "./pages/admin/Analytics";
 import AdminLeads from "./pages/admin/Leads";
 import FrameBuilder from "./pages/FrameBuilder";
 import AdminMemorials from "./pages/admin/Memorials";
+import AdminFlowerCatalog from "./pages/admin/FlowerCatalog";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import Services from "./pages/Services";
