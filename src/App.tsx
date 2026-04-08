@@ -90,6 +90,7 @@ const App = () => (
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="leads" element={<AdminLeads />} />
               <Route path="memorials" element={<AdminMemorials />} />
+              <Route path="flowers" element={<AdminFlowerCatalog />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
