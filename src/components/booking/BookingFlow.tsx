@@ -13,6 +13,7 @@ import ServiceStep from "@/components/steps/ServiceStep";
 import AddOnsStep from "@/components/steps/AddOnsStep";
 import HolidayPickerStep from "@/components/steps/HolidayPickerStep";
 import FlowerDatePickerStep from "@/components/steps/FlowerDatePickerStep";
+import FlowerArrangementStep from "@/components/steps/FlowerArrangementStep";
 import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
@@ -89,7 +90,6 @@ const BookingFlow = () => {
         render: (d, u) => <HolidayPickerStep data={d} update={u} />,
         canProceed: (d) => {
           if (d.selectedHolidays.length !== maxPicks) return false;
-          // Check custom dates are filled for birthday/anniversary
           for (const h of d.selectedHolidays) {
             if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.holidayCustomDates[h]?.trim()) {
               return false;
@@ -97,6 +97,12 @@ const BookingFlow = () => {
           }
           return true;
         },
+      });
+      // Flower arrangement selection for annual plan flower placements
+      base.push({
+        id: 'flower-arrangement',
+        render: (d, u) => <FlowerArrangementStep data={d} update={u} />,
+        canProceed: (d) => d.selectedArrangementId !== '',
       });
     }
 
@@ -114,6 +120,12 @@ const BookingFlow = () => {
           }
           return true;
         },
+      });
+      // Flower arrangement selection for standalone flower bundles
+      base.push({
+        id: 'flower-arrangement',
+        render: (d, u) => <FlowerArrangementStep data={d} update={u} />,
+        canProceed: (d) => d.selectedArrangementId !== '',
       });
     }
 
