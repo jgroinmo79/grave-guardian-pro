@@ -206,6 +206,45 @@ export type Database = {
         }
         Relationships: []
       }
+      flower_arrangements: {
+        Row: {
+          arrangement_type: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          occasion_tags: string[] | null
+          retail_price: number
+          updated_at: string
+        }
+        Insert: {
+          arrangement_type?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          occasion_tags?: string[] | null
+          retail_price: number
+          updated_at?: string
+        }
+        Update: {
+          arrangement_type?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          occasion_tags?: string[] | null
+          retail_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gallery_photos: {
         Row: {
           alt_text: string
