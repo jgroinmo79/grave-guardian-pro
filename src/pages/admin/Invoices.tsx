@@ -40,9 +40,10 @@ const AdminInvoices = () => {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const updates: Record<string, any> = { status };
-      if (status === "paid") updates.paid_at = new Date().toISOString();
-      const { error } = await supabase.from("invoices").update(updates).eq("id", id);
+      const updates = status === "paid"
+        ? { status, paid_at: new Date().toISOString() }
+        : { status };
+      const { error } = await supabase.from("invoices").update(updates as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

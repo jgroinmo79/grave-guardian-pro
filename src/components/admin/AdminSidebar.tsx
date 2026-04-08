@@ -12,6 +12,7 @@ import {
   BarChart3,
   UserX,
   Landmark,
+  Mail,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -43,6 +44,7 @@ const items = [
   { title: "Gallery", url: "/admin/gallery", icon: Image },
   { title: "Frame Builder", url: "/admin/frame-builder", icon: Frame },
   { title: "Memorials", url: "/admin/memorials", icon: Landmark },
+  { title: "Email Signups", url: "/admin/signups", icon: Mail },
 ];
 
 export function AdminSidebar() {
