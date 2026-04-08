@@ -153,7 +153,7 @@ const Portal = () => {
       {/* Top bar */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className="font-display font-bold text-lg text-gradient-patina">My Portal</h1>
+          <h1 className="font-display font-bold text-lg text-gradient-patina">Detail Hub</h1>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1">
               <User className="w-3 h-3" />
