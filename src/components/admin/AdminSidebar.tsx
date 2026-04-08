@@ -13,6 +13,7 @@ import {
   UserX,
   Landmark,
   Mail,
+  Flower2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
