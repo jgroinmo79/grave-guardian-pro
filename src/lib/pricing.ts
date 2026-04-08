@@ -192,6 +192,8 @@ export interface IntakeFormData {
   // Flower date picker for standalone flower bookings
   flowerHolidays: string[];
   flowerCustomDates: Record<string, string>;
+  // Flower arrangement selection
+  selectedArrangementId: string;
   // Preferred date
   preferredDate: Date | null;
   // Step 7
