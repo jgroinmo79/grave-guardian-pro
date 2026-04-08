@@ -13,6 +13,7 @@ import ServiceStep from "@/components/steps/ServiceStep";
 import AddOnsStep from "@/components/steps/AddOnsStep";
 import HolidayPickerStep from "@/components/steps/HolidayPickerStep";
 import FlowerDatePickerStep from "@/components/steps/FlowerDatePickerStep";
+import FlowerArrangementStep from "@/components/steps/FlowerArrangementStep";
 import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
