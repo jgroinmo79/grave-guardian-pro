@@ -76,7 +76,7 @@ const Index = () => {
               </Button>
               <Link to="/portal">
                 <Button variant="outline" size="lg" className="h-14 px-8 text-base border-brand-cream text-brand-cream hover:bg-brand-cream/10 hover:text-brand-cream">
-                  My Portal
+                  Detail Hub
                 </Button>
               </Link>
             </div>
