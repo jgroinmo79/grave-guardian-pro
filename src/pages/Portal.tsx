@@ -106,7 +106,7 @@ const Portal = () => {
       <div className="min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <Button variant="ghost" size="sm" className="mb-4 gap-1.5" onClick={() => setSelectedMonumentId(null)}>
-            <ArrowLeft className="w-4 h-4" /> Back to Portal
+            <ArrowLeft className="w-4 h-4" /> Back to Detail Hub
           </Button>
           <GraveDetail monumentId={selectedMonumentId} />
         </div>
