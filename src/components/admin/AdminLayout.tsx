@@ -10,7 +10,7 @@ const AdminLayout = () => {
         <div className="flex-1 flex flex-col">
           <header className="h-12 flex items-center border-b border-border px-4">
             <SidebarTrigger className="mr-3" />
-            <span className="text-sm text-muted-foreground font-medium">Grave Detail Admin</span>
+            <span className="text-sm text-muted-foreground font-medium">Toll Keeper</span>
           </header>
           <main className="flex-1 p-6 overflow-auto">
             <Outlet />
