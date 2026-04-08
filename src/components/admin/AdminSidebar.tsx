@@ -12,6 +12,7 @@ import {
   BarChart3,
   UserX,
   Landmark,
+  Mail,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
