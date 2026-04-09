@@ -191,7 +191,7 @@ const PaymentSuccess = () => {
               {order.gift_message && (
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-1">Gift Message</p>
-                  <p className="text-sm italic">"{order.gift_message}"</p>
+                  <p className="text-sm italic">&ldquo;{order.gift_message}&rdquo;</p>
                 </div>
               )}
               <Button
@@ -210,6 +210,7 @@ const PaymentSuccess = () => {
               <p className="text-xs text-muted-foreground text-center">Copy a message to text or email to the recipient</p>
             </div>
           )}
+        </div>
         ) : null}
 
         <div className="text-center">
