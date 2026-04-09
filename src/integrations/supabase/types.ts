@@ -471,7 +471,12 @@ export type Database = {
           consent_photos: boolean | null
           created_at: string
           deceased_name: string | null
+          gift_message: string | null
+          gift_recipient_email: string | null
+          gift_recipient_name: string | null
+          gift_recipient_phone: string | null
           id: string
+          is_gift: boolean
           is_veteran: boolean | null
           monument_id: string
           notes: string | null
@@ -499,7 +504,12 @@ export type Database = {
           consent_photos?: boolean | null
           created_at?: string
           deceased_name?: string | null
+          gift_message?: string | null
+          gift_recipient_email?: string | null
+          gift_recipient_name?: string | null
+          gift_recipient_phone?: string | null
           id?: string
+          is_gift?: boolean
           is_veteran?: boolean | null
           monument_id: string
           notes?: string | null
@@ -527,7 +537,12 @@ export type Database = {
           consent_photos?: boolean | null
           created_at?: string
           deceased_name?: string | null
+          gift_message?: string | null
+          gift_recipient_email?: string | null
+          gift_recipient_name?: string | null
+          gift_recipient_phone?: string | null
           id?: string
+          is_gift?: boolean
           is_veteran?: boolean | null
           monument_id?: string
           notes?: string | null
