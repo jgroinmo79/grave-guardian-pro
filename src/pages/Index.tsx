@@ -77,8 +77,18 @@ const Index = () => {
               >
                 Book Your Service <ChevronRight className="w-5 h-5 ml-1" />
               </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 px-8 text-base border-accent text-accent hover:bg-accent/10 hover:text-accent"
+                onClick={() => setShowGift(true)}
+              >
+                <Gift className="w-5 h-5 mr-2" /> Give as a Gift
+              </Button>
+            </div>
+            <div className="mt-4 flex justify-center">
               <Link to="/portal">
-                <Button variant="outline" size="lg" className="h-14 px-8 text-base border-brand-cream text-brand-cream hover:bg-brand-cream/10 hover:text-brand-cream">
+                <Button variant="outline" size="lg" className="h-12 px-8 text-sm border-brand-cream text-brand-cream hover:bg-brand-cream/10 hover:text-brand-cream">
                   Detail Hub
                 </Button>
               </Link>
