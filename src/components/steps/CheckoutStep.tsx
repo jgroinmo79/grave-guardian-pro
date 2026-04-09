@@ -78,6 +78,12 @@ const CheckoutStep = ({ data }: Props) => {
           selectedPlan: data.selectedPlan || null,
           selectedHolidays: data.selectedHolidays || [],
           holidayCustomDates: data.holidayCustomDates || {},
+          // Gift fields
+          isGift: data.isGift || false,
+          giftRecipientName: data.giftRecipientName || null,
+          giftRecipientEmail: data.giftRecipientEmail || null,
+          giftRecipientPhone: data.giftRecipientPhone || null,
+          giftMessage: data.giftMessage || null,
         },
       });
 
