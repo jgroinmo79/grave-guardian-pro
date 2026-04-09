@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 
 const Index = () => {
   const [showIntake, setShowIntake] = useState(false);
+  const [showGift, setShowGift] = useState(false);
   const { user, signOut } = useAuth();
 
   const { data: isAdmin } = useQuery({
