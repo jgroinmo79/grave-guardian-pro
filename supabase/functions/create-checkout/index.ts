@@ -110,6 +110,12 @@ serve(async (req) => {
       selectedPlan,
       selectedHolidays = [],
       holidayCustomDates = {},
+      // Gift fields
+      isGift = false,
+      giftRecipientName,
+      giftRecipientEmail,
+      giftRecipientPhone,
+      giftMessage,
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
