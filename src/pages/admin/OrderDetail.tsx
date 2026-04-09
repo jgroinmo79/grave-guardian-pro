@@ -266,7 +266,14 @@ const AdminOrderDetail = () => {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-bold">View / Change Order</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-display font-bold">View / Change Order</h1>
+            {(order as any).is_gift && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/15 text-accent">
+                <Gift className="w-3.5 h-3.5" /> Gift Order
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground font-mono">#{order.id.slice(0, 8)}</p>
         </div>
         <Button
