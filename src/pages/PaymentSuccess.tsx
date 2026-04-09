@@ -37,6 +37,7 @@ const PaymentSuccess = () => {
   const sessionId = searchParams.get("session_id");
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!sessionId) {
