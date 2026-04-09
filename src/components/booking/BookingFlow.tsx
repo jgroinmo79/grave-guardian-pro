@@ -197,12 +197,31 @@ const BookingFlow = () => {
     setStepIndex(safeIndex);
   }
 
-  const goToStep = (s: number) => {
+  const goToStep = (s: number, pushHistory = true) => {
     setStepIndex(s);
+    if (pushHistory) {
+      window.history.pushState({ step: s }, "");
+    }
     window.scrollTo({ top: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   };
+
+  // Push initial state and handle browser back/forward
+  useEffect(() => {
+    window.history.replaceState({ step: 0 }, "");
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && typeof e.state.step === "number") {
+        setStepIndex(e.state.step);
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   return (
     <div className="min-h-screen gradient-dark">
