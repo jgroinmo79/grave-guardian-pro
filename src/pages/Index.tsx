@@ -31,6 +31,7 @@ const Index = () => {
   });
 
   if (showIntake) return <IntakeFlow />;
+  if (showGift) return <GiftBookingFlow />;
 
   return (
     <div className="min-h-screen overflow-hidden">
