@@ -80,11 +80,23 @@ const PaymentSuccess = () => {
     <div className="min-h-screen gradient-dark flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg space-y-6 animate-fade-in">
         <div className="text-center space-y-3">
-          <CheckCircle className="w-16 h-16 text-primary mx-auto" />
-          <h1 className="text-3xl font-display font-bold">Payment Successful!</h1>
-          <p className="text-muted-foreground">
-            Thank you for your order. Josh will be in touch within 24 hours to confirm your service date.
-          </p>
+          {order?.is_gift ? (
+            <>
+              <Gift className="w-16 h-16 text-accent mx-auto" />
+              <h1 className="text-3xl font-display font-bold">Gift Purchase Complete!</h1>
+              <p className="text-muted-foreground">
+                Your gift of memorial care has been placed. {order.gift_recipient_name ? `${order.gift_recipient_name} will be so grateful.` : 'What a thoughtful gesture.'}
+              </p>
+            </>
+          ) : (
+            <>
+              <CheckCircle className="w-16 h-16 text-primary mx-auto" />
+              <h1 className="text-3xl font-display font-bold">Payment Successful!</h1>
+              <p className="text-muted-foreground">
+                Thank you for your order. Josh will be in touch within 24 hours to confirm your service date.
+              </p>
+            </>
+          )}
         </div>
 
         {loading ? (
