@@ -14,6 +14,11 @@ interface OrderDetails {
   add_ons_total: number | null;
   bundle_price: number | null;
   is_veteran: boolean | null;
+  is_gift: boolean | null;
+  gift_recipient_name: string | null;
+  gift_message: string | null;
+  shopper_name: string | null;
+  deceased_name: string | null;
   stripe_payment_status: string | null;
   created_at: string;
   monuments: {
