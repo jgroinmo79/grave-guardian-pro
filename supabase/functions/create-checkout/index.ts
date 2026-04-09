@@ -110,6 +110,12 @@ serve(async (req) => {
       selectedPlan,
       selectedHolidays = [],
       holidayCustomDates = {},
+      // Gift fields
+      isGift = false,
+      giftRecipientName,
+      giftRecipientEmail,
+      giftRecipientPhone,
+      giftMessage,
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
@@ -192,6 +198,11 @@ serve(async (req) => {
         shopper_phone: shopperPhone || null,
         shopper_email: shopperEmail || email || null,
         scheduled_date: preferredDate || null,
+        is_gift: isGift || false,
+        gift_recipient_name: isGift ? (giftRecipientName || null) : null,
+        gift_recipient_email: isGift ? (giftRecipientEmail || null) : null,
+        gift_recipient_phone: isGift ? (giftRecipientPhone || null) : null,
+        gift_message: isGift ? (giftMessage || null) : null,
       })
       .select("id")
       .single();

@@ -200,6 +200,12 @@ export interface IntakeFormData {
   consentBiological: boolean;
   consentAuthorize: boolean;
   consentPhotos: boolean;
+  // Gift order fields
+  isGift: boolean;
+  giftRecipientName: string;
+  giftRecipientEmail: string;
+  giftRecipientPhone: string;
+  giftMessage: string;
 }
 
 export const initialFormData: IntakeFormData = {
@@ -245,4 +251,9 @@ export const initialFormData: IntakeFormData = {
   consentBiological: false,
   consentAuthorize: false,
   consentPhotos: false,
+  isGift: false,
+  giftRecipientName: '',
+  giftRecipientEmail: '',
+  giftRecipientPhone: '',
+  giftMessage: '',
 };

@@ -78,6 +78,12 @@ const CheckoutStep = ({ data }: Props) => {
           selectedPlan: data.selectedPlan || null,
           selectedHolidays: data.selectedHolidays || [],
           holidayCustomDates: data.holidayCustomDates || {},
+          // Gift fields
+          isGift: data.isGift || false,
+          giftRecipientName: data.giftRecipientName || null,
+          giftRecipientEmail: data.giftRecipientEmail || null,
+          giftRecipientPhone: data.giftRecipientPhone || null,
+          giftMessage: data.giftMessage || null,
         },
       });
 
@@ -180,10 +186,19 @@ const CheckoutStep = ({ data }: Props) => {
         {/* Shopper info summary */}
         {(data.shopperName || data.deceasedName) && (
           <div className="mt-4 rounded-lg bg-secondary/50 border border-border p-4 space-y-1 text-sm">
+            {data.isGift && (
+              <p className="text-accent font-semibold text-xs uppercase tracking-wider mb-2">🎁 Gift Order</p>
+            )}
             {data.deceasedName && <p><span className="text-muted-foreground">Memorial for:</span> {data.deceasedName}</p>}
-            {data.shopperName && <p><span className="text-muted-foreground">Ordered by:</span> {data.shopperName}</p>}
+            {data.shopperName && <p><span className="text-muted-foreground">{data.isGift ? 'Gift from:' : 'Ordered by:'}</span> {data.shopperName}</p>}
             {data.shopperPhone && <p><span className="text-muted-foreground">Phone:</span> {data.shopperPhone}</p>}
             {data.shopperEmail && <p><span className="text-muted-foreground">Email:</span> {data.shopperEmail}</p>}
+            {data.isGift && data.giftRecipientName && (
+              <p><span className="text-muted-foreground">Gift recipient:</span> {data.giftRecipientName}</p>
+            )}
+            {data.isGift && data.giftMessage && (
+              <p className="italic text-muted-foreground border-t border-border/50 pt-2 mt-2">"{data.giftMessage}"</p>
+            )}
           </div>
         )}
 
