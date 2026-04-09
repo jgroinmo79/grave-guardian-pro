@@ -251,4 +251,9 @@ export const initialFormData: IntakeFormData = {
   consentBiological: false,
   consentAuthorize: false,
   consentPhotos: false,
+  isGift: false,
+  giftRecipientName: '',
+  giftRecipientEmail: '',
+  giftRecipientPhone: '',
+  giftMessage: '',
 };
