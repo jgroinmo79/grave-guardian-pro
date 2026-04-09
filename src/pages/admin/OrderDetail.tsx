@@ -496,6 +496,39 @@ const AdminOrderDetail = () => {
         </div>
       </section>
 
+      {/* GIFT ORDER INFO */}
+      {(order as any).is_gift && (
+        <section className="rounded-xl border border-accent/30 bg-accent/5 p-5 space-y-4">
+          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+            <Gift className="w-5 h-5 text-accent" /> Gift Order Details
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Buyer (Paid By)</Label>
+              <p className="text-sm font-medium">{order.shopper_name || '—'}</p>
+              <p className="text-xs text-muted-foreground">{order.shopper_email || ''}</p>
+              <p className="text-xs text-muted-foreground">{order.shopper_phone || ''}</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Gift Recipient</Label>
+              <p className="text-sm font-medium">{(order as any).gift_recipient_name || '—'}</p>
+              <p className="text-xs text-muted-foreground">{(order as any).gift_recipient_email || ''}</p>
+              <p className="text-xs text-muted-foreground">{(order as any).gift_recipient_phone || ''}</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Deceased</Label>
+              <p className="text-sm font-medium">{order.deceased_name || '—'}</p>
+            </div>
+          </div>
+          {(order as any).gift_message && (
+            <div className="space-y-1.5 border-t border-accent/20 pt-3">
+              <Label className="text-xs">Gift Message</Label>
+              <p className="text-sm italic text-muted-foreground">"{(order as any).gift_message}"</p>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* BEFORE PHOTOS (Customer) */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
         <h2 className="font-display font-semibold text-lg">Before Photos</h2>
