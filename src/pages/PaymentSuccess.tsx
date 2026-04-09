@@ -52,7 +52,9 @@ const PaymentSuccess = () => {
         .from("orders")
         .select(`
           id, offer, status, total_price, base_price, travel_fee,
-          add_ons_total, bundle_price, is_veteran, stripe_payment_status, created_at,
+          add_ons_total, bundle_price, is_veteran, is_gift,
+          gift_recipient_name, gift_message, shopper_name, deceased_name,
+          stripe_payment_status, created_at,
           monuments (
             cemetery_name, monument_type, material, estimated_miles, section, lot_number
           )
