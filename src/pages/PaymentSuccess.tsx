@@ -184,6 +184,32 @@ const PaymentSuccess = () => {
               </div>
             )}
           </div>
+
+          {/* Gift share section */}
+          {order.is_gift && (
+            <div className="rounded-xl border border-accent/30 bg-accent/5 p-5 space-y-4">
+              {order.gift_message && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-1">Gift Message</p>
+                  <p className="text-sm italic">"{order.gift_message}"</p>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                className="w-full border-accent text-accent hover:bg-accent/10"
+                onClick={() => {
+                  const text = `🎁 A gift of memorial care has been placed for ${order.deceased_name || 'a loved one'} at ${order.monuments?.cemetery_name || 'the cemetery'}${order.gift_message ? `\n\n"${order.gift_message}"` : ''}\n\n— From ${order.shopper_name || 'someone who cares'}\n\nPowered by Grave Detail Cleaning & Preservation`;
+                  navigator.clipboard.writeText(text);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+              >
+                {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                {copied ? 'Copied!' : 'Share This Gift'}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">Copy a message to text or email to the recipient</p>
+            </div>
+          )}
         ) : null}
 
         <div className="text-center">
