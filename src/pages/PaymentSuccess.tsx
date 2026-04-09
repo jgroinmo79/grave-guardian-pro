@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { CheckCircle, MapPin, Ruler, Package, Calendar, Loader2 } from "lucide-react";
+import { CheckCircle, MapPin, Ruler, Package, Calendar, Loader2, Gift, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
