@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IntakeFormData, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
+import { IntakeFormData, MonumentType, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Check, Shield, Sparkles, X, Leaf, Flower2, Star } from "lucide-react";
 
@@ -8,9 +8,23 @@ interface Props {
   update: (d: Partial<IntakeFormData>) => void;
 }
 
+// Map veteran monument types to their pricing equivalent
+const VETERAN_PRICE_MAP: Record<string, MonumentType> = {
+  va_upright: 'single_upright',
+  va_flat: 'flat_marker',
+  va_niche: 'flat_marker',
+};
+
 const ServiceStep = ({ data, update }: Props) => {
   const [showUpsell, setShowUpsell] = useState(false);
-  const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
+  
+  // Resolve monument pricing — works for both veteran and non-veteran flows
+  const resolvedMonumentType: MonumentType | null = data.monumentType
+    ? data.monumentType
+    : data.isVeteran && data.veteranMonumentType
+    ? VETERAN_PRICE_MAP[data.veteranMonumentType] || 'single_upright'
+    : null;
+  const monument = resolvedMonumentType ? MONUMENT_PRICES[resolvedMonumentType] : null;
   
 
   const handleSelectA = () => {
