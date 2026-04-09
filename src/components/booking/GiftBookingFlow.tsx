@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -93,12 +93,30 @@ const GiftBookingFlow = () => {
     setStepIndex(safeIndex);
   }
 
-  const goToStep = (s: number) => {
+  const goToStep = (s: number, pushHistory = true) => {
     setStepIndex(s);
+    if (pushHistory) {
+      window.history.pushState({ step: s }, "");
+    }
     window.scrollTo({ top: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   };
+
+  useEffect(() => {
+    window.history.replaceState({ step: 0 }, "");
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && typeof e.state.step === "number") {
+        setStepIndex(e.state.step);
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   return (
     <div className="min-h-screen gradient-dark">
