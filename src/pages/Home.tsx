@@ -47,8 +47,16 @@ const Home = () => {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="relative px-6 py-28 sm:py-40 text-center">
-        <div className="absolute inset-0" style={{ backgroundColor: "rgba(20,20,20,0.65)" }} />
+      <section className="relative px-6 py-28 sm:py-40 text-center overflow-hidden">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${cemeteryBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="absolute inset-0 z-0" style={{ backgroundColor: "rgba(20,20,20,0.75)" }} />
         <motion.div
           initial="hidden"
           animate="visible"
