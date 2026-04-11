@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { IntakeFormData } from "@/lib/pricing";
-import { Flower2, ImageIcon, Check } from "lucide-react";
+import { Flower2, ImageIcon, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
@@ -110,25 +110,7 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
                     : "border-border hover:border-muted-foreground/40"
                 }`}
               >
-                {/* Image */}
-                <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                  {a.image_url ? (
-                    <img
-                      src={a.image_url}
-                      alt={a.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="w-10 h-10 text-muted-foreground/20" />
-                    </div>
-                  )}
-                  {selected && (
-                    <div className="absolute top-2 right-2 bg-primary rounded-full p-1">
-                      <Check className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                  )}
-                </div>
+                <ImageCarousel images={[a.image_url, a.image_url_2].filter(Boolean)} name={a.name} selected={selected} />
 
                 {/* Content */}
                 <div className="p-3 space-y-1.5">
