@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
+import cemeteryBg from "@/assets/cemetery-bg.jpg";
 
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
@@ -46,8 +47,16 @@ const Home = () => {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="relative px-6 py-28 sm:py-40 text-center">
-        <div className="absolute inset-0" style={{ backgroundColor: "rgba(20,20,20,0.65)" }} />
+      <section className="relative px-6 py-28 sm:py-40 text-center overflow-hidden">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${cemeteryBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="absolute inset-0 z-0" style={{ backgroundColor: "rgba(20,20,20,0.75)" }} />
         <motion.div
           initial="hidden"
           animate="visible"
