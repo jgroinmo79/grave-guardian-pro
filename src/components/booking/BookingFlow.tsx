@@ -163,6 +163,7 @@ const BookingFlow = () => {
   // Track abandoned lead on step changes
   useEffect(() => {
     const sessionId = getSessionId();
+    const leadClient = getLeadClient(sessionId);
     const saveProgress = async () => {
       const stepId = steps[Math.min(stepIndex, steps.length - 1)]?.id || "cemetery";
       const leadData: any = {
@@ -180,16 +181,16 @@ const BookingFlow = () => {
       };
 
       if (!leadIdRef.current) {
-        const { data: inserted } = await supabase
-          .from("abandoned_leads" as any)
-          .insert(leadData as any)
+        const { data: inserted } = await leadClient
+          .from("abandoned_leads")
+          .insert(leadData)
           .select("id")
           .single();
         if (inserted) leadIdRef.current = (inserted as any).id;
       } else {
-        await supabase
-          .from("abandoned_leads" as any)
-          .update(leadData as any)
+        await leadClient
+          .from("abandoned_leads")
+          .update(leadData)
           .eq("id", leadIdRef.current);
       }
     };
