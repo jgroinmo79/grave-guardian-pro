@@ -311,7 +311,7 @@ serve(async (req) => {
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: bundle.label },
+          product_data: { name: bundle.label, tax_code: "txcd_99999999" },
           unit_amount: bundle.price * 100,
         },
         quantity: 1,
@@ -363,6 +363,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : email,
       line_items: lineItems,
       mode: "payment",
+      automatic_tax: { enabled: true },
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment-canceled`,
       metadata: {
