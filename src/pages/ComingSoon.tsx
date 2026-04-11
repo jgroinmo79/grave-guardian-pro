@@ -72,17 +72,17 @@ const ComingSoon = () => {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative" style={{ backgroundColor: "#141414" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden" style={{ backgroundColor: "#141414" }}>
       <div
-        className="absolute inset-0 -z-10"
+        className="absolute inset-0 z-0"
         style={{
           backgroundImage: `url(${cemeteryBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       />
-      <div className="absolute inset-0 -z-10 bg-black/75" />
-      <div className="w-full max-w-lg text-center space-y-10">
+      <div className="absolute inset-0 z-0 bg-black/75" />
+      <div className="relative z-10 w-full max-w-lg text-center space-y-10">
         {/* Business Name */}
         <motion.h1
           {...fade(0)}
