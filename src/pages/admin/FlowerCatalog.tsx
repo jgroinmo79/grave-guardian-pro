@@ -42,6 +42,7 @@ interface ArrangementForm {
   occasion_tags: string[];
   retail_price: string;
   image_url: string;
+  image_url_2: string;
   is_active: boolean;
 }
 
@@ -52,6 +53,7 @@ const emptyForm: ArrangementForm = {
   occasion_tags: [],
   retail_price: "",
   image_url: "",
+  image_url_2: "",
   is_active: true,
 };
 
@@ -83,6 +85,7 @@ export default function FlowerCatalog() {
         occasion_tags: payload.occasion_tags,
         retail_price: parseFloat(payload.retail_price),
         image_url: payload.image_url || null,
+        image_url_2: payload.image_url_2 || null,
         is_active: payload.is_active,
       };
       if (payload.id) {
@@ -140,13 +143,14 @@ export default function FlowerCatalog() {
       occasion_tags: a.occasion_tags || [],
       retail_price: String(a.retail_price),
       image_url: a.image_url || "",
+      image_url_2: a.image_url_2 || "",
       is_active: a.is_active,
     });
     setEditingId(a.id);
     setDialogOpen(true);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "image_url" | "image_url_2") => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
@@ -163,7 +167,7 @@ export default function FlowerCatalog() {
     const { data: urlData } = supabase.storage
       .from("flower-images")
       .getPublicUrl(path);
-    setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
+    setForm((f) => ({ ...f, [field]: urlData.publicUrl }));
     setUploading(false);
     toast.success("Image uploaded");
   };
@@ -273,20 +277,38 @@ export default function FlowerCatalog() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Image */}
+            {/* Image 1 */}
             <div className="space-y-2">
-              <Label>Image</Label>
+              <Label>Image 1</Label>
               {form.image_url && (
                 <img
                   src={form.image_url}
-                  alt="Preview"
+                  alt="Preview 1"
                   className="w-full h-40 object-cover rounded-md"
                 />
               )}
               <Input
                 type="file"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={(e) => handleImageUpload(e, "image_url")}
+                disabled={uploading}
+              />
+            </div>
+
+            {/* Image 2 */}
+            <div className="space-y-2">
+              <Label>Image 2 (optional)</Label>
+              {form.image_url_2 && (
+                <img
+                  src={form.image_url_2}
+                  alt="Preview 2"
+                  className="w-full h-40 object-cover rounded-md"
+                />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, "image_url_2")}
                 disabled={uploading}
               />
               {uploading && (

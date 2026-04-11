@@ -213,6 +213,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          image_url_2: string | null
           is_active: boolean
           name: string
           occasion_tags: string[] | null
@@ -225,6 +226,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          image_url_2?: string | null
           is_active?: boolean
           name: string
           occasion_tags?: string[] | null
@@ -237,6 +239,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          image_url_2?: string | null
           is_active?: boolean
           name?: string
           occasion_tags?: string[] | null
