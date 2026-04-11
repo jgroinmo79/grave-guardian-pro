@@ -1,0 +1,1 @@
+ALTER TABLE public.flower_arrangements ADD COLUMN image_url_2 text;
