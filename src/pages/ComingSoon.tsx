@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Instagram, Facebook, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import cemeteryBg from "@/assets/cemetery-bg.jpg";
 import { toast } from "sonner";
 
 const TARGET_DATE = new Date("2026-05-01T00:00:00");
@@ -71,7 +72,16 @@ const ComingSoon = () => {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: "#141414" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative" style={{ backgroundColor: "#141414" }}>
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${cemeteryBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div className="absolute inset-0 -z-10 bg-black/75" />
       <div className="w-full max-w-lg text-center space-y-10">
         {/* Business Name */}
         <motion.h1
