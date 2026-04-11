@@ -22,6 +22,15 @@ import { IntakeFormData, initialFormData } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/components/PageViewTracker";
 
+// Create a dedicated Supabase client that sends the session ID header
+// so the RLS policy can verify ownership of abandoned_leads rows
+const getLeadClient = (sessionId: string) =>
+  createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    { global: { headers: { "x-session-id": sessionId } } }
+  );
+
 type StepDef = {
   id: string;
   render: (data: IntakeFormData, update: (d: Partial<IntakeFormData>) => void) => React.ReactNode;
