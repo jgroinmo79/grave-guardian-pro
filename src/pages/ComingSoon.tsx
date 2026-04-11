@@ -71,7 +71,16 @@ const ComingSoon = () => {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: "#141414" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative" style={{ backgroundColor: "#141414" }}>
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${cemeteryBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div className="absolute inset-0 -z-10 bg-black/75" />
       <div className="w-full max-w-lg text-center space-y-10">
         {/* Business Name */}
         <motion.h1
