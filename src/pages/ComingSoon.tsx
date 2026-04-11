@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Instagram, Facebook, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import cemeteryBg from "@/assets/cemetery-bg.jpg";
 import { toast } from "sonner";
 
 const TARGET_DATE = new Date("2026-05-01T00:00:00");
