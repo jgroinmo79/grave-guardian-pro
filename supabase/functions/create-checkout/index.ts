@@ -41,9 +41,16 @@ const CARE_PLANS: Record<string, { label: string; price: number }> = {
 };
 
 const BUNDLES: Record<string, { label: string; price: number }> = {
+  single_arrangement: { label: "Single Arrangement & Placement", price: 100 },
   memorial_day: { label: "Memorial Day Bundle", price: 325 },
   remembrance_trio: { label: "Remembrance Trio", price: 450 },
   memorial_year: { label: "Memorial Year Bundle", price: 650 },
+};
+
+const VETERAN_TYPE_MAP: Record<string, string> = {
+  va_upright: "single_upright",
+  va_flat: "flat_marker",
+  va_niche: "flat_marker",
 };
 
 function getTravelFee(miles: number): number {
@@ -82,7 +89,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const {
-      monumentType,
+      monumentType: rawMonumentType,
       selectedOffer,
       estimatedMiles,
       addOns = [],
@@ -116,11 +123,15 @@ serve(async (req) => {
       giftRecipientEmail,
       giftRecipientPhone,
       giftMessage,
+      // Veteran fields
+      veteranMonumentType,
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
     if (!email) throw new Error("Email is required for checkout");
 
+    // Resolve monument type: veteran types map to base types
+    const monumentType = VETERAN_TYPE_MAP[veteranMonumentType] || rawMonumentType;
     const monument = MONUMENT_PRICES[monumentType];
     if (!monument) throw new Error("Invalid monument type");
 

@@ -45,6 +45,7 @@ const CheckoutStep = ({ data }: Props) => {
       const { data: result, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           monumentType: data.monumentType,
+          veteranMonumentType: data.veteranMonumentType || null,
           selectedOffer: data.selectedOffer,
           estimatedMiles: data.estimatedMiles,
           addOns: data.addOns,
