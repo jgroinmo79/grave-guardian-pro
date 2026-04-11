@@ -89,7 +89,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const {
-      monumentType,
+      monumentType: rawMonumentType,
       selectedOffer,
       estimatedMiles,
       addOns = [],
@@ -123,11 +123,15 @@ serve(async (req) => {
       giftRecipientEmail,
       giftRecipientPhone,
       giftMessage,
+      // Veteran fields
+      veteranMonumentType,
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
     if (!email) throw new Error("Email is required for checkout");
 
+    // Resolve monument type: veteran types map to base types
+    const monumentType = VETERAN_TYPE_MAP[veteranMonumentType] || rawMonumentType;
     const monument = MONUMENT_PRICES[monumentType];
     if (!monument) throw new Error("Invalid monument type");
 
