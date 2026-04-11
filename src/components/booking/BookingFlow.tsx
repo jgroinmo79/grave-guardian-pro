@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -20,6 +21,15 @@ import CheckoutStep from "@/components/steps/CheckoutStep";
 import { IntakeFormData, initialFormData } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/components/PageViewTracker";
+
+// Create a dedicated Supabase client that sends the session ID header
+// so the RLS policy can verify ownership of abandoned_leads rows
+const getLeadClient = (sessionId: string) =>
+  createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    { global: { headers: { "x-session-id": sessionId } } }
+  );
 
 type StepDef = {
   id: string;
@@ -153,6 +163,7 @@ const BookingFlow = () => {
   // Track abandoned lead on step changes
   useEffect(() => {
     const sessionId = getSessionId();
+    const leadClient = getLeadClient(sessionId);
     const saveProgress = async () => {
       const stepId = steps[Math.min(stepIndex, steps.length - 1)]?.id || "cemetery";
       const leadData: any = {
@@ -170,16 +181,16 @@ const BookingFlow = () => {
       };
 
       if (!leadIdRef.current) {
-        const { data: inserted } = await supabase
-          .from("abandoned_leads" as any)
-          .insert(leadData as any)
+        const { data: inserted } = await leadClient
+          .from("abandoned_leads")
+          .insert(leadData)
           .select("id")
           .single();
         if (inserted) leadIdRef.current = (inserted as any).id;
       } else {
-        await supabase
-          .from("abandoned_leads" as any)
-          .update(leadData as any)
+        await leadClient
+          .from("abandoned_leads")
+          .update(leadData)
           .eq("id", leadIdRef.current);
       }
     };
