@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Instagram, Facebook, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
