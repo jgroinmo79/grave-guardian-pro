@@ -35,6 +35,8 @@ const OCCASION_OPTIONS = [
   { value: "general", label: "General" },
 ];
 
+type ImageField = "image_url" | "image_url_2" | "image_url_3" | "image_url_4" | "image_url_5";
+
 interface ArrangementForm {
   name: string;
   description: string;
@@ -46,6 +48,9 @@ interface ArrangementForm {
   retail_price: string;
   image_url: string;
   image_url_2: string;
+  image_url_3: string;
+  image_url_4: string;
+  image_url_5: string;
   is_active: boolean;
 }
 
@@ -60,8 +65,19 @@ const emptyForm: ArrangementForm = {
   retail_price: "",
   image_url: "",
   image_url_2: "",
+  image_url_3: "",
+  image_url_4: "",
+  image_url_5: "",
   is_active: true,
 };
+
+const IMAGE_SLOTS: { field: ImageField; label: string }[] = [
+  { field: "image_url", label: "Image 1" },
+  { field: "image_url_2", label: "Image 2 (optional)" },
+  { field: "image_url_3", label: "Image 3 (optional)" },
+  { field: "image_url_4", label: "Image 4 (optional)" },
+  { field: "image_url_5", label: "Image 5 (optional)" },
+];
 
 export default function FlowerCatalog() {
   const queryClient = useQueryClient();
@@ -95,6 +111,9 @@ export default function FlowerCatalog() {
         retail_price: parseFloat(payload.retail_price),
         image_url: payload.image_url || null,
         image_url_2: payload.image_url_2 || null,
+        image_url_3: payload.image_url_3 || null,
+        image_url_4: payload.image_url_4 || null,
+        image_url_5: payload.image_url_5 || null,
         is_active: payload.is_active,
       };
       if (payload.id) {
@@ -156,13 +175,16 @@ export default function FlowerCatalog() {
       retail_price: String(a.retail_price),
       image_url: a.image_url || "",
       image_url_2: a.image_url_2 || "",
+      image_url_3: a.image_url_3 || "",
+      image_url_4: a.image_url_4 || "",
+      image_url_5: a.image_url_5 || "",
       is_active: a.is_active,
     });
     setEditingId(a.id);
     setDialogOpen(true);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "image_url" | "image_url_2") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: ImageField) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
@@ -292,44 +314,28 @@ export default function FlowerCatalog() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Image 1 */}
-            <div className="space-y-2">
-              <Label>Image 1</Label>
-              {form.image_url && (
-                <img
-                  src={form.image_url}
-                  alt="Preview 1"
-                  className="w-full h-40 object-cover rounded-md"
+            {/* Image Slots */}
+            {IMAGE_SLOTS.map(({ field, label }, idx) => (
+              <div key={field} className="space-y-2">
+                <Label>{label}</Label>
+                {form[field] && (
+                  <img
+                    src={form[field]}
+                    alt={`Preview ${idx + 1}`}
+                    className="w-full h-40 object-cover rounded-md"
+                  />
+                )}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, field)}
+                  disabled={uploading}
                 />
-              )}
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageUpload(e, "image_url")}
-                disabled={uploading}
-              />
-            </div>
-
-            {/* Image 2 */}
-            <div className="space-y-2">
-              <Label>Image 2 (optional)</Label>
-              {form.image_url_2 && (
-                <img
-                  src={form.image_url_2}
-                  alt="Preview 2"
-                  className="w-full h-40 object-cover rounded-md"
-                />
-              )}
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageUpload(e, "image_url_2")}
-                disabled={uploading}
-              />
-              {uploading && (
-                <p className="text-xs text-muted-foreground">Uploading…</p>
-              )}
-            </div>
+              </div>
+            ))}
+            {uploading && (
+              <p className="text-xs text-muted-foreground">Uploading…</p>
+            )}
 
             {/* Name */}
             <div className="space-y-1">
