@@ -216,6 +216,9 @@ export type Database = {
           id: string
           image_url: string | null
           image_url_2: string | null
+          image_url_3: string | null
+          image_url_4: string | null
+          image_url_5: string | null
           is_active: boolean
           name: string
           occasion_tags: string[] | null
@@ -232,6 +235,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_url_2?: string | null
+          image_url_3?: string | null
+          image_url_4?: string | null
+          image_url_5?: string | null
           is_active?: boolean
           name: string
           occasion_tags?: string[] | null
@@ -248,6 +254,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_url_2?: string | null
+          image_url_3?: string | null
+          image_url_4?: string | null
+          image_url_5?: string | null
           is_active?: boolean
           name?: string
           occasion_tags?: string[] | null
