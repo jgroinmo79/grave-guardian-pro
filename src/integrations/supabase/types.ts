@@ -211,6 +211,8 @@ export type Database = {
           arrangement_type: string | null
           created_at: string
           description: string | null
+          ffc_code: string | null
+          gd_code: string | null
           id: string
           image_url: string | null
           image_url_2: string | null
@@ -219,11 +221,14 @@ export type Database = {
           occasion_tags: string[] | null
           retail_price: number
           updated_at: string
+          wholesale_price: number | null
         }
         Insert: {
           arrangement_type?: string | null
           created_at?: string
           description?: string | null
+          ffc_code?: string | null
+          gd_code?: string | null
           id?: string
           image_url?: string | null
           image_url_2?: string | null
@@ -232,11 +237,14 @@ export type Database = {
           occasion_tags?: string[] | null
           retail_price: number
           updated_at?: string
+          wholesale_price?: number | null
         }
         Update: {
           arrangement_type?: string | null
           created_at?: string
           description?: string | null
+          ffc_code?: string | null
+          gd_code?: string | null
           id?: string
           image_url?: string | null
           image_url_2?: string | null
@@ -245,6 +253,7 @@ export type Database = {
           occasion_tags?: string[] | null
           retail_price?: number
           updated_at?: string
+          wholesale_price?: number | null
         }
         Relationships: []
       }
