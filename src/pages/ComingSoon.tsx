@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Instagram, Facebook, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -229,6 +230,19 @@ const ComingSoon = () => {
           <span>Fully Insured</span>
           <span>•</span>
           <span>Owner-Operated</span>
+        </motion.div>
+
+        {/* Enter Site Link */}
+        <motion.div {...fade(1.15)} className="pt-2">
+          <Link
+            to="/home"
+            className="text-xs uppercase tracking-[0.15em] transition-colors hover:underline"
+            style={{ fontFamily: "Cinzel, serif", color: "#6B6B6B" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+          >
+            Enter Site →
+          </Link>
         </motion.div>
       </div>
     </div>
