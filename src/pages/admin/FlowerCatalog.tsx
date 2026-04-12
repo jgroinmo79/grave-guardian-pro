@@ -35,6 +35,8 @@ const OCCASION_OPTIONS = [
   { value: "general", label: "General" },
 ];
 
+type ImageField = "image_url" | "image_url_2" | "image_url_3" | "image_url_4" | "image_url_5";
+
 interface ArrangementForm {
   name: string;
   description: string;
@@ -46,6 +48,9 @@ interface ArrangementForm {
   retail_price: string;
   image_url: string;
   image_url_2: string;
+  image_url_3: string;
+  image_url_4: string;
+  image_url_5: string;
   is_active: boolean;
 }
 
@@ -60,8 +65,19 @@ const emptyForm: ArrangementForm = {
   retail_price: "",
   image_url: "",
   image_url_2: "",
+  image_url_3: "",
+  image_url_4: "",
+  image_url_5: "",
   is_active: true,
 };
+
+const IMAGE_SLOTS: { field: ImageField; label: string }[] = [
+  { field: "image_url", label: "Image 1" },
+  { field: "image_url_2", label: "Image 2 (optional)" },
+  { field: "image_url_3", label: "Image 3 (optional)" },
+  { field: "image_url_4", label: "Image 4 (optional)" },
+  { field: "image_url_5", label: "Image 5 (optional)" },
+];
 
 export default function FlowerCatalog() {
   const queryClient = useQueryClient();
