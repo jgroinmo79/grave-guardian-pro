@@ -40,6 +40,9 @@ interface ArrangementForm {
   description: string;
   arrangement_type: string;
   occasion_tags: string[];
+  gd_code: string;
+  ffc_code: string;
+  wholesale_price: string;
   retail_price: string;
   image_url: string;
   image_url_2: string;
@@ -51,6 +54,9 @@ const emptyForm: ArrangementForm = {
   description: "",
   arrangement_type: "",
   occasion_tags: [],
+  gd_code: "",
+  ffc_code: "",
+  wholesale_price: "",
   retail_price: "",
   image_url: "",
   image_url_2: "",
@@ -83,6 +89,9 @@ export default function FlowerCatalog() {
         description: payload.description.trim() || null,
         arrangement_type: payload.arrangement_type || null,
         occasion_tags: payload.occasion_tags,
+        gd_code: payload.gd_code.trim() || null,
+        ffc_code: payload.ffc_code.trim() || null,
+        wholesale_price: payload.wholesale_price ? parseFloat(payload.wholesale_price) : null,
         retail_price: parseFloat(payload.retail_price),
         image_url: payload.image_url || null,
         image_url_2: payload.image_url_2 || null,
@@ -141,6 +150,9 @@ export default function FlowerCatalog() {
       description: a.description || "",
       arrangement_type: a.arrangement_type || "",
       occasion_tags: a.occasion_tags || [],
+      gd_code: a.gd_code || "",
+      ffc_code: a.ffc_code || "",
+      wholesale_price: a.wholesale_price != null ? String(a.wholesale_price) : "",
       retail_price: String(a.retail_price),
       image_url: a.image_url || "",
       image_url_2: a.image_url_2 || "",
@@ -183,8 +195,8 @@ export default function FlowerCatalog() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.retail_price) {
-      toast.error("Name and price are required");
+    if (!form.name.trim() || !form.retail_price || !form.gd_code.trim()) {
+      toast.error("Name, GD Code, and retail price are required");
       return;
     }
     saveMutation.mutate({ ...form, id: editingId ?? undefined });
@@ -235,6 +247,9 @@ export default function FlowerCatalog() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="font-semibold text-sm truncate">{a.name}</h3>
+                    {a.gd_code && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{a.gd_code}</p>
+                    )}
                     {a.arrangement_type && (
                       <Badge variant="secondary" className="text-[10px] mt-1 capitalize">
                         {a.arrangement_type}
@@ -382,7 +397,44 @@ export default function FlowerCatalog() {
               </div>
             </div>
 
-            {/* Price */}
+            {/* GD Code */}
+            <div className="space-y-1">
+              <Label>GD Code *</Label>
+              <Input
+                value={form.gd_code}
+                onChange={(e) => setForm((f) => ({ ...f, gd_code: e.target.value }))}
+                placeholder="GD-MD-01"
+                maxLength={20}
+              />
+            </div>
+
+            {/* FFC Code */}
+            <div className="space-y-1">
+              <Label>FFC Code</Label>
+              <Input
+                value={form.ffc_code}
+                onChange={(e) => setForm((f) => ({ ...f, ffc_code: e.target.value }))}
+                placeholder="MD2890"
+                maxLength={20}
+              />
+            </div>
+
+            {/* Wholesale Cost */}
+            <div className="space-y-1">
+              <Label>Wholesale Cost</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.wholesale_price}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, wholesale_price: e.target.value }))
+                }
+                placeholder="21.99"
+              />
+            </div>
+
+            {/* Retail Price */}
             <div className="space-y-1">
               <Label>Retail Price *</Label>
               <Input
