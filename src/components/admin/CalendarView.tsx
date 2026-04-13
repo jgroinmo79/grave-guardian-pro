@@ -43,7 +43,7 @@ interface CalendarEntry {
   id: string;
   date: string;
   type: "order" | "subscription_visit" | "flower_booking";
-  label: string; // e.g. "Cleaning + Flowers"
+  label: string;
   customerName: string;
   cemeteryName: string;
   isFlower: boolean;
@@ -52,6 +52,7 @@ interface CalendarEntry {
   plan?: string;
   orderId?: string;
   monument?: ScheduleOrder["monuments"];
+  arrangementId?: string | null;
 }
 
 export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) => void }) {
@@ -119,14 +120,15 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
     };
 
     // Regular orders
+    const FLOWER_BUNDLE_IDS = ["tribute", "remembrance", "devotion", "eternal", "flower_1", "flower_2", "flower_3", "flower_4"];
     orders?.forEach((o) => {
       if (!o.scheduled_date) return;
-      const isFlowerBundle = o.bundle_id && ["memorial_day", "remembrance_trio", "memorial_year"].includes(o.bundle_id);
+      const isFlowerBundle = o.bundle_id ? FLOWER_BUNDLE_IDS.includes(o.bundle_id) : false;
       addEntry({
         id: `order-${o.id}`,
         date: o.scheduled_date,
         type: isFlowerBundle ? "flower_booking" : "order",
-        label: isFlowerBundle ? "Flower Placement" : (o.offer === "B" ? "Restoration Clean" : "Standard Clean"),
+        label: isFlowerBundle ? "Flower Placement" : "Cleaning",
         customerName: o.shopper_name || "Unknown",
         cemeteryName: o.monuments?.cemetery_name || "Unknown",
         isFlower: !!isFlowerBundle,
@@ -154,11 +156,12 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
           id: v.id,
           date: v.date,
           type: "subscription_visit",
-          label: v.type === "cleaning_flowers" ? "Cleaning + Flowers" : "Cleaning Only",
+          label: v.isFlower ? "Cleaning + Flowers" : "Cleaning Only",
           customerName: v.customerName,
           cemeteryName: v.cemeteryName,
           isFlower: v.isFlower,
           plan: v.plan,
+          arrangementId: v.arrangementId,
         });
       });
     });
