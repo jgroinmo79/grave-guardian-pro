@@ -8,23 +8,22 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MONUMENT_PRICES: Record<string, { offerA: number; offerB: number; label: string }> = {
-  single_upright: { label: "Single Upright Headstone", offerA: 175, offerB: 225 },
-  flat_marker: { label: "Flat / Flush Grave Marker", offerA: 175, offerB: 225 },
-  double_companion: { label: "Double / Companion Stone", offerA: 225, offerB: 275 },
-  monument_base: { label: "Monument with Base", offerA: 275, offerB: 325 },
-  bronze_plaque: { label: "Bronze Plaque on Granite", offerA: 225, offerB: 275 },
-  obelisk_unique: { label: "Obelisk / Unique Shape", offerA: 275, offerB: 325 },
-  mausoleum_panel: { label: "Mausoleum Panel", offerA: 375, offerB: 425 },
+const MONUMENT_PRICES: Record<string, { price: number; label: string }> = {
+  single_marker: { label: "Single Marker", price: 125 },
+  double_marker: { label: "Double Marker", price: 150 },
+  single_slant: { label: "Single Slant", price: 150 },
+  single_upright: { label: "Single Upright", price: 175 },
+  double_slant: { label: "Double Slant", price: 200 },
+  double_upright: { label: "Double Upright", price: 225 },
+  grave_ledger: { label: "Grave Ledger", price: 275 },
 };
 
 const TRAVEL_ZONES = [
   { maxMiles: 25, fee: 0 },
-  { maxMiles: 50, fee: 35 },
+  { maxMiles: 50, fee: 40 },
   { maxMiles: 75, fee: 70 },
-  { maxMiles: 100, fee: 105 },
-  { maxMiles: 125, fee: 140 },
-  { maxMiles: 150, fee: 210 },
+  { maxMiles: 100, fee: 100 },
+  { maxMiles: 150, fee: 150 },
 ];
 
 const ADD_ONS: Record<string, { label: string; price: number }> = {
@@ -135,8 +134,8 @@ serve(async (req) => {
     const monument = MONUMENT_PRICES[monumentType];
     if (!monument) throw new Error("Invalid monument type");
 
-    const offer = selectedOffer === "B" ? "B" : "A";
-    const basePrice = offer === "B" ? monument.offerB : monument.offerA;
+    const offer = selectedOffer || "A";
+    const basePrice = monument.price;
     const travelFee = getTravelFee(estimatedMiles || 0);
 
     let addOnTotal = 0;
@@ -274,7 +273,7 @@ serve(async (req) => {
       {
         price_data: {
           currency: "usd",
-          product_data: { name: `${monument.label} — ${offer === 'B' ? 'Restoration Clean' : 'Standard Clean'}` },
+          product_data: { name: `${monument.label} — Cleaning` },
           unit_amount: basePrice * 100,
         },
         quantity: 1,
