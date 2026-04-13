@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Lock, Loader2 } from "lucide-react";
@@ -24,7 +25,6 @@ const CheckoutStep = ({ data }: Props) => {
   const flowerPlanPrice = (resolvedType && data.selectedFlowerPlan) ? (FLOWER_PLAN_PRICES[resolvedType]?.[data.selectedFlowerPlan] ?? 0) : 0;
   const flowerOnly = FLOWER_ONLY_PLANS.find((f) => f.id === data.selectedFlowerOnly);
 
-  // Show cleaning line only if no plan that includes cleaning is selected
   const showCleaningLine = !data.selectedMaintenancePlan && !data.selectedFlowerPlan;
   const basePrice = (showCleaningLine && monument) ? monument.price : 0;
 
@@ -34,6 +34,40 @@ const CheckoutStep = ({ data }: Props) => {
   const planPrice = maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0);
   let subtotal = basePrice + planPrice + travelFee + addOnTotal;
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
+
+  // Check if we have flower placements to display
+  const hasFlowerPlacements = (flowerPlan || flowerOnly) && data.selectedHolidays.length > 0;
+  const arrangementIds = Object.values(data.selectedArrangements).filter(Boolean);
+
+  // Fetch arrangement names for display
+  const { data: arrangements = [] } = useQuery({
+    queryKey: ["checkout-arrangements", arrangementIds],
+    queryFn: async () => {
+      if (arrangementIds.length === 0) return [];
+      const { data: rows, error } = await supabase
+        .from("flower_arrangements")
+        .select("id, name")
+        .in("id", arrangementIds);
+      if (error) throw error;
+      return rows;
+    },
+    enabled: arrangementIds.length > 0,
+  });
+
+  const getArrangementName = (id: string) => {
+    const found = arrangements.find((a: any) => a.id === id);
+    return found ? found.name : "Selected arrangement";
+  };
+
+  const needsCustomDate = (holiday: string) =>
+    holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
+
+  const getHolidayLabel = (holiday: string) => {
+    if (needsCustomDate(holiday) && data.holidayCustomDates[holiday]) {
+      return `${holiday} — ${data.holidayCustomDates[holiday]}`;
+    }
+    return holiday;
+  };
 
   // Plan descriptions
   const getMaintenanceDescription = () => {
@@ -64,6 +98,7 @@ const CheckoutStep = ({ data }: Props) => {
           selectedMaintenancePlan: data.selectedMaintenancePlan || null,
           selectedFlowerPlan: data.selectedFlowerPlan || null,
           selectedFlowerOnly: data.selectedFlowerOnly || null,
+          selectedArrangements: data.selectedArrangements,
           isVeteran: data.isVeteran,
           customerEmail: data.shopperEmail,
           cemeteryName: data.cemeteryName,
@@ -157,6 +192,24 @@ const CheckoutStep = ({ data }: Props) => {
                 <span className="font-semibold">${flowerOnly.price}/yr</span>
               </div>
               <p className="text-xs mt-1 text-muted-foreground">{getFlowerOnlyDescription()}</p>
+            </div>
+          )}
+
+          {/* Per-placement arrangement details */}
+          {hasFlowerPlacements && data.selectedHolidays.length > 0 && (
+            <div className="border-t border-border/50 pt-3 space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Flower Placements</p>
+              {data.selectedHolidays.map((holiday) => {
+                const arrangementId = data.selectedArrangements[holiday];
+                return (
+                  <div key={holiday} className="flex justify-between text-xs text-muted-foreground">
+                    <span>{getHolidayLabel(holiday)}</span>
+                    <span className="font-medium text-foreground">
+                      {arrangementId ? getArrangementName(arrangementId) : "—"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
 
