@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IntakeFormData, MonumentType, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, OFFER_A_FEATURES, OFFER_B_EXTRAS } from "@/lib/pricing";
+import { IntakeFormData, MonumentType, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, SERVICE_FEATURES } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Check, Shield, Sparkles, X, Leaf, Flower2, Star } from "lucide-react";
 
@@ -11,36 +11,22 @@ interface Props {
 // Map veteran monument types to their pricing equivalent
 const VETERAN_PRICE_MAP: Record<string, MonumentType> = {
   va_upright: 'single_upright',
-  va_flat: 'flat_marker',
-  va_niche: 'flat_marker',
+  va_flat: 'single_marker',
+  va_niche: 'single_marker',
 };
 
 const ServiceStep = ({ data, update }: Props) => {
-  const [showUpsell, setShowUpsell] = useState(false);
-  
   // Resolve monument pricing — works for both veteran and non-veteran flows
   const resolvedMonumentType: MonumentType | null = data.monumentType
-    ? data.monumentType
+    ? data.monumentType as MonumentType
     : data.isVeteran && data.veteranMonumentType
     ? VETERAN_PRICE_MAP[data.veteranMonumentType] || 'single_upright'
     : null;
   const monument = resolvedMonumentType ? MONUMENT_PRICES[resolvedMonumentType] : null;
-  
-
-  const handleSelectA = () => {
-    update({ selectedOffer: 'A' });
-    setShowUpsell(true);
-  };
-
-  const handleUpgradeToB = () => {
-    update({ selectedOffer: 'B' });
-    setShowUpsell(false);
-  };
 
   const isOutOfState = data.livesLocally === false;
   const wantsFlowers = data.wantsFlowerPlacement === true;
   const wantsMonitoring = data.wantsMonitoring === true;
-  const hasImportantDates = data.importantDates.trim().length > 0;
   const hasSelectedOffer = data.selectedOffer !== '';
 
   // Determine which care plans to recommend based on intent
@@ -71,87 +57,30 @@ const ServiceStep = ({ data, update }: Props) => {
 
       {monument && (
         <div className="max-w-lg mx-auto space-y-6">
-          {/* Essential vs Full Service */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Essential Clean */}
-            <button
-              onClick={handleSelectA}
-              className={`relative p-5 rounded-lg border text-left transition-all ${
-                data.selectedOffer === 'A'
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-secondary/30 hover:border-muted-foreground/40"
-              }`}
-            >
-              <p className="font-display font-bold text-xl mt-1">Standard Clean</p>
-              <p className="text-xs text-muted-foreground mt-1">A thorough, gentle clean using CCUS-approved methods</p>
-              <p className="text-3xl font-bold text-foreground mt-2">
-                ${monument.offerA}
-              </p>
-              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                {OFFER_A_FEATURES.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> {f}
-                  </li>
-                ))}
-              </ul>
-            </button>
-
-            {/* Full Service Clean */}
-            <button
-              onClick={() => { update({ selectedOffer: 'B' }); setShowUpsell(false); }}
-              className={`relative p-5 rounded-lg border text-left transition-all ${
-                data.selectedOffer === 'B'
-                  ? "border-primary bg-primary/10 shadow-patina"
-                  : "border-border bg-secondary/30 hover:border-muted-foreground/40"
-              }`}
-            >
-              <p className="font-display font-bold text-xl mt-1">Restoration Clean</p>
-              <p className="text-xs text-muted-foreground mt-1">Deep clean plus biological treatment that prevents regrowth</p>
-              <p className="text-3xl font-bold text-foreground mt-2">
-                ${monument.offerB}
-              </p>
-              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <Check className="w-3.5 h-3.5 text-[#C9976B] mt-0.5 shrink-0" /> Everything in Standard Clean
+          {/* Single service option */}
+          <button
+            onClick={() => update({ selectedOffer: 'selected' })}
+            className={`relative w-full p-5 rounded-lg border text-left transition-all ${
+              data.selectedOffer !== ''
+                ? "border-primary bg-primary/10"
+                : "border-border bg-secondary/30 hover:border-muted-foreground/40"
+            }`}
+          >
+            <p className="font-display font-bold text-xl mt-1">Monument Cleaning</p>
+            <p className="text-xs text-muted-foreground mt-1">A thorough, professional clean using industry-approved methods</p>
+            <p className="text-3xl font-bold text-foreground mt-2">
+              ${monument.price}
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              {SERVICE_FEATURES.map((f, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" /> {f}
                 </li>
-                {OFFER_B_EXTRAS.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#C9976B] mt-0.5 shrink-0" /> {f}
-                  </li>
-                ))}
-              </ul>
-            </button>
-          </div>
+              ))}
+            </ul>
+          </button>
 
-          {/* Upsell Modal */}
-          {showUpsell && data.selectedOffer === 'A' && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-              <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full shadow-2xl">
-                <div className="flex justify-between items-start mb-4">
-                  <Shield className="w-8 h-8 text-accent" />
-                  <button onClick={() => setShowUpsell(false)} className="text-muted-foreground hover:text-foreground">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <h3 className="font-display font-bold text-xl mb-2">Protect Your Investment</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Add D/2 Biological Solution growth inhibitor, detailed condition report, weeding & edging, 
-                  and groundskeeping damage documentation for just <span className="text-accent font-bold">${monument.offerB - monument.offerA} more</span>. 
-                  Keeps the monument cleaner 3–5× longer.
-                </p>
-                <div className="flex gap-3">
-                  <Button variant="hero" className="flex-1" onClick={handleUpgradeToB}>
-                     Upgrade to Full Service
-                   </Button>
-                  <Button variant="outline" onClick={() => setShowUpsell(false)}>
-                    No thanks
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Contextual Seasonal Bundles — shown when user wants flowers or has important dates */}
+          {/* Contextual Seasonal Bundles */}
           {showBundles && (
             <div className="space-y-3">
               <h3 className="text-lg font-display font-semibold flex items-center gap-2">
@@ -192,7 +121,7 @@ const ServiceStep = ({ data, update }: Props) => {
             </div>
           )}
 
-          {/* Contextual Care Plans — shown when user is out of state or wants monitoring */}
+          {/* Contextual Care Plans */}
           {showCarePlans && (
             <div className="space-y-3">
               <div className="p-4 rounded-lg border border-primary/30 bg-primary/5">

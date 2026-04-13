@@ -27,7 +27,7 @@ const CheckoutStep = ({ data }: Props) => {
   const showCleaningLine = !hasIncludedCleaning && !isFlowerOnlyBundle;
 
   const basePrice = (showCleaningLine && monument)
-    ? (data.selectedOffer === 'B' ? monument.offerB : monument.offerA)
+    ? monument.price
     : 0;
   
   const selectedAddOns = ADD_ONS.filter((a) => data.addOns.includes(a.id));

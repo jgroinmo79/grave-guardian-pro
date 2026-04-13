@@ -1,6 +1,6 @@
 export type MonumentType = 
-  | 'single_upright' | 'flat_marker' | 'double_companion' 
-  | 'monument_base' | 'bronze_plaque' | 'obelisk_unique' | 'mausoleum_panel';
+  | 'single_marker' | 'double_marker' | 'single_slant' | 'single_upright'
+  | 'double_slant' | 'double_upright' | 'grave_ledger';
 
 export type VeteranMonumentType = 'va_upright' | 'va_flat' | 'va_niche';
 
@@ -12,19 +12,18 @@ export type CarePlan = 'keeper' | 'sentinel' | 'legacy';
 
 export interface MonumentPricing {
   label: string;
-  offerA: number;
-  offerB: number;
+  price: number;
   description: string;
 }
 
 export const MONUMENT_PRICES: Record<MonumentType, MonumentPricing> = {
-  single_upright: { label: 'Single Upright Headstone', offerA: 175, offerB: 225, description: 'Standing headstone' },
-  flat_marker: { label: 'Flat / Flush Grave Marker', offerA: 175, offerB: 225, description: 'Ground-level flat marker' },
-  double_companion: { label: 'Double / Companion Stone', offerA: 225, offerB: 275, description: 'Shared headstone for two' },
-  monument_base: { label: 'Monument with Base', offerA: 275, offerB: 325, description: 'Monument on a raised base' },
-  bronze_plaque: { label: 'Bronze Plaque on Granite', offerA: 225, offerB: 275, description: 'Bronze plaque mounted on granite' },
-  obelisk_unique: { label: 'Obelisk / Unique Shape', offerA: 275, offerB: 325, description: 'Obelisk or custom shape' },
-  mausoleum_panel: { label: 'Mausoleum Panel', offerA: 375, offerB: 425, description: 'Mausoleum front panel' },
+  single_marker: { label: 'Single Marker', price: 125, description: 'Ground-level flat marker' },
+  double_marker: { label: 'Double Marker', price: 150, description: 'Wider flat marker for two' },
+  single_slant: { label: 'Single Slant', price: 150, description: 'Angled headstone on a base' },
+  single_upright: { label: 'Single Upright', price: 175, description: 'Standing headstone on a base' },
+  double_slant: { label: 'Double Slant', price: 200, description: 'Wide angled headstone on a base' },
+  double_upright: { label: 'Double Upright', price: 225, description: 'Wide standing headstone on a base' },
+  grave_ledger: { label: 'Grave Ledger', price: 275, description: 'Full-grave flat slab' },
 };
 
 export const TRAVEL_ZONES = [
@@ -41,17 +40,12 @@ export function getTravelFee(miles: number) {
   return zone ?? TRAVEL_ZONES[TRAVEL_ZONES.length - 1];
 }
 
-export const OFFER_A_FEATURES = [
-  'Full monument cleaning with Orvus WA Paste',
+export const SERVICE_FEATURES = [
+  'Full monument cleaning with Endurance Gravestone & Monument Cleaner',
+  'Biological growth inhibitor applied',
   '4 GPS-timestamped photos texted/emailed same day',
-  'Scheduled within 1 week of booking',
-];
-
-export const OFFER_B_EXTRAS = [
-  'D/2 Biological Solution growth inhibitor applied',
-  'Detailed condition report',
   'Weeding and edging around monument',
-  'Groundskeeping damage notation documented',
+  'Scheduled within 1 week of booking',
 ];
 
 export const CARE_PLANS = {
@@ -181,7 +175,7 @@ export interface IntakeFormData {
   wantsMonitoring: boolean | null;
   wantsFlowerPlacement: boolean | null;
   // Step 5
-  selectedOffer: 'A' | 'B' | '';
+  selectedOffer: string;
   selectedPlan: CarePlan | '';
   selectedBundle: string;
   // Step 6
