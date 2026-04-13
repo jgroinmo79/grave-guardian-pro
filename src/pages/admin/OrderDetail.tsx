@@ -18,7 +18,7 @@ import type { Database } from "@/integrations/supabase/types";
 type OrderStatus = Database["public"]["Enums"]["order_status"];
 type MonumentType = Database["public"]["Enums"]["monument_type"];
 type MaterialType = Database["public"]["Enums"]["material_type"];
-type OfferType = Database["public"]["Enums"]["offer_type"];
+
 
 const ORDER_STATUSES: OrderStatus[] = ["pending", "confirmed", "scheduled", "in_progress", "completed", "cancelled"];
 const MONUMENT_TYPES: MonumentType[] = ["single_marker", "double_marker", "single_slant", "single_upright", "double_slant", "double_upright", "grave_ledger"];
@@ -54,7 +54,7 @@ const AdminOrderDetail = () => {
 
   // Order fields
   const [status, setStatus] = useState<OrderStatus>("pending");
-  const [offer, setOffer] = useState<OfferType>("A");
+  
   const [basePrice, setBasePrice] = useState("");
   const [travelFee, setTravelFee] = useState("");
   const [addOnsTotal, setAddOnsTotal] = useState("");
@@ -96,7 +96,7 @@ const AdminOrderDetail = () => {
     const p = order.profiles as any;
 
     setStatus(order.status);
-    setOffer(order.offer);
+    
     setBasePrice(String(order.base_price));
     setTravelFee(String(order.travel_fee));
     setAddOnsTotal(String(order.add_ons_total ?? 0));
@@ -177,7 +177,6 @@ const AdminOrderDetail = () => {
         .from("orders")
         .update({
           status,
-          offer,
           base_price: Number(basePrice),
           travel_fee: Number(travelFee),
           add_ons_total: Number(addOnsTotal),
@@ -309,16 +308,6 @@ const AdminOrderDetail = () => {
               onChange={(e) => handleDateChange(e.target.value)}
               className="h-9 text-sm"
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Offer</Label>
-            <Select value={offer} onValueChange={(v) => setOffer(v as OfferType)}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="A">Standard Clean</SelectItem>
-                <SelectItem value="B">Restoration Clean</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Base Price</Label>
