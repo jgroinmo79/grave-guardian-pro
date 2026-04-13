@@ -1,4 +1,4 @@
-import { IntakeFormData, MAINTENANCE_PLANS } from "@/lib/pricing";
+import { IntakeFormData, FLOWER_PLANS, FLOWER_ONLY_PLANS } from "@/lib/pricing";
 import { Flower2, CalendarHeart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,11 +19,15 @@ const ALL_HOLIDAYS = [
 ];
 
 const HolidayPickerStep = ({ data, update }: Props) => {
-  const plan = data.selectedMaintenancePlan;
-  const planInfo = plan ? MAINTENANCE_PLANS[plan as keyof typeof MAINTENANCE_PLANS] : null;
+  const flowerPlan = data.selectedFlowerPlan
+    ? FLOWER_PLANS[data.selectedFlowerPlan as keyof typeof FLOWER_PLANS]
+    : null;
+  const flowerOnly = data.selectedFlowerOnly
+    ? FLOWER_ONLY_PLANS.find((f) => f.id === data.selectedFlowerOnly)
+    : null;
 
-  const maxPicks = plan === 'keeper' ? 1 : plan === 'sentinel' ? 2 : 3;
-  const availableHolidays = ALL_HOLIDAYS;
+  const maxPicks = flowerPlan ? flowerPlan.flowers : flowerOnly ? flowerOnly.placements : 0;
+  const planLabel = flowerPlan ? flowerPlan.label : flowerOnly ? flowerOnly.label : '';
 
   const needsCustomDate = (holiday: string) =>
     holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
@@ -46,7 +50,7 @@ const HolidayPickerStep = ({ data, update }: Props) => {
     });
   };
 
-  if (!planInfo) return null;
+  if (!planLabel || maxPicks === 0) return null;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -59,13 +63,13 @@ const HolidayPickerStep = ({ data, update }: Props) => {
           Choose Your Holidays
         </h2>
         <p className="text-muted-foreground">
-          {planInfo.label} includes {maxPicks} flower placement{maxPicks > 1 ? "s" : ""}.
+          {planLabel} includes {maxPicks} flower placement{maxPicks > 1 ? "s" : ""}.
           Select {maxPicks} date{maxPicks > 1 ? "s" : ""} below.
         </p>
       </div>
 
       <div className="max-w-md mx-auto space-y-3">
-        {availableHolidays.map((holiday) => {
+        {ALL_HOLIDAYS.map((holiday) => {
           const selected = data.selectedHolidays.includes(holiday);
           const atLimit = data.selectedHolidays.length >= maxPicks && !selected;
 
