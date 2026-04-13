@@ -5,20 +5,40 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameM
 import { ChevronLeft, ChevronRight, MapPin, Flower2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { computeSubscriptionVisits, type SubscriptionVisit } from "@/lib/subscription-schedule";
+import { computeSubscriptionVisits, holidayToDate, type SubscriptionVisit } from "@/lib/subscription-schedule";
 
-const HOLIDAYS: Record<string, string> = {
-  "2026-04-05": "Easter",
-  "2026-05-10": "Mother's Day",
-  "2026-05-25": "Memorial Day",
-  "2026-06-21": "Father's Day",
-  "2026-12-25": "Christmas",
-  "2027-03-28": "Easter",
-  "2027-05-09": "Mother's Day",
-  "2027-05-31": "Memorial Day",
-  "2027-06-20": "Father's Day",
-  "2027-12-25": "Christmas",
-};
+function computeEaster(year: number): Date {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function getHolidaysForYear(year: number): Record<string, string> {
+  const holidays: Record<string, string> = {};
+  const fmt = (d: Date) => format(d, "yyyy-MM-dd");
+
+  const easter = computeEaster(year);
+  holidays[fmt(easter)] = "Easter";
+
+  for (const name of ["Memorial Day", "Mother's Day", "Father's Day", "Christmas"] as const) {
+    const d = holidayToDate(name, year);
+    if (d) holidays[fmt(d)] = name;
+  }
+
+  return holidays;
+}
 
 interface ScheduleOrder {
   id: string;
