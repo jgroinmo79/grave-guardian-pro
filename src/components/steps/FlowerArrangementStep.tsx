@@ -26,6 +26,9 @@ const TYPE_LABELS: Record<string, string> = {
   easel: "Easel",
 };
 
+const needsCustomDate = (holiday: string) =>
+  holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
+
 const ImageCarousel = ({ images, name, selected }: { images: string[]; name: string; selected: boolean }) => {
   const [idx, setIdx] = useState(0);
   const hasMultiple = images.length > 1;
@@ -94,10 +97,25 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
           (a.occasion_tags || []).includes(filter)
         );
 
-  const selectArrangement = (id: string) => {
-    update({
-      selectedArrangementId: data.selectedArrangementId === id ? "" : id,
-    });
+  const holidays = data.selectedHolidays;
+  const assigned = data.selectedArrangements;
+  const assignedCount = holidays.filter((h) => !!assigned[h]).length;
+
+  const selectArrangement = (holiday: string, arrangementId: string) => {
+    const current = { ...data.selectedArrangements };
+    if (current[holiday] === arrangementId) {
+      delete current[holiday];
+    } else {
+      current[holiday] = arrangementId;
+    }
+    update({ selectedArrangements: current });
+  };
+
+  const getHolidayLabel = (holiday: string) => {
+    if (needsCustomDate(holiday) && data.holidayCustomDates[holiday]) {
+      return `${holiday} — ${data.holidayCustomDates[holiday]}`;
+    }
+    return holiday;
   };
 
   return (
@@ -108,10 +126,13 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
           Flower Selection
         </span>
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">
-          Choose Your Arrangement
+          Choose Your Arrangements
         </h2>
         <p className="text-muted-foreground text-sm">
-          Select a flower arrangement for your placement. Tap a card to select.
+          Select a flower arrangement for each placement date. You can choose a different arrangement for each.
+        </p>
+        <p className="text-sm font-semibold text-primary mt-2">
+          {assignedCount} of {holidays.length} arrangement{holidays.length !== 1 ? "s" : ""} selected
         </p>
       </div>
 
@@ -132,65 +153,75 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
         ))}
       </div>
 
-      {/* Card grid */}
       {isLoading ? (
         <p className="text-center text-muted-foreground text-sm py-8">
           Loading arrangements…
         </p>
-      ) : filtered.length === 0 ? (
-        <p className="text-center text-muted-foreground text-sm py-8">
-          No arrangements found for this occasion.
-        </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-          {filtered.map((a: any) => {
-            const selected = data.selectedArrangementId === a.id;
+        <div className="space-y-8">
+          {holidays.map((holiday) => {
+            const selectedId = assigned[holiday] || "";
             return (
-              <button
-                key={a.id}
-                onClick={() => selectArrangement(a.id)}
-                className={`text-left rounded-xl border overflow-hidden transition-all ${
-                  selected
-                    ? "border-primary ring-2 ring-primary/30 shadow-lg"
-                    : "border-border hover:border-muted-foreground/40"
-                }`}
-              >
-                <ImageCarousel images={[a.image_url, a.image_url_2].filter(Boolean)} name={a.name} selected={selected} />
-
-                {/* Content */}
-                <div className="p-3 space-y-1.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-sm leading-tight">
-                      {a.name}
-                    </h3>
-                    <span className="text-sm font-bold text-primary whitespace-nowrap">
-                      ${Number(a.retail_price).toFixed(2)}
-                    </span>
-                  </div>
-                  {a.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {a.description}
-                    </p>
+              <div key={holiday} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {selectedId ? (
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
                   )}
-                  {a.arrangement_type && (
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] capitalize"
-                    >
-                      {TYPE_LABELS[a.arrangement_type] || a.arrangement_type}
-                    </Badge>
-                  )}
+                  <h3 className="font-display font-semibold text-base">
+                    {getHolidayLabel(holiday)}
+                  </h3>
                 </div>
-              </button>
+
+                {filtered.length === 0 ? (
+                  <p className="text-sm text-muted-foreground pl-6">
+                    No arrangements found for this filter.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                    {filtered.map((a: any) => {
+                      const selected = selectedId === a.id;
+                      return (
+                        <button
+                          key={a.id}
+                          onClick={() => selectArrangement(holiday, a.id)}
+                          className={`text-left rounded-xl border overflow-hidden transition-all ${
+                            selected
+                              ? "border-primary ring-2 ring-primary/30 shadow-lg"
+                              : "border-border hover:border-muted-foreground/40"
+                          }`}
+                        >
+                          <ImageCarousel images={[a.image_url, a.image_url_2].filter(Boolean)} name={a.name} selected={selected} />
+                          <div className="p-3 space-y-1.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="font-semibold text-sm leading-tight">
+                                {a.name}
+                              </h3>
+                              <span className="text-sm font-bold text-primary whitespace-nowrap">
+                                ${Number(a.retail_price).toFixed(2)}
+                              </span>
+                            </div>
+                            {a.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {a.description}
+                              </p>
+                            )}
+                            {a.arrangement_type && (
+                              <Badge variant="secondary" className="text-[10px] capitalize">
+                                {TYPE_LABELS[a.arrangement_type] || a.arrangement_type}
+                              </Badge>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
-      )}
-
-      {data.selectedArrangementId && (
-        <p className="text-xs text-primary text-center font-medium pt-1">
-          ✓ Arrangement selected
-        </p>
       )}
     </div>
   );
