@@ -33,17 +33,44 @@ const ADD_ONS: Record<string, { label: string; price: number }> = {
   flag_placement: { label: "Flag Placement", price: 35 },
 };
 
-const CARE_PLANS: Record<string, { label: string; price: number }> = {
-  keeper: { label: "The Keeper", price: 525 },
-  sentinel: { label: "The Sentinel", price: 675 },
-  legacy: { label: "The Legacy", price: 1200 },
+const MAINTENANCE_PLAN_PRICES: Record<string, Record<string, number>> = {
+  single_marker: { keeper: 180, sentinel: 260, legacy: 340 },
+  double_marker: { keeper: 230, sentinel: 330, legacy: 430 },
+  single_slant: { keeper: 230, sentinel: 330, legacy: 430 },
+  single_upright: { keeper: 270, sentinel: 390, legacy: 510 },
+  double_slant: { keeper: 320, sentinel: 460, legacy: 600 },
+  double_upright: { keeper: 360, sentinel: 520, legacy: 680 },
+  grave_ledger: { keeper: 450, sentinel: 650, legacy: 850 },
 };
 
-const BUNDLES: Record<string, { label: string; price: number }> = {
-  single_arrangement: { label: "Single Arrangement & Placement", price: 100 },
-  memorial_day: { label: "Memorial Day Bundle", price: 325 },
-  remembrance_trio: { label: "Remembrance Trio", price: 450 },
-  memorial_year: { label: "Memorial Year Bundle", price: 650 },
+const MAINTENANCE_PLANS: Record<string, string> = {
+  keeper: 'The Keeper (2 Visits/yr)',
+  sentinel: 'The Sentinel (3 Visits/yr)',
+  legacy: 'The Legacy (4 Visits/yr)',
+};
+
+const FLOWER_PLAN_PRICES: Record<string, Record<string, number>> = {
+  single_marker: { tribute: 200, remembrance: 355, devotion: 510, eternal: 665 },
+  double_marker: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
+  single_slant: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
+  single_upright: { tribute: 250, remembrance: 445, devotion: 640, eternal: 835 },
+  double_slant: { tribute: 275, remembrance: 490, devotion: 705, eternal: 920 },
+  double_upright: { tribute: 300, remembrance: 535, devotion: 770, eternal: 1005 },
+  grave_ledger: { tribute: 350, remembrance: 625, devotion: 900, eternal: 1175 },
+};
+
+const FLOWER_PLANS_LABELS: Record<string, string> = {
+  tribute: 'The Tribute (1C + 1F/yr)',
+  remembrance: 'The Remembrance (2C + 2F/yr)',
+  devotion: 'The Devotion (3C + 3F/yr)',
+  eternal: 'The Eternal (4C + 4F/yr)',
+};
+
+const FLOWER_ONLY_PLANS: Record<string, { label: string; price: number }> = {
+  flower_1: { label: '1 Flower Placement/yr', price: 100 },
+  flower_2: { label: '2 Flower Placements/yr', price: 175 },
+  flower_3: { label: '3 Flower Placements/yr', price: 250 },
+  flower_4: { label: '4 Flower Placements/yr', price: 325 },
 };
 
 const VETERAN_TYPE_MAP: Record<string, string> = {
@@ -92,7 +119,9 @@ serve(async (req) => {
       selectedOffer,
       estimatedMiles,
       addOns = [],
-      selectedBundle,
+      selectedMaintenancePlan,
+      selectedFlowerPlan,
+      selectedFlowerOnly,
       isVeteran,
       customerEmail,
       cemeteryName,
@@ -113,7 +142,6 @@ serve(async (req) => {
       consentPhotos,
       photos = [],
       preferredDate,
-      selectedPlan,
       selectedHolidays = [],
       holidayCustomDates = {},
       // Gift fields
@@ -144,10 +172,21 @@ serve(async (req) => {
       if (addon) addOnTotal += addon.price;
     }
 
-    const bundlePrice = selectedBundle && BUNDLES[selectedBundle] ? BUNDLES[selectedBundle].price : 0;
-    const planPrice = selectedPlan && CARE_PLANS[selectedPlan] ? CARE_PLANS[selectedPlan].price : 0;
+    // Resolve plan price
+    let planPrice = 0;
+    let planLabel = '';
+    if (selectedMaintenancePlan && MAINTENANCE_PLAN_PRICES[monumentType]?.[selectedMaintenancePlan]) {
+      planPrice = MAINTENANCE_PLAN_PRICES[monumentType][selectedMaintenancePlan];
+      planLabel = MAINTENANCE_PLANS[selectedMaintenancePlan] || selectedMaintenancePlan;
+    } else if (selectedFlowerPlan && FLOWER_PLAN_PRICES[monumentType]?.[selectedFlowerPlan]) {
+      planPrice = FLOWER_PLAN_PRICES[monumentType][selectedFlowerPlan];
+      planLabel = FLOWER_PLANS_LABELS[selectedFlowerPlan] || selectedFlowerPlan;
+    } else if (selectedFlowerOnly && FLOWER_ONLY_PLANS[selectedFlowerOnly]) {
+      planPrice = FLOWER_ONLY_PLANS[selectedFlowerOnly].price;
+      planLabel = FLOWER_ONLY_PLANS[selectedFlowerOnly].label;
+    }
 
-    let subtotal = basePrice + travelFee + addOnTotal + bundlePrice + planPrice;
+    let subtotal = basePrice + travelFee + addOnTotal + planPrice;
     if (isVeteran) subtotal = Math.round(subtotal * 0.9);
 
     const effectiveUserId = userId;
@@ -195,8 +234,8 @@ serve(async (req) => {
         travel_fee: travelFee,
         add_ons: addOns,
         add_ons_total: addOnTotal,
-        bundle_id: selectedBundle || null,
-        bundle_price: bundlePrice,
+        bundle_id: selectedMaintenancePlan || selectedFlowerPlan || selectedFlowerOnly || null,
+        bundle_price: planPrice,
         total_price: subtotal,
         is_veteran: isVeteran || false,
         consent_biological: consentBiological || false,
@@ -223,8 +262,7 @@ serve(async (req) => {
     }
 
     // 3. Create subscription if annual plan selected
-    if (selectedPlan && CARE_PLANS[selectedPlan]) {
-      // Build important_dates string: "Memorial Day,Deceased's Birthday|03-15"
+    if (selectedMaintenancePlan || selectedFlowerPlan) {
       const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
         const custom = (holidayCustomDates as Record<string, string>)[h];
         return custom ? `${h}|${custom}` : h;
@@ -235,8 +273,8 @@ serve(async (req) => {
         .insert({
           user_id: effectiveUserId,
           monument_id: monumentRecord.id,
-          plan: selectedPlan,
-          price: CARE_PLANS[selectedPlan].price,
+          plan: selectedMaintenancePlan || selectedFlowerPlan,
+          price: planPrice,
           period: "annual",
           status: "active",
           important_dates: importantDatesStr || null,
@@ -244,7 +282,6 @@ serve(async (req) => {
         });
       if (subError) {
         console.error("[create-checkout] Subscription insert error:", subError);
-        // Non-fatal
       }
     }
 
@@ -256,7 +293,6 @@ serve(async (req) => {
         user_id: effectiveUserId,
         photo_url: url,
         description: "Client upload — intake",
-        
         taken_at: new Date().toISOString(),
       }));
       const { error: photoError } = await supabaseAdmin
@@ -264,7 +300,6 @@ serve(async (req) => {
         .insert(photoRows);
       if (photoError) {
         console.error("[create-checkout] Photo insert error:", photoError);
-        // Non-fatal — don't block checkout
       }
     }
 
@@ -305,25 +340,12 @@ serve(async (req) => {
       }
     }
 
-    if (selectedBundle && BUNDLES[selectedBundle]) {
-      const bundle = BUNDLES[selectedBundle];
+    if (planPrice > 0) {
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: bundle.label, tax_code: "txcd_99999999" },
-          unit_amount: bundle.price * 100,
-        },
-        quantity: 1,
-      });
-    }
-
-    if (selectedPlan && CARE_PLANS[selectedPlan]) {
-      const plan = CARE_PLANS[selectedPlan];
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: `${plan.label} (Annual Care Plan)` },
-          unit_amount: plan.price * 100,
+          product_data: { name: planLabel },
+          unit_amount: planPrice * 100,
         },
         quantity: 1,
       });
