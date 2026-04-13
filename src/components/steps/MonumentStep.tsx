@@ -74,7 +74,7 @@ const MonumentStep = ({ data, update }: Props) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 2</span>
+        
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Monument Details</h2>
         <p className="text-muted-foreground">Tell us about the monument</p>
       </div>

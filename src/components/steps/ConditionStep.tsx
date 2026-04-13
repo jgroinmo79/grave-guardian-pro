@@ -91,7 +91,7 @@ const ConditionStep = ({ data, update }: Props) => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
-        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 3</span>
+        
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Condition Assessment</h2>
         <p className="text-muted-foreground">Check all that apply and upload photos if available</p>
       </div>
