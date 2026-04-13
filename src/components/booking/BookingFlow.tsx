@@ -108,11 +108,9 @@ const BookingFlow = () => {
         id: 'holidays',
         render: (d, u) => <HolidayPickerStep data={d} update={u} />,
         canProceed: (d) => {
-          const holidays = data.selectedFlowerPlan ? d.selectedHolidays : d.flowerHolidays;
-          const customDates = data.selectedFlowerPlan ? d.holidayCustomDates : d.flowerCustomDates;
-          if (holidays.length !== flowerPickLimit) return false;
-          for (const h of holidays) {
-            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !customDates[h]?.trim()) {
+          if (d.selectedHolidays.length !== flowerPickLimit) return false;
+          for (const h of d.selectedHolidays) {
+            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.holidayCustomDates[h]?.trim()) {
               return false;
             }
           }
