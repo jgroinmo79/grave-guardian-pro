@@ -164,7 +164,7 @@ const CemeteryStep = ({ data, update }: Props) => {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 text-primary mb-3">
           <MapPin className="w-5 h-5" />
-          <span className="text-sm font-semibold uppercase tracking-widest">Step 1</span>
+          
         </div>
         <h2 className="text-3xl font-display font-bold mb-2">Cemetery Location</h2>
         <p className="text-muted-foreground">Search for the cemetery where the monument is located</p>
