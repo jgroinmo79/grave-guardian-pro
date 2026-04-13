@@ -78,7 +78,7 @@ const BookingFlow = () => {
       {
         id: 'service',
         render: (d, u) => <ServiceStep data={d} update={u} />,
-        canProceed: (d) => d.selectedOffer !== '',
+        canProceed: (d) => d.selectedOffer !== '' || d.selectedPlan !== '' || d.selectedBundle !== '',
       },
       {
         id: 'intent',
