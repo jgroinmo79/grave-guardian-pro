@@ -144,7 +144,7 @@ export interface IntakeFormData {
   holidayCustomDates: Record<string, string>;
   // Flower date picker for standalone flower bookings
   // Flower arrangement selection
-  selectedArrangementId: string;
+  selectedArrangements: Record<string, string>;
   // Preferred date
   preferredDate: Date | null;
   // Step 7
@@ -196,7 +196,7 @@ export const initialFormData: IntakeFormData = {
   addOns: [],
   selectedHolidays: [],
   holidayCustomDates: {},
-  selectedArrangementId: '',
+  selectedArrangements: {},
   preferredDate: null,
   consentBiological: false,
   consentAuthorize: false,
