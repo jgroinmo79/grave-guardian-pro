@@ -125,59 +125,45 @@ const PhotoUpload = ({ monumentId, orderId, userId }: PhotoUploadProps) => {
 
       {photos && photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
-          {[...photos].sort((a, b) => {
-            const aCustomer = a.description === "Client upload — intake" ? 0 : 1;
-            const bCustomer = b.description === "Client upload — intake" ? 0 : 1;
-            return aCustomer - bCustomer;
-          }).map((photo) => {
-            const isCustomerPhoto = photo.description === "Client upload — intake";
-            return (
-              <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-border">
-                <img
-                  src={photo.photo_url}
-                  alt={photo.description || "Monument photo"}
-                  className="w-full aspect-square object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
-                  {photo.description && !isCustomerPhoto && (
-                    <p className="text-[10px] text-center text-foreground">{photo.description}</p>
-                  )}
-                  <div className="flex gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 text-[10px] gap-1"
-                      onClick={() => toggleVisibility.mutate({ photoId: photo.id, visible: !(photo as any).client_visible })}
-                    >
-                      {(photo as any).client_visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                      {(photo as any).client_visible ? "Visible" : "Hidden"}
-                    </Button>
-                    {!isCustomerPhoto && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="h-6 text-[10px] gap-1"
-                        onClick={() => deletePhoto.mutate(photo.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
+          {photos.map((photo) => (
+            <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-border">
+              <img
+                src={photo.photo_url}
+                alt={photo.description || "Monument photo"}
+                className="w-full aspect-square object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1">
+                {photo.description && (
+                  <p className="text-[10px] text-center text-foreground">{photo.description}</p>
+                )}
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] gap-1"
+                    onClick={() => toggleVisibility.mutate({ photoId: photo.id, visible: !(photo as any).client_visible })}
+                  >
+                    {(photo as any).client_visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {(photo as any).client_visible ? "Visible" : "Hidden"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-6 text-[10px] gap-1"
+                    onClick={() => deletePhoto.mutate(photo.id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
-                {isCustomerPhoto && (
-                  <div className="absolute top-1 left-1 bg-accent/90 text-accent-foreground text-[8px] px-1.5 py-0.5 rounded-full font-semibold">
-                    Customer Photo
-                  </div>
-                )}
-                {!isCustomerPhoto && (photo as any).client_visible && (
-                  <div className="absolute top-1 left-1 bg-primary/90 text-primary-foreground text-[8px] px-1.5 py-0.5 rounded-full font-semibold">
-                    <Eye className="w-2.5 h-2.5 inline mr-0.5" />Client
-                  </div>
-                )}
               </div>
-            );
-          })}
+              {(photo as any).client_visible && (
+                <div className="absolute top-1 left-1 bg-primary/90 text-primary-foreground text-[8px] px-1.5 py-0.5 rounded-full font-semibold">
+                  <Eye className="w-2.5 h-2.5 inline mr-0.5" />Client
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
