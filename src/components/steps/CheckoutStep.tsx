@@ -12,28 +12,44 @@ interface Props {
 const CheckoutStep = ({ data }: Props) => {
   const [loading, setLoading] = useState(false);
 
-  const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType] : null;
+  const resolvedType = data.monumentType as MonumentType | '';
+  const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
   const travelZone = getTravelFee(data.estimatedMiles);
   const travelFee = travelZone.fee;
 
-  const hasIncludedCleaning = !!data.selectedMaintenancePlan || !!data.selectedFlowerPlan;
-  const isFlowerOnly = !!data.selectedFlowerOnly;
-  const showCleaningLine = !hasIncludedCleaning && !isFlowerOnly;
-
-  const basePrice = (showCleaningLine && monument) ? monument.price : 0;
-
-  const selectedAddOns = ADD_ONS.filter((a) => data.addOns.includes(a.id));
-  const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
-
-  const resolvedType = data.monumentType as MonumentType | '';
+  // Plan lookups
   const maintenancePlan = data.selectedMaintenancePlan ? MAINTENANCE_PLANS[data.selectedMaintenancePlan as keyof typeof MAINTENANCE_PLANS] : null;
   const maintenancePrice = (resolvedType && data.selectedMaintenancePlan) ? (MAINTENANCE_PLAN_PRICES[resolvedType]?.[data.selectedMaintenancePlan] ?? 0) : 0;
   const flowerPlan = data.selectedFlowerPlan ? FLOWER_PLANS[data.selectedFlowerPlan as keyof typeof FLOWER_PLANS] : null;
   const flowerPlanPrice = (resolvedType && data.selectedFlowerPlan) ? (FLOWER_PLAN_PRICES[resolvedType]?.[data.selectedFlowerPlan] ?? 0) : 0;
   const flowerOnly = FLOWER_ONLY_PLANS.find((f) => f.id === data.selectedFlowerOnly);
 
-  let subtotal = basePrice + travelFee + addOnTotal + maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0);
+  // Show cleaning line only if no plan that includes cleaning is selected
+  const showCleaningLine = !data.selectedMaintenancePlan && !data.selectedFlowerPlan;
+  const basePrice = (showCleaningLine && monument) ? monument.price : 0;
+
+  const selectedAddOns = ADD_ONS.filter((a) => data.addOns.includes(a.id));
+  const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
+
+  const planPrice = maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0);
+  let subtotal = basePrice + planPrice + travelFee + addOnTotal;
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
+
+  // Plan descriptions
+  const getMaintenanceDescription = () => {
+    if (!maintenancePlan) return '';
+    return `${maintenancePlan.visits} cleanings per year · Endurance product · Photos after each visit · Priority scheduling`;
+  };
+
+  const getFlowerPlanDescription = () => {
+    if (!flowerPlan) return '';
+    return `${flowerPlan.cleanings} cleanings + ${flowerPlan.flowers} flower placements per year · Photos after each visit · Priority scheduling`;
+  };
+
+  const getFlowerOnlyDescription = () => {
+    if (!flowerOnly) return '';
+    return `${flowerOnly.placements} flower placement${flowerOnly.placements > 1 ? 's' : ''} per year · Travel fee applies`;
+  };
 
   const handleCheckout = async () => {
     setLoading(true);
@@ -45,6 +61,8 @@ const CheckoutStep = ({ data }: Props) => {
           selectedOffer: data.selectedOffer,
           estimatedMiles: data.estimatedMiles,
           addOns: data.addOns,
+          selectedMaintenancePlan: data.selectedMaintenancePlan || null,
+          selectedFlowerPlan: data.selectedFlowerPlan || null,
           selectedFlowerOnly: data.selectedFlowerOnly || null,
           isVeteran: data.isVeteran,
           customerEmail: data.shopperEmail,
@@ -66,7 +84,6 @@ const CheckoutStep = ({ data }: Props) => {
           consentAuthorize: data.consentAuthorize,
           consentPhotos: data.consentPhotos,
           preferredDate: data.preferredDate ? data.preferredDate.toISOString().split('T')[0] : null,
-          selectedPlan: data.selectedMaintenancePlan || null,
           selectedHolidays: data.selectedHolidays || [],
           holidayCustomDates: data.holidayCustomDates || {},
           isGift: data.isGift || false,
@@ -119,7 +136,7 @@ const CheckoutStep = ({ data }: Props) => {
                 <span>{maintenancePlan.label} (annual plan)</span>
                 <span className="font-semibold">${maintenancePrice}/yr</span>
               </div>
-              <p className="text-xs mt-1 text-muted-foreground">{maintenancePlan.description}</p>
+              <p className="text-xs mt-1 text-muted-foreground">{getMaintenanceDescription()}</p>
             </div>
           )}
 
@@ -129,7 +146,7 @@ const CheckoutStep = ({ data }: Props) => {
                 <span>{flowerPlan.label} (annual plan)</span>
                 <span className="font-semibold">${flowerPlanPrice}/yr</span>
               </div>
-              <p className="text-xs mt-1 text-muted-foreground">{flowerPlan.description}</p>
+              <p className="text-xs mt-1 text-muted-foreground">{getFlowerPlanDescription()}</p>
             </div>
           )}
 
@@ -137,8 +154,9 @@ const CheckoutStep = ({ data }: Props) => {
             <div>
               <div className="flex justify-between text-sm">
                 <span>{flowerOnly.label}</span>
-                <span className="font-semibold">${flowerOnly.price}</span>
+                <span className="font-semibold">${flowerOnly.price}/yr</span>
               </div>
+              <p className="text-xs mt-1 text-muted-foreground">{getFlowerOnlyDescription()}</p>
             </div>
           )}
 
@@ -160,7 +178,7 @@ const CheckoutStep = ({ data }: Props) => {
             <div className="flex justify-between text-sm text-primary">
               <span>Veteran Discount (10%)</span>
               <span className="font-semibold">
-                -${Math.round((basePrice + travelFee + addOnTotal + maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0)) * 0.1)}
+                -${Math.round((basePrice + planPrice + travelFee + addOnTotal) * 0.1)}
               </span>
             </div>
           )}
