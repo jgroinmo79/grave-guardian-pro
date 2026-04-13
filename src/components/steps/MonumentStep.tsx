@@ -44,9 +44,8 @@ const MonumentStep = ({ data, update }: Props) => {
     if (!dbVal) return '';
     const match = CONSOLIDATED_MONUMENTS.find(c => c.dbValue === dbVal);
     if (match) return match.id;
-    // If stored value matches a large monument variant
-    if (['double_companion', 'monument_base', 'obelisk_unique'].includes(dbVal)) return 'large';
-    if (['mausoleum_panel', 'bronze_plaque'].includes(dbVal)) return 'other';
+    if (['double_slant', 'double_upright', 'double_marker'].includes(dbVal)) return 'large';
+    if (['grave_ledger', 'single_slant'].includes(dbVal)) return 'other';
     return '';
   };
 
