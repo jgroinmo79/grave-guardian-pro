@@ -120,7 +120,7 @@ const BookingFlow = () => {
       base.push({
         id: 'flower-arrangement',
         render: (d, u) => <FlowerArrangementStep data={d} update={u} />,
-        canProceed: (d) => d.selectedArrangementId !== '',
+        canProceed: (d) => d.selectedHolidays.length > 0 && d.selectedHolidays.every((h) => !!d.selectedArrangements[h]),
       });
     }
 
