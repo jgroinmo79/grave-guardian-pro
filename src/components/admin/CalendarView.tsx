@@ -80,6 +80,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const year = currentMonth.getFullYear();
+  const HOLIDAYS = useMemo(() => getHolidaysForYear(year), [year]);
 
   // Fetch orders (including bundle_id and shopper_name)
   const { data: orders } = useQuery({
