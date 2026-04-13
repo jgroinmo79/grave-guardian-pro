@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, CARE_PLANS, SEASONAL_BUNDLES } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { CreditCard, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,21 +16,15 @@ const CheckoutStep = ({ data }: Props) => {
   const travelZone = getTravelFee(data.estimatedMiles);
   const travelFee = travelZone.fee;
 
-  // Plans include cleaning; Memorial Day bundle includes cleaning;
-  // Flower-only bundles (remembrance_trio, memorial_year) are standalone — no cleaning unless none selected
   const hasIncludedCleaning = !!data.selectedPlan || data.selectedBundle === 'memorial_day';
   const isFlowerOnlyBundle = data.selectedBundle === 'remembrance_trio' || data.selectedBundle === 'memorial_year';
-
-  // Show cleaning line ONLY when: no plan, no bundle that includes cleaning, and not a flower-only bundle
   const showCleaningLine = !hasIncludedCleaning && !isFlowerOnlyBundle;
 
-  const basePrice = (showCleaningLine && monument)
-    ? monument.price
-    : 0;
-  
+  const basePrice = (showCleaningLine && monument) ? monument.price : 0;
+
   const selectedAddOns = ADD_ONS.filter((a) => data.addOns.includes(a.id));
   const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
-  
+
   const bundle = SEASONAL_BUNDLES.find((b) => b.id === data.selectedBundle);
   const plan = data.selectedPlan ? CARE_PLANS[data.selectedPlan] : null;
 
@@ -52,7 +44,6 @@ const CheckoutStep = ({ data }: Props) => {
           selectedBundle: data.selectedBundle,
           isVeteran: data.isVeteran,
           customerEmail: data.shopperEmail,
-          // Monument & form data for DB persistence
           cemeteryName: data.cemeteryName,
           cemeteryLat: data.cemeteryLat,
           cemeteryLng: data.cemeteryLng,
@@ -62,24 +53,18 @@ const CheckoutStep = ({ data }: Props) => {
           approximateHeight: data.approximateHeight,
           knownDamage: data.knownDamage,
           conditions: data.conditions,
-          // Person info
           deceasedName: data.deceasedName,
           shopperName: data.shopperName,
           shopperPhone: data.shopperPhone,
           shopperEmail: data.shopperEmail,
-          // Photos from condition step
           photos: data.photos,
-          // Consent
           consentBiological: data.consentBiological,
           consentAuthorize: data.consentAuthorize,
           consentPhotos: data.consentPhotos,
-          // Preferred date
           preferredDate: data.preferredDate ? data.preferredDate.toISOString().split('T')[0] : null,
-          // Annual plan
           selectedPlan: data.selectedPlan || null,
           selectedHolidays: data.selectedHolidays || [],
           holidayCustomDates: data.holidayCustomDates || {},
-          // Gift fields
           isGift: data.isGift || false,
           giftRecipientName: data.giftRecipientName || null,
           giftRecipientEmail: data.giftRecipientEmail || null,
@@ -90,7 +75,7 @@ const CheckoutStep = ({ data }: Props) => {
 
       if (error) throw error;
       if (result?.url) {
-        window.open(result.url, "_blank");
+        window.location.href = result.url;
       } else {
         throw new Error("No checkout URL returned");
       }
@@ -106,8 +91,7 @@ const CheckoutStep = ({ data }: Props) => {
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-8">
         <CreditCard className="w-8 h-8 text-primary mx-auto mb-3" />
-        <span className="text-sm font-semibold uppercase tracking-widest text-primary">Step 9</span>
-        <h2 className="text-3xl font-display font-bold mb-2 mt-2">Review & Checkout</h2>
+        <h2 className="text-3xl font-display font-bold mb-2">Review & Checkout</h2>
         <p className="text-muted-foreground">Review your order before payment</p>
       </div>
 
@@ -116,13 +100,11 @@ const CheckoutStep = ({ data }: Props) => {
           {basePrice > 0 && monument && (
             <div>
               <div className="flex justify-between text-sm">
-                <span>{monument.label} — {data.selectedOffer === 'B' ? 'Restoration Clean' : 'Standard Clean'}</span>
+                <span>{monument.label} — Cleaning</span>
                 <span className="font-semibold">${basePrice}</span>
               </div>
-              <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>
-                {data.selectedOffer === 'B'
-                  ? 'D/2 Biological Solution treatment · Growth inhibitor · Plot edging · 4 photos delivered same day'
-                  : 'CCUS-standard Orvus WA Paste wash · 4 photos delivered same day · Condition assessment'}
+              <p className="text-xs mt-1 text-muted-foreground">
+                Endurance Gravestone &amp; Monument Cleaner treatment · Growth inhibitor · Plot edging · 4 photos delivered same day
               </p>
             </div>
           )}
@@ -133,10 +115,10 @@ const CheckoutStep = ({ data }: Props) => {
                 <span>{plan.label} (annual plan)</span>
                 <span className="font-semibold">${plan.price}/yr</span>
               </div>
-              <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>
-                {data.selectedPlan === 'keeper' && '2 cleanings per year (spring & fall) · Photos after each visit · Condition report · Priority scheduling'}
-                {data.selectedPlan === 'sentinel' && '3 cleanings per year · Photos after each visit · Condition report · Priority scheduling · 1 flower placement included'}
-                {data.selectedPlan === 'legacy' && '4 quarterly cleanings · Photos after each visit · 2 premium flower placements on your chosen dates · Annual preservation assessment'}
+              <p className="text-xs mt-1 text-muted-foreground">
+                {data.selectedPlan === 'keeper' && '2 cleanings per year · 1 flower placement · Photos after each visit · Condition report · Priority scheduling'}
+                {data.selectedPlan === 'sentinel' && '3 cleanings per year · 2 flower placements · Photos after each visit · Condition report · Priority scheduling'}
+                {data.selectedPlan === 'legacy' && '4 quarterly cleanings · 3 flower placements · Photos after each visit · Annual preservation assessment'}
               </p>
             </div>
           )}
@@ -147,7 +129,7 @@ const CheckoutStep = ({ data }: Props) => {
                 <span>{bundle.label}</span>
                 <span className="font-semibold">${bundle.price}</span>
               </div>
-              <p className="text-xs mt-1" style={{ color: '#6B6B6B' }}>
+              <p className="text-xs mt-1 text-muted-foreground">
                 {data.selectedBundle === 'memorial_day' && 'Full restoration clean + premium artificial flower arrangement · Scheduled the week of Memorial Day · Photo confirmation included'}
                 {data.selectedBundle === 'remembrance_trio' && '3 flower placements on your chosen dates (birthday, anniversary, holiday) · Coordination included'}
                 {data.selectedBundle === 'memorial_year' && '5 placements per year on your scheduled dates · Year-round remembrance'}
@@ -184,7 +166,6 @@ const CheckoutStep = ({ data }: Props) => {
           </div>
         </div>
 
-        {/* Shopper info summary */}
         {(data.shopperName || data.deceasedName) && (
           <div className="mt-4 rounded-lg bg-secondary/50 border border-border p-4 space-y-1 text-sm">
             {data.isGift && (
