@@ -14,9 +14,9 @@ type ConsolidatedType = 'upright' | 'flat' | 'large' | 'other';
 
 const CONSOLIDATED_MONUMENTS: { id: ConsolidatedType; label: string; subtitle: string; icon: typeof Square; dbValue: MonumentType }[] = [
   { id: 'upright', label: 'Upright Headstone', subtitle: 'Standard standing headstone', icon: Square, dbValue: 'single_upright' },
-  { id: 'flat', label: 'Flat / Flush Marker', subtitle: 'Ground-level marker', icon: RectangleHorizontal, dbValue: 'flat_marker' },
-  { id: 'large', label: 'Large Monument', subtitle: 'Double stone, monument with base, or obelisk', icon: Landmark, dbValue: 'monument_base' },
-  { id: 'other', label: 'Other / Unique', subtitle: 'Mausoleum panel, bronze plaque, or custom shape', icon: Shapes, dbValue: 'obelisk_unique' },
+  { id: 'flat', label: 'Flat / Flush Marker', subtitle: 'Ground-level marker', icon: RectangleHorizontal, dbValue: 'single_marker' },
+  { id: 'large', label: 'Large Monument', subtitle: 'Double stone, monument with base, or obelisk', icon: Landmark, dbValue: 'double_upright' },
+  { id: 'other', label: 'Other / Unique', subtitle: 'Grave ledger, slant marker, or custom shape', icon: Shapes, dbValue: 'grave_ledger' },
 ];
 
 const MATERIALS: { value: MaterialType; label: string }[] = [
