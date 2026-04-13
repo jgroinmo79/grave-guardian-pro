@@ -163,7 +163,7 @@ serve(async (req) => {
     if (!monument) throw new Error("Invalid monument type");
 
     const offer = selectedOffer || "A";
-    const basePrice = monument.price;
+    const basePrice = isVeteran ? Math.round(monument.price * 0.9) : monument.price;
     const travelFee = getTravelFee(estimatedMiles || 0);
 
     let addOnTotal = 0;
@@ -186,8 +186,7 @@ serve(async (req) => {
       planLabel = FLOWER_ONLY_PLANS[selectedFlowerOnly].label;
     }
 
-    let subtotal = basePrice + travelFee + addOnTotal + planPrice;
-    if (isVeteran) subtotal = Math.round(subtotal * 0.9);
+    const subtotal = basePrice + travelFee + addOnTotal + planPrice;
 
     const effectiveUserId = userId;
     if (!effectiveUserId) {
@@ -352,15 +351,10 @@ serve(async (req) => {
     }
 
     if (isVeteran) {
-      for (const item of lineItems) {
-        if (item.price_data) {
-          item.price_data.unit_amount = Math.round((item.price_data.unit_amount ?? 0) * 0.9);
-        }
-      }
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: "Veteran Discount (10% applied)" },
+          product_data: { name: "Veteran Discount (10% off cleaning)" },
           unit_amount: 0,
         },
         quantity: 1,
