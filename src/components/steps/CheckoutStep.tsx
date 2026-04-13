@@ -45,7 +45,7 @@ const CheckoutStep = ({ data }: Props) => {
           selectedOffer: data.selectedOffer,
           estimatedMiles: data.estimatedMiles,
           addOns: data.addOns,
-          selectedBundle: data.selectedBundle,
+          selectedFlowerOnly: data.selectedFlowerOnly || null,
           isVeteran: data.isVeteran,
           customerEmail: data.shopperEmail,
           cemeteryName: data.cemeteryName,
@@ -160,7 +160,7 @@ const CheckoutStep = ({ data }: Props) => {
             <div className="flex justify-between text-sm text-primary">
               <span>Veteran Discount (10%)</span>
               <span className="font-semibold">
-                -${Math.round((basePrice + travelFee + addOnTotal + (bundle?.price ?? 0) + (plan?.price ?? 0)) * 0.1)}
+                -${Math.round((basePrice + travelFee + addOnTotal + maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0)) * 0.1)}
               </span>
             </div>
           )}

@@ -148,8 +148,7 @@ const PlanDetail = ({ subscription }: PlanDetailProps) => {
       {plan && (
         <div className="rounded-xl border border-border bg-card p-5 space-y-3">
           <h4 className="font-display font-semibold text-sm">What's Included</h4>
-          <ul className="space-y-2">
-            {plan.features.map((f, i) => (
+          <p className="text-xs text-muted-foreground">{plan.description}</p>
               <li key={i} className="flex items-start gap-2 text-xs">
                 <CheckCircle className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
                 <span>{f}</span>
