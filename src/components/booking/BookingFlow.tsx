@@ -18,12 +18,10 @@ import FlowerArrangementStep from "@/components/steps/FlowerArrangementStep";
 import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
 import CheckoutStep from "@/components/steps/CheckoutStep";
-import { IntakeFormData, initialFormData } from "@/lib/pricing";
+import { IntakeFormData, initialFormData, FLOWER_PLANS, FLOWER_ONLY_PLANS } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionId } from "@/components/PageViewTracker";
 
-// Create a dedicated Supabase client that sends the session ID header
-// so the RLS policy can verify ownership of abandoned_leads rows
 const getLeadClient = (sessionId: string) =>
   createClient(
     import.meta.env.VITE_SUPABASE_URL,
@@ -47,8 +45,20 @@ const BookingFlow = () => {
   };
 
   const hasAnnualPlan = data.selectedMaintenancePlan !== '' || data.selectedFlowerPlan !== '';
-  const needsFlowerDates = data.selectedFlowerOnly !== '';
-  const flowerPickLimit = data.selectedFlowerOnly === 'flower_1' ? 1 : data.selectedFlowerOnly === 'flower_2' ? 2 : data.selectedFlowerOnly === 'flower_3' ? 3 : data.selectedFlowerOnly === 'flower_4' ? 4 : 0;
+  const needsFlowerDates = data.selectedFlowerPlan !== '' || data.selectedFlowerOnly !== '';
+
+  // Calculate how many flower dates the user needs to pick
+  const flowerPickLimit = (() => {
+    if (data.selectedFlowerPlan) {
+      const plan = FLOWER_PLANS[data.selectedFlowerPlan as keyof typeof FLOWER_PLANS];
+      return plan ? plan.flowers : 0;
+    }
+    if (data.selectedFlowerOnly) {
+      const entry = FLOWER_ONLY_PLANS.find((f) => f.id === data.selectedFlowerOnly);
+      return entry ? entry.placements : 0;
+    }
+    return 0;
+  })();
 
   const steps: StepDef[] = useMemo(() => {
     const base: StepDef[] = [
@@ -92,46 +102,23 @@ const BookingFlow = () => {
       },
     ];
 
-    // Insert holiday picker step after add-ons if annual plan selected
-    if (hasAnnualPlan) {
-      const maxPicks = data.selectedMaintenancePlan === 'keeper' ? 1 : data.selectedMaintenancePlan === 'sentinel' ? 2 : data.selectedMaintenancePlan === 'legacy' ? 3 : 2;
+    // Add holiday picker + flower arrangement only if flowers are involved
+    if (needsFlowerDates) {
       base.push({
         id: 'holidays',
         render: (d, u) => <HolidayPickerStep data={d} update={u} />,
         canProceed: (d) => {
-          if (d.selectedHolidays.length !== maxPicks) return false;
-          for (const h of d.selectedHolidays) {
-            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.holidayCustomDates[h]?.trim()) {
+          const holidays = data.selectedFlowerPlan ? d.selectedHolidays : d.flowerHolidays;
+          const customDates = data.selectedFlowerPlan ? d.holidayCustomDates : d.flowerCustomDates;
+          if (holidays.length !== flowerPickLimit) return false;
+          for (const h of holidays) {
+            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !customDates[h]?.trim()) {
               return false;
             }
           }
           return true;
         },
       });
-      // Flower arrangement selection for annual plan flower placements
-      base.push({
-        id: 'flower-arrangement',
-        render: (d, u) => <FlowerArrangementStep data={d} update={u} />,
-        canProceed: (d) => d.selectedArrangementId !== '',
-      });
-    }
-
-    // Insert flower date picker step if a standalone flower bundle needing dates is selected
-    if (needsFlowerDates) {
-      base.push({
-        id: 'flower-dates',
-        render: (d, u) => <FlowerDatePickerStep data={d} update={u} />,
-        canProceed: (d) => {
-          if (d.flowerHolidays.length !== flowerPickLimit) return false;
-          for (const h of d.flowerHolidays) {
-            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.flowerCustomDates[h]?.trim()) {
-              return false;
-            }
-          }
-          return true;
-        },
-      });
-      // Flower arrangement selection for standalone flower bundles
       base.push({
         id: 'flower-arrangement',
         render: (d, u) => <FlowerArrangementStep data={d} update={u} />,
@@ -158,7 +145,7 @@ const BookingFlow = () => {
     );
 
     return base;
-  }, [hasAnnualPlan, data.selectedMaintenancePlan, needsFlowerDates, flowerPickLimit]);
+  }, [hasAnnualPlan, needsFlowerDates, flowerPickLimit, data.selectedFlowerPlan]);
 
   // Track abandoned lead on step changes
   useEffect(() => {
@@ -177,6 +164,9 @@ const BookingFlow = () => {
           cemeteryName: data.cemeteryName,
           monumentType: data.monumentType,
           selectedOffer: data.selectedOffer,
+          selectedMaintenancePlan: data.selectedMaintenancePlan,
+          selectedFlowerPlan: data.selectedFlowerPlan,
+          selectedFlowerOnly: data.selectedFlowerOnly,
         },
       };
 
@@ -203,7 +193,6 @@ const BookingFlow = () => {
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
 
-  // If step index exceeds steps (plan deselected), clamp
   if (stepIndex !== safeIndex) {
     setStepIndex(safeIndex);
   }
@@ -218,7 +207,6 @@ const BookingFlow = () => {
     document.body.scrollTop = 0;
   };
 
-  // Push initial state and handle browser back/forward
   useEffect(() => {
     window.history.replaceState({ step: 0 }, "");
   }, []);
