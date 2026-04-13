@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { CARE_PLANS } from "@/lib/pricing";
-import type { CarePlan } from "@/lib/pricing";
+import { MAINTENANCE_PLANS } from "@/lib/pricing";
 import { Shield, Calendar, CheckCircle, PauseCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +20,7 @@ const PlanDetail = ({ subscription }: PlanDetailProps) => {
   const [requestType, setRequestType] = useState<"pause" | "cancel">("pause");
   const [reason, setReason] = useState("");
 
-  const plan = CARE_PLANS[subscription.plan as CarePlan];
+  const plan = MAINTENANCE_PLANS[subscription.plan as keyof typeof MAINTENANCE_PLANS];
 
   // Check for existing pause/cancel request
   const { data: existingRequest } = useQuery({
@@ -149,14 +148,7 @@ const PlanDetail = ({ subscription }: PlanDetailProps) => {
       {plan && (
         <div className="rounded-xl border border-border bg-card p-5 space-y-3">
           <h4 className="font-display font-semibold text-sm">What's Included</h4>
-          <ul className="space-y-2">
-            {plan.features.map((f, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs">
-                <CheckCircle className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="text-xs text-muted-foreground">{plan.description}</p>
         </div>
       )}
 

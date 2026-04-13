@@ -1,4 +1,4 @@
-import { IntakeFormData, CARE_PLANS, CarePlan } from "@/lib/pricing";
+import { IntakeFormData, MAINTENANCE_PLANS } from "@/lib/pricing";
 import { Flower2, CalendarHeart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,8 @@ const ALL_HOLIDAYS = [
 ];
 
 const HolidayPickerStep = ({ data, update }: Props) => {
-  const plan = data.selectedPlan as CarePlan;
-  const planInfo = plan ? CARE_PLANS[plan] : null;
+  const plan = data.selectedMaintenancePlan;
+  const planInfo = plan ? MAINTENANCE_PLANS[plan as keyof typeof MAINTENANCE_PLANS] : null;
 
   const maxPicks = plan === 'keeper' ? 1 : plan === 'sentinel' ? 2 : 3;
   const availableHolidays = ALL_HOLIDAYS;

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MONUMENT_PRICES, ADD_ONS, CARE_PLANS, SEASONAL_BUNDLES } from "@/lib/pricing";
+import { MONUMENT_PRICES, ADD_ONS, MAINTENANCE_PLANS, FLOWER_ONLY_PLANS } from "@/lib/pricing";
 import PhotoUpload from "@/components/admin/PhotoUpload";
 import ServiceLogForm from "@/components/admin/ServiceLogForm";
 import type { Database } from "@/integrations/supabase/types";
@@ -342,7 +342,7 @@ const AdminOrderDetail = () => {
             <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No bundle</SelectItem>
-              {SEASONAL_BUNDLES.map((b) => (
+              {FLOWER_ONLY_PLANS.map((b) => (
                 <SelectItem key={b.id} value={b.id}>{b.label} (${b.price})</SelectItem>
               ))}
             </SelectContent>

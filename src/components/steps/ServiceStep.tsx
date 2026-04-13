@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IntakeFormData, MonumentType, MONUMENT_PRICES, CARE_PLANS, SEASONAL_BUNDLES, CarePlan, SERVICE_FEATURES } from "@/lib/pricing";
+import { IntakeFormData, MonumentType, MONUMENT_PRICES, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, SERVICE_FEATURES } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Check, Shield, Sparkles, X, Leaf, Flower2, Star } from "lucide-react";
 
@@ -29,8 +29,8 @@ const ServiceStep = ({ data, update }: Props) => {
   const wantsMonitoring = data.wantsMonitoring === true;
   const hasSelectedOffer = data.selectedOffer !== '';
 
-  // Determine which care plans to recommend based on intent
-  const getRecommendedPlan = (): CarePlan | null => {
+  // Determine which maintenance plans to recommend based on intent
+  const getRecommendedPlan = (): string | null => {
     if (wantsFlowers && (isOutOfState || wantsMonitoring)) return 'legacy';
     if (wantsMonitoring && isOutOfState) return 'sentinel';
     if (wantsMonitoring) return 'keeper';
@@ -40,12 +40,6 @@ const ServiceStep = ({ data, update }: Props) => {
 
   const recommendedPlan = getRecommendedPlan();
   const showCarePlans = hasSelectedOffer;
-  const showBundles = hasSelectedOffer;
-
-  const formatPlanPrice = (plan: typeof CARE_PLANS[CarePlan]) => {
-    if (plan.period === 'one-time') return `$${plan.price}`;
-    return `$${plan.price}/yr`;
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -80,48 +74,7 @@ const ServiceStep = ({ data, update }: Props) => {
             </ul>
           </button>
 
-          {/* Contextual Seasonal Bundles */}
-          {showBundles && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-display font-semibold flex items-center gap-2">
-                <Flower2 className="w-5 h-5 text-accent" /> Flower & Holiday Bundles
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {wantsFlowers
-                  ? "Since you're interested in flower placements, these bundles are a great fit."
-                  : "Add seasonal flower placements for your important dates."}
-              </p>
-              <div className="space-y-3">
-                {SEASONAL_BUNDLES.map((b) => (
-                  <button
-                    key={b.id}
-                    onClick={() => update({ selectedBundle: data.selectedBundle === b.id ? '' : b.id })}
-                    className={`relative w-full p-4 rounded-lg border text-left transition-all ${
-                      data.selectedBundle === b.id
-                        ? "border-accent bg-accent/10"
-                        : "border-border bg-secondary/30 hover:border-muted-foreground/40"
-                    }`}
-                  >
-                    {b.id === 'memorial_day' && (
-                      <span className="absolute -top-2.5 right-3 text-[10px] font-bold uppercase tracking-wider gradient-patina text-primary-foreground px-2 py-0.5 rounded-full">
-                        Best Value
-                      </span>
-                    )}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">{b.label}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{b.description}</p>
-                        {b.savings && <span className="text-xs text-primary font-semibold">{b.savings}</span>}
-                      </div>
-                      <p className="text-xl font-bold ml-4">${b.price}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Contextual Care Plans */}
+          {/* Contextual Maintenance Plans */}
           {showCarePlans && (
             <div className="space-y-3">
               <div className="p-4 rounded-lg border border-primary/30 bg-primary/5">
@@ -137,15 +90,16 @@ const ServiceStep = ({ data, update }: Props) => {
                   Set-it-and-forget-it memorial care — you always know who's at your loved one's grave.
                 </p>
                 <div className="space-y-2">
-                  {(Object.keys(CARE_PLANS) as CarePlan[]).map((key) => {
-                    const plan = CARE_PLANS[key];
+                  {(Object.keys(MAINTENANCE_PLANS) as Array<keyof typeof MAINTENANCE_PLANS>).map((key) => {
+                    const plan = MAINTENANCE_PLANS[key];
+                    const planPrice = resolvedMonumentType ? MAINTENANCE_PLAN_PRICES[resolvedMonumentType]?.[key] : null;
                     const isRecommended = key === recommendedPlan;
                     return (
                       <button
                         key={key}
-                        onClick={() => update({ selectedPlan: data.selectedPlan === key ? '' : key })}
+                        onClick={() => update({ selectedMaintenancePlan: data.selectedMaintenancePlan === key ? '' : key })}
                         className={`w-full p-3 rounded-lg border text-left transition-all relative ${
-                          data.selectedPlan === key
+                          data.selectedMaintenancePlan === key
                             ? "border-primary bg-primary/10"
                             : isRecommended
                             ? "border-primary/50 bg-primary/5"
@@ -162,7 +116,7 @@ const ServiceStep = ({ data, update }: Props) => {
                             <p className="text-sm font-bold">{plan.label}</p>
                             <p className="text-xs text-muted-foreground">{plan.description}</p>
                           </div>
-                          <p className="text-sm font-bold ml-3 whitespace-nowrap">{formatPlanPrice(plan)}</p>
+                          {planPrice && <p className="text-sm font-bold ml-3 whitespace-nowrap">${planPrice}/yr</p>}
                         </div>
                       </button>
                     );

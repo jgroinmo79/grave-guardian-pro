@@ -8,8 +8,6 @@ export type VeteranMaterialType = 'granite' | 'marble' | 'bronze';
 
 export type MaterialType = 'granite' | 'marble' | 'bronze' | 'mixed';
 
-export type CarePlan = 'keeper' | 'sentinel' | 'legacy';
-
 export interface MonumentPricing {
   label: string;
   price: number;
@@ -48,84 +46,44 @@ export const SERVICE_FEATURES = [
   'Scheduled within 1 week of booking',
 ];
 
-export const CARE_PLANS = {
-  keeper: {
-    label: 'The Keeper',
-    price: 525,
-    period: 'year',
-    description: '2 visits · 1 flower placement. Choose 1 date: Memorial Day, Easter, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
-    features: [
-      '2 full cleaning visits (spring + fall)',
-      '1 included flower placement on your chosen holiday',
-      'Photos after each visit',
-      'Condition report',
-      'Priority scheduling',
-      'Automatic damage documentation if deterioration found',
-    ],
-    recommended: 'out-of-state families',
-  },
-  sentinel: {
-    label: 'The Sentinel',
-    price: 675,
-    period: 'year',
-    description: '3 visits · 2 flower placements. Choose 2 dates: Memorial Day, Easter, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
-    features: [
-      '3 full cleaning visits (spring, summer, fall)',
-      '2 included flower placements on your chosen holidays',
-      'Photos after each visit',
-      'Condition report',
-      'Priority scheduling',
-      'Automatic damage documentation if deterioration found',
-    ],
-    recommended: 'families wanting consistent care',
-  },
-  legacy: {
-    label: 'The Legacy',
-    price: 1200,
-    period: 'year',
-    description: '4 visits · 3 flower placements. Choose 3 dates: Memorial Day, Christmas, Mother\'s Day, Father\'s Day, birthday, or anniversary.',
-    features: [
-      '4 full cleaning visits (quarterly)',
-      '3 included flower placements on your chosen dates',
-      'Photos after each visit',
-      'Condition report',
-      'Top-priority scheduling',
-      'Automatic damage documentation if deterioration found',
-      'Annual preservation assessment',
-    ],
-    recommended: 'complete peace of mind',
-  },
+export const MAINTENANCE_PLANS = {
+  keeper: { label: 'The Keeper', visits: 2, description: '2 cleaning visits per year' },
+  sentinel: { label: 'The Sentinel', visits: 3, description: '3 cleaning visits per year' },
+  legacy: { label: 'The Legacy', visits: 4, description: '4 cleaning visits per year' },
 };
 
-export const SEASONAL_BUNDLES = [
-  {
-    id: 'single_arrangement',
-    label: 'Single Arrangement & Placement',
-    price: 100,
-    description: 'One arrangement delivered and placed on your chosen date. Photo confirmation sent same day. Travel fee applies.',
-    savings: null,
-  },
-  {
-    id: 'memorial_day',
-    label: 'The Memorial Day Bundle',
-    price: 325,
-    description: 'Honor their service. Full restoration cleaning, American flag placement, seasonal flower arrangement, condition report. Scheduled the week of Memorial Day.',
-    savings: null,
-  },
-  {
-    id: 'remembrance_trio',
-    label: 'The Remembrance Trio',
-    price: 450,
-    description: '3 flower placements on 3 customer-chosen dates — birthdays, holidays, anniversaries. Seasonal arrangement, photos every visit, eyes on the stone every trip.',
-    savings: 'Save $75–$150',
-  },
-  {
-    id: 'memorial_year',
-    label: 'The Memorial Year Bundle',
-    price: 650,
-    description: '5 flower placements on 5 customer-chosen dates. Any combination of holidays, birthdays, anniversaries. Priority holiday scheduling.',
-    savings: 'Save $225–$350',
-  },
+export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
+  single_marker: { keeper: 180, sentinel: 260, legacy: 340 },
+  double_marker: { keeper: 230, sentinel: 330, legacy: 430 },
+  single_slant: { keeper: 230, sentinel: 330, legacy: 430 },
+  single_upright: { keeper: 270, sentinel: 390, legacy: 510 },
+  double_slant: { keeper: 320, sentinel: 460, legacy: 600 },
+  double_upright: { keeper: 360, sentinel: 520, legacy: 680 },
+  grave_ledger: { keeper: 450, sentinel: 650, legacy: 850 },
+};
+
+export const FLOWER_PLANS = {
+  tribute: { label: 'The Tribute', cleanings: 1, flowers: 1, description: '1 cleaning + 1 flower placement per year' },
+  remembrance: { label: 'The Remembrance', cleanings: 2, flowers: 2, description: '2 cleanings + 2 flower placements per year' },
+  devotion: { label: 'The Devotion', cleanings: 3, flowers: 3, description: '3 cleanings + 3 flower placements per year' },
+  eternal: { label: 'The Eternal', cleanings: 4, flowers: 4, description: '4 cleanings + 4 flower placements per year' },
+};
+
+export const FLOWER_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
+  single_marker: { tribute: 200, remembrance: 355, devotion: 510, eternal: 665 },
+  double_marker: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
+  single_slant: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
+  single_upright: { tribute: 250, remembrance: 445, devotion: 640, eternal: 835 },
+  double_slant: { tribute: 275, remembrance: 490, devotion: 705, eternal: 920 },
+  double_upright: { tribute: 300, remembrance: 535, devotion: 770, eternal: 1005 },
+  grave_ledger: { tribute: 350, remembrance: 625, devotion: 900, eternal: 1175 },
+};
+
+export const FLOWER_ONLY_PLANS = [
+  { id: 'flower_1', label: '1 Flower Placement', placements: 1, price: 100 },
+  { id: 'flower_2', label: '2 Flower Placements', placements: 2, price: 175 },
+  { id: 'flower_3', label: '3 Flower Placements', placements: 3, price: 250 },
+  { id: 'flower_4', label: '4 Flower Placements', placements: 4, price: 325 },
 ];
 
 export const ADD_ONS = [
@@ -176,13 +134,14 @@ export interface IntakeFormData {
   wantsFlowerPlacement: boolean | null;
   // Step 5
   selectedOffer: string;
-  selectedPlan: CarePlan | '';
-  selectedBundle: string;
+  selectedMaintenancePlan: string;
+  selectedFlowerPlan: string;
+  selectedFlowerOnly: string;
   // Step 6
   addOns: string[];
   // Holiday picker for annual plans
   selectedHolidays: string[];
-  holidayCustomDates: Record<string, string>; // e.g. { "Deceased's Birthday": "03-15" }
+  holidayCustomDates: Record<string, string>;
   // Flower date picker for standalone flower bookings
   flowerHolidays: string[];
   flowerCustomDates: Record<string, string>;
@@ -233,8 +192,9 @@ export const initialFormData: IntakeFormData = {
   wantsMonitoring: null,
   wantsFlowerPlacement: null,
   selectedOffer: '',
-  selectedPlan: '',
-  selectedBundle: '',
+  selectedMaintenancePlan: '',
+  selectedFlowerPlan: '',
+  selectedFlowerOnly: '',
   addOns: [],
   selectedHolidays: [],
   holidayCustomDates: {},

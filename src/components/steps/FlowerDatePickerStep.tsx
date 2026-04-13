@@ -34,7 +34,7 @@ const needsCustomDate = (holiday: string) =>
   holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
 
 const FlowerDatePickerStep = ({ data, update }: Props) => {
-  const bundleId = data.selectedBundle;
+  const bundleId = data.selectedFlowerOnly;
   const maxPicks = FLOWER_PICK_LIMITS[bundleId] ?? 0;
   const label = FLOWER_LABELS[bundleId] ?? "Flower Service";
 

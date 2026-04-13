@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, CARE_PLANS, SEASONAL_BUNDLES } from "@/lib/pricing";
+import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,19 +16,23 @@ const CheckoutStep = ({ data }: Props) => {
   const travelZone = getTravelFee(data.estimatedMiles);
   const travelFee = travelZone.fee;
 
-  const hasIncludedCleaning = !!data.selectedPlan || data.selectedBundle === 'memorial_day';
-  const isFlowerOnlyBundle = data.selectedBundle === 'remembrance_trio' || data.selectedBundle === 'memorial_year';
-  const showCleaningLine = !hasIncludedCleaning && !isFlowerOnlyBundle;
+  const hasIncludedCleaning = !!data.selectedMaintenancePlan || !!data.selectedFlowerPlan;
+  const isFlowerOnly = !!data.selectedFlowerOnly;
+  const showCleaningLine = !hasIncludedCleaning && !isFlowerOnly;
 
   const basePrice = (showCleaningLine && monument) ? monument.price : 0;
 
   const selectedAddOns = ADD_ONS.filter((a) => data.addOns.includes(a.id));
   const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
 
-  const bundle = SEASONAL_BUNDLES.find((b) => b.id === data.selectedBundle);
-  const plan = data.selectedPlan ? CARE_PLANS[data.selectedPlan] : null;
+  const resolvedType = data.monumentType as MonumentType | '';
+  const maintenancePlan = data.selectedMaintenancePlan ? MAINTENANCE_PLANS[data.selectedMaintenancePlan as keyof typeof MAINTENANCE_PLANS] : null;
+  const maintenancePrice = (resolvedType && data.selectedMaintenancePlan) ? (MAINTENANCE_PLAN_PRICES[resolvedType]?.[data.selectedMaintenancePlan] ?? 0) : 0;
+  const flowerPlan = data.selectedFlowerPlan ? FLOWER_PLANS[data.selectedFlowerPlan as keyof typeof FLOWER_PLANS] : null;
+  const flowerPlanPrice = (resolvedType && data.selectedFlowerPlan) ? (FLOWER_PLAN_PRICES[resolvedType]?.[data.selectedFlowerPlan] ?? 0) : 0;
+  const flowerOnly = FLOWER_ONLY_PLANS.find((f) => f.id === data.selectedFlowerOnly);
 
-  let subtotal = basePrice + travelFee + addOnTotal + (bundle?.price ?? 0) + (plan?.price ?? 0);
+  let subtotal = basePrice + travelFee + addOnTotal + maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0);
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
   const handleCheckout = async () => {
@@ -41,7 +45,7 @@ const CheckoutStep = ({ data }: Props) => {
           selectedOffer: data.selectedOffer,
           estimatedMiles: data.estimatedMiles,
           addOns: data.addOns,
-          selectedBundle: data.selectedBundle,
+          selectedFlowerOnly: data.selectedFlowerOnly || null,
           isVeteran: data.isVeteran,
           customerEmail: data.shopperEmail,
           cemeteryName: data.cemeteryName,
@@ -62,7 +66,7 @@ const CheckoutStep = ({ data }: Props) => {
           consentAuthorize: data.consentAuthorize,
           consentPhotos: data.consentPhotos,
           preferredDate: data.preferredDate ? data.preferredDate.toISOString().split('T')[0] : null,
-          selectedPlan: data.selectedPlan || null,
+          selectedPlan: data.selectedMaintenancePlan || null,
           selectedHolidays: data.selectedHolidays || [],
           holidayCustomDates: data.holidayCustomDates || {},
           isGift: data.isGift || false,
@@ -109,31 +113,32 @@ const CheckoutStep = ({ data }: Props) => {
             </div>
           )}
 
-          {plan && (
+          {maintenancePlan && (
             <div>
               <div className="flex justify-between text-sm">
-                <span>{plan.label} (annual plan)</span>
-                <span className="font-semibold">${plan.price}/yr</span>
+                <span>{maintenancePlan.label} (annual plan)</span>
+                <span className="font-semibold">${maintenancePrice}/yr</span>
               </div>
-              <p className="text-xs mt-1 text-muted-foreground">
-                {data.selectedPlan === 'keeper' && '2 cleanings per year · 1 flower placement · Photos after each visit · Condition report · Priority scheduling'}
-                {data.selectedPlan === 'sentinel' && '3 cleanings per year · 2 flower placements · Photos after each visit · Condition report · Priority scheduling'}
-                {data.selectedPlan === 'legacy' && '4 quarterly cleanings · 3 flower placements · Photos after each visit · Annual preservation assessment'}
-              </p>
+              <p className="text-xs mt-1 text-muted-foreground">{maintenancePlan.description}</p>
             </div>
           )}
 
-          {bundle && (
+          {flowerPlan && (
             <div>
               <div className="flex justify-between text-sm">
-                <span>{bundle.label}</span>
-                <span className="font-semibold">${bundle.price}</span>
+                <span>{flowerPlan.label} (annual plan)</span>
+                <span className="font-semibold">${flowerPlanPrice}/yr</span>
               </div>
-              <p className="text-xs mt-1 text-muted-foreground">
-                {data.selectedBundle === 'memorial_day' && 'Full restoration clean + premium artificial flower arrangement · Scheduled the week of Memorial Day · Photo confirmation included'}
-                {data.selectedBundle === 'remembrance_trio' && '3 flower placements on your chosen dates (birthday, anniversary, holiday) · Coordination included'}
-                {data.selectedBundle === 'memorial_year' && '5 placements per year on your scheduled dates · Year-round remembrance'}
-              </p>
+              <p className="text-xs mt-1 text-muted-foreground">{flowerPlan.description}</p>
+            </div>
+          )}
+
+          {flowerOnly && (
+            <div>
+              <div className="flex justify-between text-sm">
+                <span>{flowerOnly.label}</span>
+                <span className="font-semibold">${flowerOnly.price}</span>
+              </div>
             </div>
           )}
 
@@ -155,7 +160,7 @@ const CheckoutStep = ({ data }: Props) => {
             <div className="flex justify-between text-sm text-primary">
               <span>Veteran Discount (10%)</span>
               <span className="font-semibold">
-                -${Math.round((basePrice + travelFee + addOnTotal + (bundle?.price ?? 0) + (plan?.price ?? 0)) * 0.1)}
+                -${Math.round((basePrice + travelFee + addOnTotal + maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0)) * 0.1)}
               </span>
             </div>
           )}
