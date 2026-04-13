@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { CARE_PLANS } from "@/lib/pricing";
-import type { CarePlan } from "@/lib/pricing";
+import { MAINTENANCE_PLANS } from "@/lib/pricing";
 import { Shield, Calendar, CheckCircle, PauseCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +20,7 @@ const PlanDetail = ({ subscription }: PlanDetailProps) => {
   const [requestType, setRequestType] = useState<"pause" | "cancel">("pause");
   const [reason, setReason] = useState("");
 
-  const plan = CARE_PLANS[subscription.plan as CarePlan];
+  const plan = MAINTENANCE_PLANS[subscription.plan as keyof typeof MAINTENANCE_PLANS];
 
   // Check for existing pause/cancel request
   const { data: existingRequest } = useQuery({

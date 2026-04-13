@@ -46,9 +46,9 @@ const BookingFlow = () => {
     setData((prev) => ({ ...prev, ...partial }));
   };
 
-  const hasAnnualPlan = data.selectedPlan !== '';
-  const needsFlowerDates = ['single_arrangement', 'remembrance_trio', 'memorial_year'].includes(data.selectedBundle);
-  const flowerPickLimit = data.selectedBundle === 'single_arrangement' ? 1 : data.selectedBundle === 'remembrance_trio' ? 3 : data.selectedBundle === 'memorial_year' ? 5 : 0;
+  const hasAnnualPlan = data.selectedMaintenancePlan !== '' || data.selectedFlowerPlan !== '';
+  const needsFlowerDates = data.selectedFlowerOnly !== '';
+  const flowerPickLimit = data.selectedFlowerOnly === 'flower_1' ? 1 : data.selectedFlowerOnly === 'flower_2' ? 2 : data.selectedFlowerOnly === 'flower_3' ? 3 : data.selectedFlowerOnly === 'flower_4' ? 4 : 0;
 
   const steps: StepDef[] = useMemo(() => {
     const base: StepDef[] = [
@@ -78,7 +78,7 @@ const BookingFlow = () => {
       {
         id: 'service',
         render: (d, u) => <ServiceStep data={d} update={u} />,
-        canProceed: (d) => d.selectedOffer !== '' || d.selectedPlan !== '' || d.selectedBundle !== '',
+        canProceed: (d) => d.selectedOffer !== '' || d.selectedMaintenancePlan !== '' || d.selectedFlowerPlan !== '' || d.selectedFlowerOnly !== '',
       },
       {
         id: 'intent',
@@ -94,7 +94,7 @@ const BookingFlow = () => {
 
     // Insert holiday picker step after add-ons if annual plan selected
     if (hasAnnualPlan) {
-      const maxPicks = data.selectedPlan === 'keeper' ? 1 : data.selectedPlan === 'sentinel' ? 2 : 3;
+      const maxPicks = data.selectedMaintenancePlan === 'keeper' ? 1 : data.selectedMaintenancePlan === 'sentinel' ? 2 : data.selectedMaintenancePlan === 'legacy' ? 3 : 2;
       base.push({
         id: 'holidays',
         render: (d, u) => <HolidayPickerStep data={d} update={u} />,
@@ -158,7 +158,7 @@ const BookingFlow = () => {
     );
 
     return base;
-  }, [hasAnnualPlan, data.selectedPlan, needsFlowerDates, flowerPickLimit]);
+  }, [hasAnnualPlan, data.selectedMaintenancePlan, needsFlowerDates, flowerPickLimit]);
 
   // Track abandoned lead on step changes
   useEffect(() => {
