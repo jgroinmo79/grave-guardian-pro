@@ -59,7 +59,7 @@ const ServiceStep = ({ data, update }: Props) => {
         <div className="max-w-lg mx-auto space-y-6">
           {/* Single service option */}
           <button
-            onClick={() => update({ selectedOffer: 'selected' })}
+            onClick={() => update({ selectedOffer: 'A' })}
             className={`relative w-full p-5 rounded-lg border text-left transition-all ${
               data.selectedOffer !== ''
                 ? "border-primary bg-primary/10"
