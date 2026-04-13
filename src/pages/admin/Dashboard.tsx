@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   const { data: orders } = useQuery({
     queryKey: ["admin-orders-count"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("orders").select("id, status, total_price, created_at, scheduled_date");
+      const { data, error } = await supabase.from("orders").select("id, status, total_price, created_at, scheduled_date").limit(500);
       if (error) throw error;
       return data;
     },
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
   const pendingOrders = orders?.filter((o) => o.status === "pending").length ?? 0;
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) ?? 0;
   const upcomingJobs = orders?.filter((o) => o.scheduled_date && o.scheduled_date >= format(now, "yyyy-MM-dd") && o.status !== "completed" && o.status !== "cancelled").length ?? 0;
-  const servicedThisMonth = orders?.filter((o) => o.status === "completed" && o.created_at >= monthStart && o.created_at <= monthEnd + "T23:59:59").length ?? 0;
+  const servicedThisMonth = orders?.filter((o) => o.status === "completed" && o.scheduled_date && o.scheduled_date >= monthStart && o.scheduled_date <= monthEnd).length ?? 0;
 
   const stats = [
     { label: "Total Orders", value: totalOrders, icon: ClipboardList, color: "text-primary" },
