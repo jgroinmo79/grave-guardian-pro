@@ -3,22 +3,25 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Camera, ClipboardList, Wrench, MessageSquare, Download } from "lucide-react";
 
-const SERVICE_LABELS: Record<string, string> = {
-  A: "Standard Clean",
-  B: "Restoration Clean",
-};
-
 const BUNDLE_LABELS: Record<string, string> = {
-  memorial_day: "Memorial Day Bundle",
-  remembrance_trio: "Remembrance Trio",
-  memorial_year: "Memorial Year Flower Plan",
-  single_arrangement: "Single Arrangement & Placement",
+  tribute: "The Tribute",
+  remembrance: "The Remembrance",
+  devotion: "The Devotion",
+  eternal: "The Eternal",
+  flower_1: "1 Flower Placement",
+  flower_2: "2 Flower Placements",
+  flower_3: "3 Flower Placements",
+  flower_4: "4 Flower Placements",
 };
 
 const PLAN_LABELS: Record<string, string> = {
   keeper: "The Keeper",
   sentinel: "The Sentinel",
   legacy: "The Legacy",
+  tribute: "The Tribute",
+  remembrance: "The Remembrance",
+  devotion: "The Devotion",
+  eternal: "The Eternal",
 };
 
 const ADD_ON_LABELS: Record<string, string> = {
@@ -102,8 +105,8 @@ const HistoryTab = ({ orders }: HistoryTabProps) => {
     // Main service
     if (order.bundle_id && BUNDLE_LABELS[order.bundle_id]) {
       items.push(BUNDLE_LABELS[order.bundle_id]);
-    } else if (order.offer) {
-      items.push(SERVICE_LABELS[order.offer] || `Offer ${order.offer}`);
+    } else {
+      items.push("Monument Cleaning");
     }
 
     // Add-ons
@@ -146,7 +149,7 @@ const HistoryTab = ({ orders }: HistoryTabProps) => {
                   <p className="text-sm font-semibold">
                     {o.bundle_id && BUNDLE_LABELS[o.bundle_id]
                       ? BUNDLE_LABELS[o.bundle_id]
-                      : o.offer === "A" ? "Standard Clean" : "Restoration Clean"}
+                      : "Monument Cleaning"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Ordered {new Date(o.created_at).toLocaleDateString()}
