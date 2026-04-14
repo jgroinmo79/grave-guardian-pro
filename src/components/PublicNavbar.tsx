@@ -3,8 +3,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Home", hash: "", route: null },
+  { label: "Home", hash: "", route: "/home" },
   { label: "About", hash: "", route: "/about" },
+  { label: "Services", hash: "", route: "/services" },
   { label: "How It Works", hash: "how-it-works", route: null },
   { label: "Gallery", hash: "gallery", route: null },
 ];
@@ -20,13 +21,8 @@ const PublicNavbar = () => {
       navigate(link.route);
       return;
     }
-    if (!link.hash) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      if (location.pathname !== "/") navigate("/");
-      return;
-    }
-    if (location.pathname !== "/") {
-      navigate("/#" + link.hash);
+    if (location.pathname !== "/home") {
+      navigate("/home#" + link.hash);
       return;
     }
     const el = document.getElementById(link.hash);
