@@ -75,8 +75,8 @@ const FLOWER_ONLY_PLANS: Record<string, { label: string; price: number }> = {
 
 const VETERAN_TYPE_MAP: Record<string, string> = {
   va_upright: "single_upright",
-  va_flat: "flat_marker",
-  va_niche: "flat_marker",
+  va_flat: "single_marker",
+  va_niche: "single_marker",
 };
 
 function getTravelFee(miles: number): number {
