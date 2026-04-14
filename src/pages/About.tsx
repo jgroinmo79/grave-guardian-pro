@@ -83,7 +83,7 @@ const About = () => (
     {/* Credentials strip */}
     <div className="px-6 py-6" style={{ borderTop: "1px solid #6B6B6B", backgroundColor: "#141414" }}>
       <p className="max-w-5xl mx-auto text-center font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#6B6B6B" }}>
-        CCUS-Certified Methods · D/2 Biological Solution · $1,000,000 Liability Coverage · Serving Five States
+        CCUS-Certified Methods · Endurance Gravestone &amp; Monument Cleaner · $1,000,000 Liability Coverage · Serving Missouri, Arkansas, Illinois, Kentucky and Tennessee
       </p>
     </div>
 
