@@ -929,7 +929,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      flower_arrangements_public: {
+        Row: {
+          arrangement_type: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          image_url: string | null
+          image_url_2: string | null
+          image_url_3: string | null
+          image_url_4: string | null
+          image_url_5: string | null
+          is_active: boolean | null
+          name: string | null
+          occasion_tags: string[] | null
+          retail_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          arrangement_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          image_url?: string | null
+          image_url_2?: string | null
+          image_url_3?: string | null
+          image_url_4?: string | null
+          image_url_5?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          occasion_tags?: string[] | null
+          retail_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          arrangement_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          image_url?: string | null
+          image_url_2?: string | null
+          image_url_3?: string | null
+          image_url_4?: string | null
+          image_url_5?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          occasion_tags?: string[] | null
+          retail_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       delete_email: {
