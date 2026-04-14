@@ -324,7 +324,7 @@ const GraveDetail = ({ monumentId }: GraveDetailProps) => {
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs font-mono text-muted-foreground">#{o.id.slice(0, 8)}</p>
-                      <p className="text-sm">{o.offer === "A" ? "Standard Clean" : "Restoration Clean"} · {new Date(o.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm">Monument Cleaning · {new Date(o.created_at).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[o.status]}`}>

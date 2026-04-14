@@ -13,7 +13,7 @@ const SERVICE_OPTIONS = [
   "Basic Cleaning",
   "Deep Restoration",
   "Biological Growth Removal",
-  "D/2 Treatment",
+  "Endurance Cleaner Treatment",
   "Lettering Re-blackening",
   "Weeding & Edging",
   "Flag Placement",
