@@ -81,9 +81,8 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
     queryKey: ["flower_arrangements_active"],
     queryFn: async () => {
       const { data: rows, error } = await supabase
-        .from("flower_arrangements")
+        .from("flower_arrangements_public" as any)
         .select("id, name, description, retail_price, image_url, image_url_2, image_url_3, image_url_4, image_url_5, arrangement_type, occasion_tags, is_active, created_at, updated_at")
-        .eq("is_active", true)
         .order("retail_price", { ascending: true });
       if (error) throw error;
       return rows;
