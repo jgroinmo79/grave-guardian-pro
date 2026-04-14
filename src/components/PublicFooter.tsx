@@ -7,10 +7,6 @@ const NAV_LINKS = [
   { label: "Gallery", to: "/home#gallery" },
   { label: "Contact", to: "/home#contact" },
 ];
-  { label: "Services", to: "/#services" },
-  { label: "Gallery", to: "/#gallery" },
-  { label: "Contact", to: "/#contact" },
-];
 
 const PublicFooter = () => (
   <footer style={{ backgroundColor: "#141414", borderTop: "1px solid #2C2C2C" }}>
