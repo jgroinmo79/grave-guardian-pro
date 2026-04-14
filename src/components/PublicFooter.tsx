@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 
 const NAV_LINKS = [
-  { label: "Home", to: "/" },
+  { label: "Home", to: "/home" },
   { label: "About", to: "/about" },
+  { label: "Services", to: "/services" },
+  { label: "Gallery", to: "/home#gallery" },
+  { label: "Contact", to: "/home#contact" },
+];
   { label: "Services", to: "/#services" },
   { label: "Gallery", to: "/#gallery" },
   { label: "Contact", to: "/#contact" },
