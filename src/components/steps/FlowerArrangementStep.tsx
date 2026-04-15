@@ -12,6 +12,7 @@ interface Props {
 
 const OCCASION_FILTERS = [
   { value: "all", label: "All" },
+  { value: "easter", label: "Easter" },
   { value: "mothers_day", label: "Mother's Day" },
   { value: "fathers_day", label: "Father's Day" },
   { value: "christmas", label: "Christmas" },
