@@ -25,7 +25,7 @@ const ServiceStep = ({ data, update }: Props) => {
         <div className="max-w-lg mx-auto space-y-8">
           {/* Section A: One-Time Cleaning */}
           <button
-            onClick={() => update({ selectedOffer: 'A' })}
+            onClick={() => update({ selectedOffer: 'cleaning' })}
             className={`relative w-full p-5 rounded-lg border text-left transition-all ${
               hasSelectedCleaning
                 ? "border-primary bg-primary/10"
