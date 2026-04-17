@@ -112,10 +112,21 @@ const Auth = () => {
       <div className="w-full max-w-sm space-y-8 relative z-10">
         {/* Logo */}
         <div className="text-center">
-          <img
-            src={logo}
-            alt="Grave Detail Cleaning & Preservation"
-            className="w-full max-w-sm mx-auto mb-1"
+          <div
+            className="w-full max-w-sm mx-auto mb-1 aspect-square"
+            style={{
+              backgroundColor: '#C9976B',
+              WebkitMaskImage: `url(${logo})`,
+              maskImage: `url(${logo})`,
+              WebkitMaskRepeat: 'no-repeat',
+              maskRepeat: 'no-repeat',
+              WebkitMaskPosition: 'center',
+              maskPosition: 'center',
+              WebkitMaskSize: 'contain',
+              maskSize: 'contain',
+            }}
+            role="img"
+            aria-label="Grave Detail Cleaning & Preservation"
           />
         </div>
 
