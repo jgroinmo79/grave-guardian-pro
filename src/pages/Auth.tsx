@@ -112,10 +112,11 @@ const Auth = () => {
       <div className="w-full max-w-sm space-y-8 relative z-10">
         {/* Logo */}
         <div className="text-center">
-          <div className="relative w-full max-w-sm mx-auto mb-1">
-            <img src={logo} alt="Grave Detail Cleaning & Preservation" className="w-full brightness-0 invert" style={{ filter: 'brightness(0) invert(1)' }} />
-            <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: '#C9976B', mixBlendMode: 'multiply' }} />
-          </div>
+          <img
+            src={logo}
+            alt="Grave Detail Cleaning & Preservation"
+            className="w-full max-w-sm mx-auto mb-1"
+          />
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-6">
