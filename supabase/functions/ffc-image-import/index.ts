@@ -290,16 +290,17 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // Download + convert
-        const jpeg = await downloadAndConvert(product.imageUrl);
+        // Download original (FFC images are already optimized WebP)
+        const { bytes, contentType } = await downloadImage(product.imageUrl);
         await sleep(REQUEST_DELAY_MS); // rate-limit FFC image hits too
 
         // Upload to bucket. Use gd_code if present, else fall back to row id.
-        const fileName = `${row.gd_code || row.id}_1.jpg`;
+        const ext = contentType === "image/webp" ? "webp" : "jpg";
+        const fileName = `${row.gd_code || row.id}_1.${ext}`;
         const { error: upErr } = await admin.storage
           .from("flower-images")
-          .upload(fileName, jpeg, {
-            contentType: "image/jpeg",
+          .upload(fileName, bytes, {
+            contentType,
             upsert: true,
           });
         if (upErr) throw upErr;
