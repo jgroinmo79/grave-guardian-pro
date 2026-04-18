@@ -181,7 +181,9 @@ async function crawlCatalog(): Promise<Map<string, CatalogProduct>> {
   return all;
 }
 
-async function downloadAndConvert(url: string): Promise<Uint8Array> {
+async function downloadImage(
+  url: string,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
   const res = await fetch(url, {
     headers: {
       "User-Agent":
@@ -189,27 +191,10 @@ async function downloadAndConvert(url: string): Promise<Uint8Array> {
     },
   });
   if (!res.ok) throw new Error(`image fetch ${url} -> HTTP ${res.status}`);
-  const buf = new Uint8Array(await res.arrayBuffer());
-
-  let img = await decode(buf);
-  // decode() may return GIF (animated) — narrow to Image
-  if (!(img instanceof Image)) {
-    // Frame-based; cast first frame
-    img = (img as unknown as { frames: Image[] }).frames?.[0] ?? img as Image;
-  }
-  const image = img as Image;
-
-  // Resize so longest edge <= MAX_IMAGE_EDGE, preserving aspect ratio
-  const longest = Math.max(image.width, image.height);
-  if (longest > MAX_IMAGE_EDGE) {
-    const scale = MAX_IMAGE_EDGE / longest;
-    image.resize(
-      Math.max(1, Math.round(image.width * scale)),
-      Math.max(1, Math.round(image.height * scale)),
-    );
-  }
-
-  return await image.encodeJPEG(JPEG_QUALITY);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const contentType =
+    res.headers.get("content-type")?.split(";")[0].trim() || "image/webp";
+  return { bytes, contentType };
 }
 
 interface ImportReport {
