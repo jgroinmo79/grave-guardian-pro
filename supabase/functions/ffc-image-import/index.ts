@@ -7,7 +7,6 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { DOMParser, type Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
-import { decode, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,8 +19,6 @@ const FFC_BASE = "https://flowersforcemeteries.com";
 const FFC_CATALOG = `${FFC_BASE}/catalog`;
 const REQUEST_DELAY_MS = 2000;
 const MAX_PAGES = 100;
-const MAX_IMAGE_EDGE = 1200;
-const JPEG_QUALITY = 82; // imagescript uses 0-100
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -184,7 +181,9 @@ async function crawlCatalog(): Promise<Map<string, CatalogProduct>> {
   return all;
 }
 
-async function downloadAndConvert(url: string): Promise<Uint8Array> {
+async function downloadImage(
+  url: string,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
   const res = await fetch(url, {
     headers: {
       "User-Agent":
@@ -192,27 +191,10 @@ async function downloadAndConvert(url: string): Promise<Uint8Array> {
     },
   });
   if (!res.ok) throw new Error(`image fetch ${url} -> HTTP ${res.status}`);
-  const buf = new Uint8Array(await res.arrayBuffer());
-
-  let img = await decode(buf);
-  // decode() may return GIF (animated) — narrow to Image
-  if (!(img instanceof Image)) {
-    // Frame-based; cast first frame
-    img = (img as unknown as { frames: Image[] }).frames?.[0] ?? img as Image;
-  }
-  const image = img as Image;
-
-  // Resize so longest edge <= MAX_IMAGE_EDGE, preserving aspect ratio
-  const longest = Math.max(image.width, image.height);
-  if (longest > MAX_IMAGE_EDGE) {
-    const scale = MAX_IMAGE_EDGE / longest;
-    image.resize(
-      Math.max(1, Math.round(image.width * scale)),
-      Math.max(1, Math.round(image.height * scale)),
-    );
-  }
-
-  return await image.encodeJPEG(JPEG_QUALITY);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const contentType =
+    res.headers.get("content-type")?.split(";")[0].trim() || "image/webp";
+  return { bytes, contentType };
 }
 
 interface ImportReport {
@@ -308,16 +290,17 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // Download + convert
-        const jpeg = await downloadAndConvert(product.imageUrl);
+        // Download original (FFC images are already optimized WebP)
+        const { bytes, contentType } = await downloadImage(product.imageUrl);
         await sleep(REQUEST_DELAY_MS); // rate-limit FFC image hits too
 
         // Upload to bucket. Use gd_code if present, else fall back to row id.
-        const fileName = `${row.gd_code || row.id}_1.jpg`;
+        const ext = contentType === "image/webp" ? "webp" : "jpg";
+        const fileName = `${row.gd_code || row.id}_1.${ext}`;
         const { error: upErr } = await admin.storage
           .from("flower-images")
-          .upload(fileName, jpeg, {
-            contentType: "image/jpeg",
+          .upload(fileName, bytes, {
+            contentType,
             upsert: true,
           });
         if (upErr) throw upErr;
