@@ -16,12 +16,41 @@ const corsHeaders = {
 
 const FFC_BASE = "https://flowersforcemeteries.com";
 const FFC_SITEMAP = `${FFC_BASE}/sitemap.xml`;
-const PRODUCT_DELAY_MS = 500;
-const CATEGORY_DELAY_MS = 750;
 const SUPPLEMENTAL_CATEGORY_IDS = [2, 19, 20, 17];
 const MAX_CATEGORY_PAGES = 30;
 
+// Concurrency tuning — Supabase edge functions cap at 150s wall time.
+// We MUST parallelize aggressively or the function times out before
+// finishing 300+ product scrapes.
+const CATEGORY_CONCURRENCY = 8;
+const PRODUCT_CONCURRENCY = 12;
+const IMPORT_CONCURRENCY = 6;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Run an async mapper over `items` with a concurrency cap.
+async function mapPool<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const i = cursor++;
+      if (i >= items.length) return;
+      try {
+        results[i] = await fn(items[i], i);
+      } catch (e) {
+        // Surface as rejected sentinel; caller decides what to do.
+        results[i] = e as R;
+      }
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
 
 function normalizeFfcCode(raw: string | null | undefined): string {
   if (!raw) return "";
