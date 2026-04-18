@@ -143,55 +143,47 @@ async function buildCatalogFromSitemap(): Promise<{
   const categoryUrls = await fetchCategoryUrlsFromSitemap();
   console.log(`[sitemap] ${categoryUrls.length} catalog URLs`);
 
-  // 2. Walk every category page to collect product URLs
+  // 2. Walk every category page in parallel to collect product URLs
   const productUrls = new Set<string>();
-  for (const url of categoryUrls) {
+  await mapPool(categoryUrls, CATEGORY_CONCURRENCY, async (url) => {
     try {
       const html = await fetchFfcPage(url);
       const found = extractProductUrlsFromCategory(html);
       for (const p of found) productUrls.add(p);
-      console.log(
-        `[category] ${url} -> ${found.length} products (total unique ${productUrls.size})`,
-      );
+      console.log(`[category] ${url} -> ${found.length} (total ${productUrls.size})`);
     } catch (e) {
       console.warn(`[category] failed ${url}:`, e);
     }
-    await sleep(CATEGORY_DELAY_MS);
-  }
+  });
 
-  // 3. Visit each product page, extract code + image
+  // 3. Visit each product page in parallel, extract code + image
+  const productList = Array.from(productUrls);
   let scraped = 0;
-  for (const purl of productUrls) {
+  await mapPool(productList, PRODUCT_CONCURRENCY, async (purl) => {
     try {
       const html = await fetchFfcPage(purl);
       const parsed = parseProductPage(html);
       scraped++;
-      if (!parsed) {
-        console.warn(`[product] ${purl} -> no code/image`);
-      } else {
-        const normalized = normalizeFfcCode(parsed.rawCode);
-        if (!products.has(normalized)) {
-          products.set(normalized, {
-            ffcCode: normalized,
-            rawCode: parsed.rawCode,
-            imageUrl: parsed.imageUrl,
-            productUrl: purl,
-          });
-        }
+      if (!parsed) return;
+      const normalized = normalizeFfcCode(parsed.rawCode);
+      if (!products.has(normalized)) {
+        products.set(normalized, {
+          ffcCode: normalized,
+          rawCode: parsed.rawCode,
+          imageUrl: parsed.imageUrl,
+          productUrl: purl,
+        });
       }
     } catch (e) {
       console.warn(`[product] failed ${purl}:`, e);
     }
-    if (scraped % 25 === 0) {
-      console.log(
-        `[progress] scraped ${scraped}/${productUrls.size}, products mapped ${products.size}`,
-      );
+    if (scraped % 50 === 0) {
+      console.log(`[progress] ${scraped}/${productList.length}, indexed ${products.size}`);
     }
-    await sleep(PRODUCT_DELAY_MS);
-  }
+  });
 
   console.log(
-    `[sitemap-crawl] done. ${productUrls.size} product URLs, ${scraped} scraped, ${products.size} indexed`,
+    `[sitemap-crawl] done. ${productList.length} URLs, ${scraped} scraped, ${products.size} indexed`,
   );
   return { products, productUrlsScraped: scraped };
 }
