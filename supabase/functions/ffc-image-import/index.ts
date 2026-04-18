@@ -241,8 +241,9 @@ Deno.serve(async (req) => {
     // Service role for storage + writing image_url
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // ---- 1. Crawl FFC catalog ----
-    const catalog = await crawlCatalog();
+    // ---- 1. Build product index from sitemap + product pages ----
+    const { products: catalog, productUrlsScraped } =
+      await buildCatalogFromSitemap();
 
     // ---- 2. Load rows that need an image ----
     const { data: rows, error: rowsErr } = await admin
@@ -255,6 +256,7 @@ Deno.serve(async (req) => {
 
     const report: ImportReport = {
       totalInCatalog: catalog.size,
+      sitemapProductsScraped: productUrlsScraped,
       rowsChecked: rows?.length ?? 0,
       matched: 0,
       notFound: [],
