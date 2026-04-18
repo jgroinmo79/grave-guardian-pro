@@ -6,7 +6,6 @@
 // side, re-encoded to JPEG, and uploaded to our own bucket.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { DOMParser, type Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,9 +15,9 @@ const corsHeaders = {
 };
 
 const FFC_BASE = "https://flowersforcemeteries.com";
-const FFC_CATALOG = `${FFC_BASE}/catalog`;
-const REQUEST_DELAY_MS = 2000;
-const MAX_PAGES = 100;
+const FFC_SITEMAP = `${FFC_BASE}/sitemap.xml`;
+const PRODUCT_DELAY_MS = 500;
+const CATEGORY_DELAY_MS = 750;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
