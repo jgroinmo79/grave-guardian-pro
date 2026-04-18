@@ -6,7 +6,6 @@
 // side, re-encoded to JPEG, and uploaded to our own bucket.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { DOMParser, type Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,9 +15,9 @@ const corsHeaders = {
 };
 
 const FFC_BASE = "https://flowersforcemeteries.com";
-const FFC_CATALOG = `${FFC_BASE}/catalog`;
-const REQUEST_DELAY_MS = 2000;
-const MAX_PAGES = 100;
+const FFC_SITEMAP = `${FFC_BASE}/sitemap.xml`;
+const PRODUCT_DELAY_MS = 500;
+const CATEGORY_DELAY_MS = 750;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -59,126 +58,111 @@ interface CatalogProduct {
   productUrl: string;
 }
 
-function parseCatalogPage(html: string): {
-  products: CatalogProduct[];
-  pageLinks: string[];
-} {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  if (!doc) return { products: [], pageLinks: [] };
-
-  const products: CatalogProduct[] = [];
-  const seen = new Set<string>();
-
-  // Heuristic: every product card has an <img> from DigitalOcean spaces and a
-  // nearby <a href="/product/..."> with the product name.
-  const imgs = doc.querySelectorAll("img");
-  imgs.forEach((node) => {
-    const img = node as Element;
-    const src = img.getAttribute("src") || img.getAttribute("data-src") || "";
-    if (!src.includes("digitaloceanspaces.com")) return;
-
-    // Walk up to find the enclosing anchor
-    let cursor: Element | null = img;
-    let anchor: Element | null = null;
-    for (let i = 0; i < 6 && cursor; i++) {
-      if (cursor.tagName?.toLowerCase() === "a") {
-        anchor = cursor;
-        break;
-      }
-      cursor = cursor.parentElement;
-    }
-
-    // If the img isn't inside an anchor, search siblings for one
-    if (!anchor) {
-      const parent = img.parentElement;
-      if (parent) {
-        const a = parent.querySelector("a[href*='/product/']");
-        if (a) anchor = a as Element;
-      }
-    }
-
-    const href = anchor?.getAttribute("href") || "";
-    const alt = img.getAttribute("alt") || "";
-    const title = anchor?.getAttribute("title") || anchor?.textContent || "";
-
-    const codeText = `${alt} ${title} ${href}`;
-    const rawCode = extractFfcCodeFromText(codeText);
-    if (!rawCode) return;
-
-    const normalized = normalizeFfcCode(rawCode);
-    if (seen.has(normalized)) return;
-    seen.add(normalized);
-
-    products.push({
-      ffcCode: normalized,
-      rawCode,
-      imageUrl: src.startsWith("//") ? `https:${src}` : src,
-      productUrl: href.startsWith("http")
-        ? href
-        : `${FFC_BASE}${href.startsWith("/") ? "" : "/"}${href}`,
-    });
-  });
-
-  // Discover pagination links (page=N or /catalog/page/N)
-  const pageLinks = new Set<string>();
-  doc.querySelectorAll("a").forEach((node) => {
-    const a = node as Element;
-    const href = a.getAttribute("href") || "";
-    if (!href) return;
-    if (
-      /[?&]page=\d+/.test(href) ||
-      /\/catalog\/page\/\d+/.test(href) ||
-      /\/catalog\?.*\d+/.test(href)
-    ) {
-      const abs = href.startsWith("http")
-        ? href
-        : `${FFC_BASE}${href.startsWith("/") ? "" : "/"}${href}`;
-      pageLinks.add(abs);
-    }
-  });
-
-  return { products, pageLinks: Array.from(pageLinks) };
+// Pull all category catalog URLs from the sitemap.
+async function fetchCategoryUrlsFromSitemap(): Promise<string[]> {
+  const xml = await fetchFfcPage(FFC_SITEMAP);
+  const locs = Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/g)).map((m) =>
+    m[1].trim(),
+  );
+  // Keep only catalog URLs (the bare /catalog and any /catalog?categories[]=N)
+  const catalogUrls = locs.filter((u) => /\/catalog(\?|$)/.test(u));
+  return Array.from(new Set(catalogUrls));
 }
 
-async function crawlCatalog(): Promise<Map<string, CatalogProduct>> {
-  const all = new Map<string, CatalogProduct>();
-  const visited = new Set<string>();
-  const queue: string[] = [FFC_CATALOG];
-  let pagesCrawled = 0;
+// Extract /product/{id} URLs from a category listing page.
+function extractProductUrlsFromCategory(html: string): string[] {
+  const matches = html.match(/\/product\/\d+/g) || [];
+  return Array.from(new Set(matches)).map((p) => `${FFC_BASE}${p}`);
+}
 
-  while (queue.length > 0 && pagesCrawled < MAX_PAGES) {
-    const url = queue.shift()!;
-    if (visited.has(url)) continue;
-    visited.add(url);
+// Parse a single product page for the FFC item code and main image URL.
+function parseProductPage(html: string): {
+  rawCode: string;
+  imageUrl: string;
+} | null {
+  // "Item # BR1550" — letters+digits, may include underscores
+  const codeMatch = html.match(/Item\s*#\s*([A-Z0-9_]+)/i);
+  if (!codeMatch) return null;
+  const rawCode = codeMatch[1];
 
+  // Prefer the optimized/storage/media/* image (the canonical product photo).
+  // Fall back to the first DigitalOcean image referenced as data-fancybox.
+  const allImgs = Array.from(
+    html.matchAll(
+      /https:\/\/flowers\.nyc3\.digitaloceanspaces\.com\/[^"'\s)]+/g,
+    ),
+  ).map((m) => m[0]);
+  if (allImgs.length === 0) return null;
+
+  const preferred =
+    allImgs.find((u) => u.includes("/optimized/storage/media/")) ||
+    allImgs.find((u) => /\/(optimized\/)?preview\//.test(u)) ||
+    allImgs[0];
+
+  return { rawCode, imageUrl: preferred };
+}
+
+async function buildCatalogFromSitemap(): Promise<{
+  products: Map<string, CatalogProduct>;
+  productUrlsScraped: number;
+}> {
+  const products = new Map<string, CatalogProduct>();
+
+  // 1. Discover category URLs via sitemap
+  const categoryUrls = await fetchCategoryUrlsFromSitemap();
+  console.log(`[sitemap] ${categoryUrls.length} catalog URLs`);
+
+  // 2. Walk every category page to collect product URLs
+  const productUrls = new Set<string>();
+  for (const url of categoryUrls) {
     try {
       const html = await fetchFfcPage(url);
-      const { products, pageLinks } = parseCatalogPage(html);
-      pagesCrawled++;
-
-      let newCount = 0;
-      for (const p of products) {
-        if (!all.has(p.ffcCode)) {
-          all.set(p.ffcCode, p);
-          newCount++;
-        }
-      }
+      const found = extractProductUrlsFromCategory(html);
+      for (const p of found) productUrls.add(p);
       console.log(
-        `[crawl] ${url} -> ${products.length} products (${newCount} new), ${pageLinks.length} page links`,
+        `[category] ${url} -> ${found.length} products (total unique ${productUrls.size})`,
       );
-
-      for (const link of pageLinks) {
-        if (!visited.has(link) && !queue.includes(link)) queue.push(link);
-      }
     } catch (e) {
-      console.warn(`[crawl] failed ${url}:`, e);
+      console.warn(`[category] failed ${url}:`, e);
     }
-
-    await sleep(REQUEST_DELAY_MS);
+    await sleep(CATEGORY_DELAY_MS);
   }
 
-  console.log(`[crawl] done. ${pagesCrawled} pages, ${all.size} products`);
-  return all;
+  // 3. Visit each product page, extract code + image
+  let scraped = 0;
+  for (const purl of productUrls) {
+    try {
+      const html = await fetchFfcPage(purl);
+      const parsed = parseProductPage(html);
+      scraped++;
+      if (!parsed) {
+        console.warn(`[product] ${purl} -> no code/image`);
+      } else {
+        const normalized = normalizeFfcCode(parsed.rawCode);
+        if (!products.has(normalized)) {
+          products.set(normalized, {
+            ffcCode: normalized,
+            rawCode: parsed.rawCode,
+            imageUrl: parsed.imageUrl,
+            productUrl: purl,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn(`[product] failed ${purl}:`, e);
+    }
+    if (scraped % 25 === 0) {
+      console.log(
+        `[progress] scraped ${scraped}/${productUrls.size}, products mapped ${products.size}`,
+      );
+    }
+    await sleep(PRODUCT_DELAY_MS);
+  }
+
+  console.log(
+    `[sitemap-crawl] done. ${productUrls.size} product URLs, ${scraped} scraped, ${products.size} indexed`,
+  );
+  return { products, productUrlsScraped: scraped };
 }
 
 async function downloadImage(
@@ -199,6 +183,7 @@ async function downloadImage(
 
 interface ImportReport {
   totalInCatalog: number;
+  sitemapProductsScraped: number;
   rowsChecked: number;
   matched: number;
   notFound: { gd_code: string | null; ffc_code: string }[];
@@ -256,8 +241,9 @@ Deno.serve(async (req) => {
     // Service role for storage + writing image_url
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // ---- 1. Crawl FFC catalog ----
-    const catalog = await crawlCatalog();
+    // ---- 1. Build product index from sitemap + product pages ----
+    const { products: catalog, productUrlsScraped } =
+      await buildCatalogFromSitemap();
 
     // ---- 2. Load rows that need an image ----
     const { data: rows, error: rowsErr } = await admin
@@ -270,6 +256,7 @@ Deno.serve(async (req) => {
 
     const report: ImportReport = {
       totalInCatalog: catalog.size,
+      sitemapProductsScraped: productUrlsScraped,
       rowsChecked: rows?.length ?? 0,
       matched: 0,
       notFound: [],
@@ -292,7 +279,7 @@ Deno.serve(async (req) => {
       try {
         // Download original (FFC images are already optimized WebP)
         const { bytes, contentType } = await downloadImage(product.imageUrl);
-        await sleep(REQUEST_DELAY_MS); // rate-limit FFC image hits too
+        await sleep(PRODUCT_DELAY_MS); // rate-limit FFC image hits too
 
         // Upload to bucket. Use gd_code if present, else fall back to row id.
         const ext = contentType === "image/webp" ? "webp" : "jpg";
