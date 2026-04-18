@@ -183,6 +183,7 @@ async function downloadImage(
 
 interface ImportReport {
   totalInCatalog: number;
+  sitemapProductsScraped: number;
   rowsChecked: number;
   matched: number;
   notFound: { gd_code: string | null; ffc_code: string }[];
