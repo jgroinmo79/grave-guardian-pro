@@ -206,6 +206,69 @@ export type Database = {
         }
         Relationships: []
       }
+      ffc_catalog_cache: {
+        Row: {
+          ffc_code: string
+          id: string
+          image_url: string
+          product_url: string
+          raw_code: string
+          scraped_at: string
+        }
+        Insert: {
+          ffc_code: string
+          id?: string
+          image_url: string
+          product_url: string
+          raw_code: string
+          scraped_at?: string
+        }
+        Update: {
+          ffc_code?: string
+          id?: string
+          image_url?: string
+          product_url?: string
+          raw_code?: string
+          scraped_at?: string
+        }
+        Relationships: []
+      }
+      ffc_scrape_runs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          indexed_count: number
+          next_index: number
+          product_urls: string[]
+          scraped_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          indexed_count?: number
+          next_index?: number
+          product_urls?: string[]
+          scraped_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          indexed_count?: number
+          next_index?: number
+          product_urls?: string[]
+          scraped_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flower_arrangements: {
         Row: {
           arrangement_type: string | null
