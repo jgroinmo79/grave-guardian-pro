@@ -19,8 +19,6 @@ const FFC_BASE = "https://flowersforcemeteries.com";
 const FFC_CATALOG = `${FFC_BASE}/catalog`;
 const REQUEST_DELAY_MS = 2000;
 const MAX_PAGES = 100;
-const MAX_IMAGE_EDGE = 1200;
-const JPEG_QUALITY = 82; // imagescript uses 0-100
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
