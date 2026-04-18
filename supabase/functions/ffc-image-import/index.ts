@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
       try {
         // Download original (FFC images are already optimized WebP)
         const { bytes, contentType } = await downloadImage(product.imageUrl);
-        await sleep(REQUEST_DELAY_MS); // rate-limit FFC image hits too
+        await sleep(PRODUCT_DELAY_MS); // rate-limit FFC image hits too
 
         // Upload to bucket. Use gd_code if present, else fall back to row id.
         const ext = contentType === "image/webp" ? "webp" : "jpg";
