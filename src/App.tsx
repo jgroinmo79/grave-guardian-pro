@@ -30,6 +30,7 @@ import AdminLeads from "./pages/admin/Leads";
 import FrameBuilder from "./pages/FrameBuilder";
 import AdminMemorials from "./pages/admin/Memorials";
 import AdminFlowerCatalog from "./pages/admin/FlowerCatalog";
+import AdminFlowerImageImport from "./pages/admin/FlowerImageImport";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="leads" element={<AdminLeads />} />
               <Route path="memorials" element={<AdminMemorials />} />
               <Route path="flowers" element={<AdminFlowerCatalog />} />
+              <Route path="flower-image-import" element={<AdminFlowerImageImport />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
