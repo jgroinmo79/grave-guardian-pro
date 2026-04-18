@@ -18,6 +18,8 @@ const FFC_BASE = "https://flowersforcemeteries.com";
 const FFC_SITEMAP = `${FFC_BASE}/sitemap.xml`;
 const PRODUCT_DELAY_MS = 500;
 const CATEGORY_DELAY_MS = 750;
+const SUPPLEMENTAL_CATEGORY_IDS = [2, 19, 20, 17];
+const MAX_CATEGORY_PAGES = 30;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
