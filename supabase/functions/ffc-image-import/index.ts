@@ -356,7 +356,7 @@ Deno.serve(async (req) => {
       durationMs: 0,
     };
 
-    for (const row of rows ?? []) {
+    await mapPool(rows ?? [], IMPORT_CONCURRENCY, async (row) => {
       const norm = normalizeFfcCode(row.ffc_code);
       const product = catalog.get(norm);
 
@@ -365,23 +365,16 @@ Deno.serve(async (req) => {
           gd_code: row.gd_code,
           ffc_code: row.ffc_code,
         });
-        continue;
+        return;
       }
 
       try {
-        // Download original (FFC images are already optimized WebP)
         const { bytes, contentType } = await downloadImage(product.imageUrl);
-        await sleep(PRODUCT_DELAY_MS); // rate-limit FFC image hits too
-
-        // Upload to bucket. Use gd_code if present, else fall back to row id.
         const ext = contentType === "image/webp" ? "webp" : "jpg";
         const fileName = `${row.gd_code || row.id}_1.${ext}`;
         const { error: upErr } = await admin.storage
           .from("flower-images")
-          .upload(fileName, bytes, {
-            contentType,
-            upsert: true,
-          });
+          .upload(fileName, bytes, { contentType, upsert: true });
         if (upErr) throw upErr;
 
         const { data: pub } = admin.storage
@@ -404,7 +397,7 @@ Deno.serve(async (req) => {
           reason,
         });
       }
-    }
+    });
 
     report.durationMs = Date.now() - startedAt;
 
