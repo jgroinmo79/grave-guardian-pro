@@ -18,6 +18,8 @@ const FFC_BASE = "https://flowersforcemeteries.com";
 const FFC_SITEMAP = `${FFC_BASE}/sitemap.xml`;
 const PRODUCT_DELAY_MS = 500;
 const CATEGORY_DELAY_MS = 750;
+const SUPPLEMENTAL_CATEGORY_IDS = [2, 19, 20, 17];
+const MAX_CATEGORY_PAGES = 30;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -165,6 +167,73 @@ async function buildCatalogFromSitemap(): Promise<{
   return { products, productUrlsScraped: scraped };
 }
 
+// Supplemental: walk specific category IDs with full pagination,
+// scrape every product page, and merge into an existing index without
+// overwriting entries already provided by the sitemap pass.
+async function scrapeSupplementalCategories(
+  existing: Map<string, CatalogProduct>,
+): Promise<{ newProducts: number; productsScraped: number }> {
+  const productUrls = new Set<string>();
+
+  for (const catId of SUPPLEMENTAL_CATEGORY_IDS) {
+    for (let page = 1; page <= MAX_CATEGORY_PAGES; page++) {
+      const url = `${FFC_BASE}/catalog?categories%5B%5D=${catId}&page=${page}`;
+      try {
+        const html = await fetchFfcPage(url);
+        const found = extractProductUrlsFromCategory(html);
+        if (found.length === 0) {
+          console.log(`[supp] category ${catId} stopped at page ${page}`);
+          break;
+        }
+        let added = 0;
+        for (const p of found) {
+          if (!productUrls.has(p)) {
+            productUrls.add(p);
+            added++;
+          }
+        }
+        console.log(
+          `[supp] cat=${catId} page=${page} -> ${found.length} (${added} new in queue)`,
+        );
+      } catch (e) {
+        console.warn(`[supp] failed cat=${catId} page=${page}:`, e);
+        break;
+      }
+      await sleep(PRODUCT_DELAY_MS);
+    }
+    await sleep(CATEGORY_DELAY_MS);
+  }
+
+  let scraped = 0;
+  let newCount = 0;
+  for (const purl of productUrls) {
+    try {
+      const html = await fetchFfcPage(purl);
+      const parsed = parseProductPage(html);
+      scraped++;
+      if (!parsed) continue;
+      const normalized = normalizeFfcCode(parsed.rawCode);
+      if (!existing.has(normalized)) {
+        existing.set(normalized, {
+          ffcCode: normalized,
+          rawCode: parsed.rawCode,
+          imageUrl: parsed.imageUrl,
+          productUrl: purl,
+        });
+        newCount++;
+      }
+    } catch (e) {
+      console.warn(`[supp] product failed ${purl}:`, e);
+    }
+    await sleep(PRODUCT_DELAY_MS);
+  }
+
+  console.log(
+    `[supp] done. ${productUrls.size} URLs, ${scraped} scraped, ${newCount} new entries merged`,
+  );
+  return { newProducts: newCount, productsScraped: scraped };
+}
+
 async function downloadImage(
   url: string,
 ): Promise<{ bytes: Uint8Array; contentType: string }> {
@@ -184,6 +253,10 @@ async function downloadImage(
 interface ImportReport {
   totalInCatalog: number;
   sitemapProductsScraped: number;
+  sitemapProductsIndexed: number;
+  categoryProductsScraped: number;
+  categoryNewProducts: number;
+  sourcesSummary: string;
   rowsChecked: number;
   matched: number;
   notFound: { gd_code: string | null; ffc_code: string }[];
@@ -244,6 +317,10 @@ Deno.serve(async (req) => {
     // ---- 1. Build product index from sitemap + product pages ----
     const { products: catalog, productUrlsScraped } =
       await buildCatalogFromSitemap();
+    const sitemapIndexed = catalog.size;
+
+    // ---- 1b. Supplemental: walk specific category pages w/ pagination ----
+    const supp = await scrapeSupplementalCategories(catalog);
 
     // ---- 2. Load rows that need an image ----
     const { data: rows, error: rowsErr } = await admin
@@ -257,6 +334,10 @@ Deno.serve(async (req) => {
     const report: ImportReport = {
       totalInCatalog: catalog.size,
       sitemapProductsScraped: productUrlsScraped,
+      sitemapProductsIndexed: sitemapIndexed,
+      categoryProductsScraped: supp.productsScraped,
+      categoryNewProducts: supp.newProducts,
+      sourcesSummary: `sitemap (${sitemapIndexed} products) + categories (${supp.newProducts} new products) = ${catalog.size} total`,
       rowsChecked: rows?.length ?? 0,
       matched: 0,
       notFound: [],
