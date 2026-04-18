@@ -317,6 +317,10 @@ Deno.serve(async (req) => {
     // ---- 1. Build product index from sitemap + product pages ----
     const { products: catalog, productUrlsScraped } =
       await buildCatalogFromSitemap();
+    const sitemapIndexed = catalog.size;
+
+    // ---- 1b. Supplemental: walk specific category pages w/ pagination ----
+    const supp = await scrapeSupplementalCategories(catalog);
 
     // ---- 2. Load rows that need an image ----
     const { data: rows, error: rowsErr } = await admin
@@ -330,6 +334,10 @@ Deno.serve(async (req) => {
     const report: ImportReport = {
       totalInCatalog: catalog.size,
       sitemapProductsScraped: productUrlsScraped,
+      sitemapProductsIndexed: sitemapIndexed,
+      categoryProductsScraped: supp.productsScraped,
+      categoryNewProducts: supp.newProducts,
+      sourcesSummary: `sitemap (${sitemapIndexed} products) + categories (${supp.newProducts} new products) = ${catalog.size} total`,
       rowsChecked: rows?.length ?? 0,
       matched: 0,
       notFound: [],
