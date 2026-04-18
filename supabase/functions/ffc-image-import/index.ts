@@ -16,12 +16,41 @@ const corsHeaders = {
 
 const FFC_BASE = "https://flowersforcemeteries.com";
 const FFC_SITEMAP = `${FFC_BASE}/sitemap.xml`;
-const PRODUCT_DELAY_MS = 500;
-const CATEGORY_DELAY_MS = 750;
 const SUPPLEMENTAL_CATEGORY_IDS = [2, 19, 20, 17];
 const MAX_CATEGORY_PAGES = 30;
 
+// Concurrency tuning — Supabase edge functions cap at 150s wall time.
+// We MUST parallelize aggressively or the function times out before
+// finishing 300+ product scrapes.
+const CATEGORY_CONCURRENCY = 8;
+const PRODUCT_CONCURRENCY = 12;
+const IMPORT_CONCURRENCY = 6;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Run an async mapper over `items` with a concurrency cap.
+async function mapPool<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const i = cursor++;
+      if (i >= items.length) return;
+      try {
+        results[i] = await fn(items[i], i);
+      } catch (e) {
+        // Surface as rejected sentinel; caller decides what to do.
+        results[i] = e as R;
+      }
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
 
 function normalizeFfcCode(raw: string | null | undefined): string {
   if (!raw) return "";
@@ -114,55 +143,47 @@ async function buildCatalogFromSitemap(): Promise<{
   const categoryUrls = await fetchCategoryUrlsFromSitemap();
   console.log(`[sitemap] ${categoryUrls.length} catalog URLs`);
 
-  // 2. Walk every category page to collect product URLs
+  // 2. Walk every category page in parallel to collect product URLs
   const productUrls = new Set<string>();
-  for (const url of categoryUrls) {
+  await mapPool(categoryUrls, CATEGORY_CONCURRENCY, async (url) => {
     try {
       const html = await fetchFfcPage(url);
       const found = extractProductUrlsFromCategory(html);
       for (const p of found) productUrls.add(p);
-      console.log(
-        `[category] ${url} -> ${found.length} products (total unique ${productUrls.size})`,
-      );
+      console.log(`[category] ${url} -> ${found.length} (total ${productUrls.size})`);
     } catch (e) {
       console.warn(`[category] failed ${url}:`, e);
     }
-    await sleep(CATEGORY_DELAY_MS);
-  }
+  });
 
-  // 3. Visit each product page, extract code + image
+  // 3. Visit each product page in parallel, extract code + image
+  const productList = Array.from(productUrls);
   let scraped = 0;
-  for (const purl of productUrls) {
+  await mapPool(productList, PRODUCT_CONCURRENCY, async (purl) => {
     try {
       const html = await fetchFfcPage(purl);
       const parsed = parseProductPage(html);
       scraped++;
-      if (!parsed) {
-        console.warn(`[product] ${purl} -> no code/image`);
-      } else {
-        const normalized = normalizeFfcCode(parsed.rawCode);
-        if (!products.has(normalized)) {
-          products.set(normalized, {
-            ffcCode: normalized,
-            rawCode: parsed.rawCode,
-            imageUrl: parsed.imageUrl,
-            productUrl: purl,
-          });
-        }
+      if (!parsed) return;
+      const normalized = normalizeFfcCode(parsed.rawCode);
+      if (!products.has(normalized)) {
+        products.set(normalized, {
+          ffcCode: normalized,
+          rawCode: parsed.rawCode,
+          imageUrl: parsed.imageUrl,
+          productUrl: purl,
+        });
       }
     } catch (e) {
       console.warn(`[product] failed ${purl}:`, e);
     }
-    if (scraped % 25 === 0) {
-      console.log(
-        `[progress] scraped ${scraped}/${productUrls.size}, products mapped ${products.size}`,
-      );
+    if (scraped % 50 === 0) {
+      console.log(`[progress] ${scraped}/${productList.length}, indexed ${products.size}`);
     }
-    await sleep(PRODUCT_DELAY_MS);
-  }
+  });
 
   console.log(
-    `[sitemap-crawl] done. ${productUrls.size} product URLs, ${scraped} scraped, ${products.size} indexed`,
+    `[sitemap-crawl] done. ${productList.length} URLs, ${scraped} scraped, ${products.size} indexed`,
   );
   return { products, productUrlsScraped: scraped };
 }
@@ -175,43 +196,36 @@ async function scrapeSupplementalCategories(
 ): Promise<{ newProducts: number; productsScraped: number }> {
   const productUrls = new Set<string>();
 
-  for (const catId of SUPPLEMENTAL_CATEGORY_IDS) {
+  // Pagination must stay sequential per category (need to detect end), but
+  // categories themselves can run in parallel.
+  await mapPool(SUPPLEMENTAL_CATEGORY_IDS, SUPPLEMENTAL_CATEGORY_IDS.length, async (catId) => {
     for (let page = 1; page <= MAX_CATEGORY_PAGES; page++) {
       const url = `${FFC_BASE}/catalog?categories%5B%5D=${catId}&page=${page}`;
       try {
         const html = await fetchFfcPage(url);
         const found = extractProductUrlsFromCategory(html);
         if (found.length === 0) {
-          console.log(`[supp] category ${catId} stopped at page ${page}`);
+          console.log(`[supp] cat=${catId} stopped at page ${page}`);
           break;
         }
-        let added = 0;
-        for (const p of found) {
-          if (!productUrls.has(p)) {
-            productUrls.add(p);
-            added++;
-          }
-        }
-        console.log(
-          `[supp] cat=${catId} page=${page} -> ${found.length} (${added} new in queue)`,
-        );
+        for (const p of found) productUrls.add(p);
+        console.log(`[supp] cat=${catId} page=${page} -> ${found.length}`);
       } catch (e) {
         console.warn(`[supp] failed cat=${catId} page=${page}:`, e);
         break;
       }
-      await sleep(PRODUCT_DELAY_MS);
     }
-    await sleep(CATEGORY_DELAY_MS);
-  }
+  });
 
   let scraped = 0;
   let newCount = 0;
-  for (const purl of productUrls) {
+  const list = Array.from(productUrls);
+  await mapPool(list, PRODUCT_CONCURRENCY, async (purl) => {
     try {
       const html = await fetchFfcPage(purl);
       const parsed = parseProductPage(html);
       scraped++;
-      if (!parsed) continue;
+      if (!parsed) return;
       const normalized = normalizeFfcCode(parsed.rawCode);
       if (!existing.has(normalized)) {
         existing.set(normalized, {
@@ -225,12 +239,9 @@ async function scrapeSupplementalCategories(
     } catch (e) {
       console.warn(`[supp] product failed ${purl}:`, e);
     }
-    await sleep(PRODUCT_DELAY_MS);
-  }
+  });
 
-  console.log(
-    `[supp] done. ${productUrls.size} URLs, ${scraped} scraped, ${newCount} new entries merged`,
-  );
+  console.log(`[supp] done. ${list.length} URLs, ${scraped} scraped, ${newCount} new`);
   return { newProducts: newCount, productsScraped: scraped };
 }
 
@@ -345,7 +356,7 @@ Deno.serve(async (req) => {
       durationMs: 0,
     };
 
-    for (const row of rows ?? []) {
+    await mapPool(rows ?? [], IMPORT_CONCURRENCY, async (row) => {
       const norm = normalizeFfcCode(row.ffc_code);
       const product = catalog.get(norm);
 
@@ -354,23 +365,16 @@ Deno.serve(async (req) => {
           gd_code: row.gd_code,
           ffc_code: row.ffc_code,
         });
-        continue;
+        return;
       }
 
       try {
-        // Download original (FFC images are already optimized WebP)
         const { bytes, contentType } = await downloadImage(product.imageUrl);
-        await sleep(PRODUCT_DELAY_MS); // rate-limit FFC image hits too
-
-        // Upload to bucket. Use gd_code if present, else fall back to row id.
         const ext = contentType === "image/webp" ? "webp" : "jpg";
         const fileName = `${row.gd_code || row.id}_1.${ext}`;
         const { error: upErr } = await admin.storage
           .from("flower-images")
-          .upload(fileName, bytes, {
-            contentType,
-            upsert: true,
-          });
+          .upload(fileName, bytes, { contentType, upsert: true });
         if (upErr) throw upErr;
 
         const { data: pub } = admin.storage
@@ -393,7 +397,7 @@ Deno.serve(async (req) => {
           reason,
         });
       }
-    }
+    });
 
     report.durationMs = Date.now() - startedAt;
 
