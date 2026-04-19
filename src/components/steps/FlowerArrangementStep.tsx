@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { IntakeFormData } from "@/lib/pricing";
-import { Flower2, ImageIcon, Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { Flower2, ImageIcon, Check, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   data: IntakeFormData;
@@ -77,6 +78,8 @@ const ImageCarousel = ({ images, name, selected }: { images: string[]; name: str
 
 const FlowerArrangementStep = ({ data, update }: Props) => {
   const [filter, setFilter] = useState("all");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const { data: arrangements = [], isLoading } = useQuery({
     queryKey: ["flower_arrangements_active"],
@@ -90,25 +93,44 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
     },
   });
 
-  const filtered =
-    filter === "all"
-      ? arrangements
-      : arrangements.filter((a: any) =>
-          (a.occasion_tags || []).includes(filter)
-        );
-
   const holidays = data.selectedHolidays;
   const assigned = data.selectedArrangements;
   const assignedCount = holidays.filter((h) => !!assigned[h]).length;
 
+  // Clamp active index in case holidays change
+  useEffect(() => {
+    if (activeIdx >= holidays.length && holidays.length > 0) {
+      setActiveIdx(holidays.length - 1);
+    }
+  }, [holidays.length, activeIdx]);
+
+  const activeHoliday = holidays[activeIdx];
+
+  const filtered = useMemo(() => {
+    return filter === "all"
+      ? arrangements
+      : arrangements.filter((a: any) => (a.occasion_tags || []).includes(filter));
+  }, [arrangements, filter]);
+
   const selectArrangement = (holiday: string, arrangementId: string) => {
     const current = { ...data.selectedArrangements };
-    if (current[holiday] === arrangementId) {
-      delete current[holiday];
-    } else {
-      current[holiday] = arrangementId;
-    }
+    current[holiday] = arrangementId;
     update({ selectedArrangements: current });
+
+    // Find next unassigned holiday after this one
+    const nextUnassigned = holidays.findIndex(
+      (h, i) => i > activeIdx && !current[h]
+    );
+    const fallback = holidays.findIndex((h) => !current[h]);
+    const target = nextUnassigned !== -1 ? nextUnassigned : fallback;
+
+    if (target !== -1 && target !== activeIdx) {
+      setActiveIdx(target);
+    }
+    // Scroll to top of the section
+    setTimeout(() => {
+      headerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   const getHolidayLabel = (holiday: string) => {
@@ -120,7 +142,7 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="text-center mb-6">
+      <div ref={headerRef} className="text-center mb-2 scroll-mt-4">
         <Flower2 className="w-8 h-8 text-primary mx-auto mb-3" />
         <span className="text-sm font-semibold uppercase tracking-widest text-primary">
           Flower Selection
@@ -129,12 +151,66 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
           Choose Your Arrangements
         </h2>
         <p className="text-muted-foreground text-sm">
-          Select a flower arrangement for each placement date. You can choose a different arrangement for each.
+          Pick one arrangement for each placement date.
         </p>
         <p className="text-sm font-semibold text-primary mt-2">
           {assignedCount} of {holidays.length} arrangement{holidays.length !== 1 ? "s" : ""} selected
         </p>
       </div>
+
+      {/* Active holiday banner */}
+      {activeHoliday && (
+        <div className="sticky top-0 z-20 -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="rounded-xl border-2 border-primary bg-card shadow-lg p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                <Calendar className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Choosing flowers for
+                </p>
+                <h3 className="font-display font-bold text-lg sm:text-xl text-primary truncate">
+                  {getHolidayLabel(activeHoliday)}
+                </h3>
+              </div>
+              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                {activeIdx + 1} / {holidays.length}
+              </span>
+            </div>
+
+            {/* Holiday quick nav */}
+            {holidays.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {holidays.map((h, i) => {
+                  const isActive = i === activeIdx;
+                  const isAssigned = !!assigned[h];
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => {
+                        setActiveIdx(i);
+                        setTimeout(() => headerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                      }}
+                      className={`text-[11px] px-2 py-1 rounded-full border transition-all flex items-center gap-1 ${
+                        isActive
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : isAssigned
+                            ? "bg-primary/10 text-primary border-primary/30"
+                            : "bg-secondary/30 text-muted-foreground border-border"
+                      }`}
+                    >
+                      {isAssigned && <Check className="w-3 h-3" />}
+                      <span className="truncate max-w-[140px]">{getHolidayLabel(h)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Filter buttons */}
       <div className="flex flex-wrap gap-2 justify-center">
@@ -157,67 +233,68 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
         <p className="text-center text-muted-foreground text-sm py-8">
           Loading arrangements…
         </p>
+      ) : !activeHoliday ? (
+        <p className="text-center text-muted-foreground text-sm py-8">
+          No placement dates selected.
+        </p>
+      ) : filtered.length === 0 ? (
+        <p className="text-center text-sm text-muted-foreground py-8">
+          No arrangements found for this filter.
+        </p>
       ) : (
-        <div className="space-y-8">
-          {holidays.map((holiday) => {
-            const selectedId = assigned[holiday] || "";
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          {filtered.map((a: any) => {
+            const selected = assigned[activeHoliday] === a.id;
             return (
-              <div key={holiday} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  {selectedId ? (
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                  ) : (
-                    <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
-                  )}
-                  <h3 className="font-display font-semibold text-base">
-                    {getHolidayLabel(holiday)}
-                  </h3>
-                </div>
-
-                {filtered.length === 0 ? (
-                  <p className="text-sm text-muted-foreground pl-6">
-                    No arrangements found for this filter.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                    {filtered.map((a: any) => {
-                      const selected = selectedId === a.id;
-                      return (
-                        <button
-                          key={a.id}
-                          onClick={() => selectArrangement(holiday, a.id)}
-                          className={`text-left rounded-xl border overflow-hidden transition-all ${
-                            selected
-                              ? "border-primary ring-2 ring-primary/30 shadow-lg"
-                              : "border-border hover:border-muted-foreground/40"
-                          }`}
-                        >
-                          <ImageCarousel images={[a.image_url, a.image_url_2].filter(Boolean)} name={a.name} selected={selected} />
-                          <div className="p-3 space-y-1.5">
-                            <div className="flex items-start justify-between gap-2">
-                              <h3 className="font-semibold text-sm leading-tight">
-                                {a.name}
-                              </h3>
-                              <span className="text-sm font-bold text-primary whitespace-nowrap">
-                                ${Number(a.retail_price).toFixed(2)}
-                              </span>
-                            </div>
-                            {a.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                {a.description}
-                              </p>
-                            )}
-                            {a.arrangement_type && (
-                              <Badge variant="secondary" className="text-[10px] capitalize">
-                                {TYPE_LABELS[a.arrangement_type] || a.arrangement_type}
-                              </Badge>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+              <div
+                key={a.id}
+                className={`rounded-xl border overflow-hidden transition-all flex flex-col ${
+                  selected
+                    ? "border-primary ring-2 ring-primary/30 shadow-lg"
+                    : "border-border"
+                }`}
+              >
+                <ImageCarousel
+                  images={[a.image_url, a.image_url_2, a.image_url_3, a.image_url_4, a.image_url_5].filter(Boolean)}
+                  name={a.name}
+                  selected={selected}
+                />
+                <div className="p-3 space-y-2 flex-1 flex flex-col">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-sm leading-tight">
+                      {a.name}
+                    </h3>
+                    <span className="text-sm font-bold text-primary whitespace-nowrap">
+                      ${Number(a.retail_price).toFixed(2)}
+                    </span>
                   </div>
-                )}
+                  {a.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {a.description}
+                    </p>
+                  )}
+                  {a.arrangement_type && (
+                    <Badge variant="secondary" className="text-[10px] capitalize w-fit">
+                      {TYPE_LABELS[a.arrangement_type] || a.arrangement_type}
+                    </Badge>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={() => selectArrangement(activeHoliday, a.id)}
+                    variant={selected ? "secondary" : "default"}
+                    size="sm"
+                    className="w-full mt-auto"
+                  >
+                    {selected ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1" />
+                        Selected
+                      </>
+                    ) : (
+                      "I want this one"
+                    )}
+                  </Button>
+                </div>
               </div>
             );
           })}
