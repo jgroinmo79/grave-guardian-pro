@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClipboardList, Users, DollarSign, CalendarDays, TrendingUp, Shield, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import logoBronze from "@/assets/logo-bronze.png";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -79,9 +80,12 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-display font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Welcome back, Josh</p>
+      <div className="flex items-center gap-4">
+        <img src={logoBronze} alt="Grave Detail bronze logo" className="h-14 w-auto" />
+        <div>
+          <h1 className="text-2xl font-display font-bold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Welcome back, Josh</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
