@@ -481,8 +481,8 @@ export default function FlowerCompositor() {
                     <div className="mt-2 p-3 bg-muted/30 rounded-md space-y-2">
                       <canvas
                         ref={canvasRef}
-                        className="w-full h-auto border border-border rounded"
-                        style={{ maxWidth: "100%" }}
+                        className="w-full h-auto border border-border rounded block"
+                        style={{ maxWidth: "100%", backgroundColor: "#141414" }}
                       />
                       <div className="flex gap-2">
                         <Button size="sm" onClick={savePreview} disabled={!!generating}>
@@ -502,8 +502,13 @@ export default function FlowerCompositor() {
         </Card>
       ))}
 
-      {/* Hidden canvas for bulk + non-active generation */}
-      {!previewArr && <canvas ref={canvasRef} className="hidden" />}
+      {/* Persistent off-screen canvas — always mounted so ref is stable across re-renders */}
+      {!previewArr && (
+        <canvas
+          ref={canvasRef}
+          style={{ position: "absolute", left: -99999, top: -99999, width: 1, height: 1 }}
+        />
+      )}
     </div>
   );
 }
