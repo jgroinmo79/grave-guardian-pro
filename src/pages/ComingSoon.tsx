@@ -6,7 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import cemeteryBg from "@/assets/cemetery-bg.jpg";
 import { toast } from "sonner";
 
-const TARGET_DATE = new Date("2026-05-15T00:00:00");
+// Local-time target: May 15, 2026 at midnight in the visitor's own timezone.
+// Using explicit Y/M/D constructor avoids string-parsing ambiguity across browsers.
+const TARGET_DATE = new Date(2026, 4, 15, 0, 0, 0, 0);
 
 function useCountdown(target: Date) {
   const calc = () => {
