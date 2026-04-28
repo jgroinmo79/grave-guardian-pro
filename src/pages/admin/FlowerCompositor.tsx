@@ -158,10 +158,14 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.font = '30px Cinzel, Georgia, serif';
   ctx.textAlign = "left";
   ctx.fillText("The Finer Detail", 32, 55);
-  ctx.fillStyle = "#E8E4DF";
-  ctx.font = '22px Cinzel, Georgia, serif';
+  // header right: arrangement name + gd_code, two lines
   ctx.textAlign = "right";
-  ctx.fillText(categoryLabel(a), 1168, 55);
+  ctx.fillStyle = "#E8E4DF";
+  ctx.font = '20px Cinzel, Georgia, serif';
+  ctx.fillText(a.name || categoryLabel(a), 1168, 42);
+  ctx.fillStyle = "#6B6B6B";
+  ctx.font = '15px Cinzel, Georgia, serif';
+  ctx.fillText(a.gd_code || "", 1168, 70);
 
   // 7. flower image (drawn before brackets so brackets overlay)
   if (a.image_url) {
