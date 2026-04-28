@@ -158,10 +158,14 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.font = '30px Cinzel, Georgia, serif';
   ctx.textAlign = "left";
   ctx.fillText("The Finer Detail", 32, 55);
-  ctx.fillStyle = "#E8E4DF";
-  ctx.font = '22px Cinzel, Georgia, serif';
+  // header right: arrangement name + gd_code, two lines
   ctx.textAlign = "right";
-  ctx.fillText(categoryLabel(a), 1168, 55);
+  ctx.fillStyle = "#E8E4DF";
+  ctx.font = '20px Cinzel, Georgia, serif';
+  ctx.fillText(a.name || categoryLabel(a), 1168, 42);
+  ctx.fillStyle = "#6B6B6B";
+  ctx.font = '15px Cinzel, Georgia, serif';
+  ctx.fillText(a.gd_code || "", 1168, 70);
 
   // 7. flower image (drawn before brackets so brackets overlay)
   if (a.image_url) {
@@ -337,13 +341,16 @@ export default function FlowerCompositor() {
   }, [arrangements]);
 
   async function generate(a: Arrangement) {
-    if (!canvasRef.current) return;
     setGenerating(a.id);
     setActiveId(a.id);
+    setPreviewArr(a);
     try {
       await ensureFonts();
+      // Wait for the preview canvas to mount in the DOM before drawing
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      if (!canvasRef.current) throw new Error("Canvas not ready");
       await composite(canvasRef.current, a);
-      setPreviewArr(a);
       toast.success("Preview generated. Review and Save.");
     } catch (e: any) {
       console.error(e);
@@ -477,8 +484,8 @@ export default function FlowerCompositor() {
                     <div className="mt-2 p-3 bg-muted/30 rounded-md space-y-2">
                       <canvas
                         ref={canvasRef}
-                        className="w-full h-auto border border-border rounded"
-                        style={{ maxWidth: "100%" }}
+                        className="w-full h-auto border border-border rounded block"
+                        style={{ maxWidth: "100%", backgroundColor: "#141414" }}
                       />
                       <div className="flex gap-2">
                         <Button size="sm" onClick={savePreview} disabled={!!generating}>
@@ -498,8 +505,13 @@ export default function FlowerCompositor() {
         </Card>
       ))}
 
-      {/* Hidden canvas for bulk + non-active generation */}
-      {!previewArr && <canvas ref={canvasRef} className="hidden" />}
+      {/* Persistent off-screen canvas — always mounted so ref is stable across re-renders */}
+      {!previewArr && (
+        <canvas
+          ref={canvasRef}
+          style={{ position: "absolute", left: -99999, top: -99999, width: 1, height: 1 }}
+        />
+      )}
     </div>
   );
 }
