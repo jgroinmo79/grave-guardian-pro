@@ -153,52 +153,64 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.fillRect(0, 0, W, 110);
   ctx.fillStyle = "#C9976B";
   ctx.fillRect(0, 107, W, 3);
-  ctx.textBaseline = "middle";
+  ctx.textBaseline = "top";
+  // Left brand text
   ctx.fillStyle = "#C9976B";
-  ctx.font = '30px Cinzel, Georgia, serif';
+  ctx.font = '24px Cinzel, Georgia, serif';
   ctx.textAlign = "left";
-  ctx.fillText("The Finer Detail", 32, 55);
-  // header right: arrangement name + gd_code, two lines
+  let leftText = "The Finer Detail";
+  if (ctx.measureText(leftText).width > 360) {
+    ctx.font = '20px Cinzel, Georgia, serif';
+  }
+  ctx.fillText(leftText, 28, 38);
+  // Right side: name + gd_code, right-aligned
   ctx.textAlign = "right";
   ctx.fillStyle = "#E8E4DF";
-  ctx.font = '20px Cinzel, Georgia, serif';
-  ctx.fillText(a.name || categoryLabel(a), 1168, 42);
+  ctx.font = '18px Cinzel, Georgia, serif';
+  const nameText = a.name || categoryLabel(a);
+  if (ctx.measureText(nameText).width > 580) {
+    ctx.font = '15px Cinzel, Georgia, serif';
+  }
+  ctx.fillText(nameText, 1172, 30);
   ctx.fillStyle = "#6B6B6B";
-  ctx.font = '15px Cinzel, Georgia, serif';
-  ctx.fillText(a.gd_code || "", 1168, 70);
+  ctx.font = '14px Cinzel, Georgia, serif';
+  ctx.fillText(a.gd_code || "", 1172, 64);
+  ctx.textBaseline = "middle";
 
-  // 7. flower image (drawn before brackets so brackets overlay)
+  // 7. White card zone for flower image
+  const cardX = 80, cardY = 150, cardW = 1040, cardH = 820;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(cardX, cardY, cardW, cardH);
+  ctx.restore();
+
   if (a.image_url) {
     try {
       const img = await loadImage(a.image_url);
-      const zoneTop = 110, zoneBottom = 1100;
-      const pad = 40;
-      const availW = W - pad * 2;
-      const availH = (zoneBottom - zoneTop) - pad * 2;
+      const innerPad = 30;
+      const availW = cardW - innerPad * 2;
+      const availH = cardH - innerPad * 2;
       const scale = Math.min(availW / img.width, availH / img.height);
       const dw = img.width * scale;
       const dh = img.height * scale;
-      const dx = (W - dw) / 2;
-      const dy = zoneTop + pad + (availH - dh) / 2;
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = 30;
-      ctx.shadowOffsetY = 10;
+      const dx = cardX + (cardW - dw) / 2;
+      const dy = cardY + (cardH - dh) / 2;
       ctx.drawImage(img, dx, dy, dw, dh);
-      ctx.restore();
     } catch (e) {
       console.warn("flower image failed", e);
     }
   }
 
-  // 8. brackets
+  // 8. brackets — drawn relative to the white card
   const spec = bracketSpec(a);
   if (spec) {
     ctx.strokeStyle = "#C9976B";
     ctx.lineWidth = 2;
     const zoneTop = 110, zoneBottom = 1100;
-    const flowerLeft = 80, flowerRight = W - 80;
-    const flowerTop = zoneTop + 60, flowerBottom = zoneBottom - 60;
+    const flowerLeft = cardX, flowerRight = cardX + cardW;
+    const flowerTop = cardY + 10, flowerBottom = cardY + cardH - 10;
 
     if (spec.combo) {
       const mid = (zoneTop + zoneBottom) / 2;
