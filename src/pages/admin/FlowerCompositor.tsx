@@ -304,7 +304,6 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
       }
     }
   }
-  }
 
   // 9. disclaimer
   ctx.fillStyle = "#6B6B6B";
