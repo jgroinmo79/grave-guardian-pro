@@ -153,104 +153,139 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.fillRect(0, 0, W, 110);
   ctx.fillStyle = "#C9976B";
   ctx.fillRect(0, 107, W, 3);
-  ctx.textBaseline = "middle";
+  ctx.textBaseline = "top";
+  // Left brand text
   ctx.fillStyle = "#C9976B";
-  ctx.font = '30px Cinzel, Georgia, serif';
+  ctx.font = '24px Cinzel, Georgia, serif';
   ctx.textAlign = "left";
-  ctx.fillText("The Finer Detail", 32, 55);
-  // header right: arrangement name + gd_code, two lines
+  let leftText = "The Finer Detail";
+  if (ctx.measureText(leftText).width > 360) {
+    ctx.font = '20px Cinzel, Georgia, serif';
+  }
+  ctx.fillText(leftText, 28, 38);
+  // Right side: name + gd_code, right-aligned
   ctx.textAlign = "right";
   ctx.fillStyle = "#E8E4DF";
-  ctx.font = '20px Cinzel, Georgia, serif';
-  ctx.fillText(a.name || categoryLabel(a), 1168, 42);
+  ctx.font = '18px Cinzel, Georgia, serif';
+  const nameText = a.name || categoryLabel(a);
+  if (ctx.measureText(nameText).width > 580) {
+    ctx.font = '15px Cinzel, Georgia, serif';
+  }
+  ctx.fillText(nameText, 1172, 30);
   ctx.fillStyle = "#6B6B6B";
-  ctx.font = '15px Cinzel, Georgia, serif';
-  ctx.fillText(a.gd_code || "", 1168, 70);
+  ctx.font = '14px Cinzel, Georgia, serif';
+  ctx.fillText(a.gd_code || "", 1172, 64);
+  ctx.textBaseline = "middle";
 
-  // 7. flower image (drawn before brackets so brackets overlay)
+  // 7. White card zone for flower image
+  const cardX = 80, cardY = 150, cardW = 1040, cardH = 820;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(cardX, cardY, cardW, cardH);
+  ctx.restore();
+
   if (a.image_url) {
     try {
       const img = await loadImage(a.image_url);
-      const zoneTop = 110, zoneBottom = 1100;
-      const pad = 40;
-      const availW = W - pad * 2;
-      const availH = (zoneBottom - zoneTop) - pad * 2;
+      const innerPad = 30;
+      const availW = cardW - innerPad * 2;
+      const availH = cardH - innerPad * 2;
       const scale = Math.min(availW / img.width, availH / img.height);
       const dw = img.width * scale;
       const dh = img.height * scale;
-      const dx = (W - dw) / 2;
-      const dy = zoneTop + pad + (availH - dh) / 2;
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = 30;
-      ctx.shadowOffsetY = 10;
+      const dx = cardX + (cardW - dw) / 2;
+      const dy = cardY + (cardH - dh) / 2;
       ctx.drawImage(img, dx, dy, dw, dh);
-      ctx.restore();
     } catch (e) {
       console.warn("flower image failed", e);
     }
   }
 
-  // 8. brackets
+  // 8. brackets — drawn relative to the white card
   const spec = bracketSpec(a);
   if (spec) {
     ctx.strokeStyle = "#C9976B";
     ctx.lineWidth = 2;
     const zoneTop = 110, zoneBottom = 1100;
-    const flowerLeft = 80, flowerRight = W - 80;
-    const flowerTop = zoneTop + 60, flowerBottom = zoneBottom - 60;
+    const flowerLeft = cardX, flowerRight = cardX + cardW;
+    const flowerTop = cardY + 10, flowerBottom = cardY + cardH - 10;
+
+    // Bracket geometry references the white card (cardX=80, cardY=150, cardW=1040, cardH=820)
+    const bracketTop = cardY + 10;        // 160
+    const bracketBottom = cardY + cardH - 10; // 960
+    const bracketLeftX = 95;
+    const bracketRightX = cardX + cardW + 15; // 1135
+    const bracketTopY = cardY - 10;       // 140
+    const bracketBottomY = cardY + cardH + 10; // 980
+    const cardLeftX = cardX + 20;
+    const cardRightX = cardX + cardW - 20;
 
     if (spec.combo) {
-      const mid = (zoneTop + zoneBottom) / 2;
-      // dividing line
+      const mid = (bracketTop + bracketBottom) / 2;
       ctx.save();
       ctx.strokeStyle = "#C9976B";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(200, mid); ctx.lineTo(W - 200, mid);
+      ctx.moveTo(cardLeftX + 80, mid); ctx.lineTo(cardRightX - 80, mid);
       ctx.stroke();
       ctx.restore();
 
-      // upper: bouquet (height left, width top)
       if (spec.height) {
-        drawVBracket(ctx, 60, flowerTop, mid - 20);
-        ctx.save(); ctx.translate(30, (flowerTop + mid - 20) / 2); ctx.rotate(-Math.PI / 2);
+        drawVBracket(ctx, bracketLeftX, bracketTop, mid - 20);
+        ctx.save(); ctx.translate(bracketLeftX - 30, (bracketTop + mid - 20) / 2); ctx.rotate(-Math.PI / 2);
         drawBracketLabel(ctx, 0, 0, `${spec.height.in}in`, `${spec.height.cm.toFixed(2)}cm`);
         ctx.restore();
       }
       if (spec.width) {
-        drawHBracket(ctx, zoneTop + 30, flowerLeft + 100, flowerRight - 100);
-        drawBracketLabel(ctx, W / 2, zoneTop + 30 - 30, `${spec.width.in}in`, `${spec.width.cm.toFixed(2)}cm`);
+        drawHBracket(ctx, bracketTopY, cardLeftX + 80, cardRightX - 80);
+        drawBracketLabel(ctx, W / 2, bracketTopY - 30, `${spec.width.in}in`, `${spec.width.cm.toFixed(2)}cm`);
       }
-      // lower: saddle (bottom length, right width)
       if (spec.bottomLength) {
-        drawHBracket(ctx, zoneBottom - 30, flowerLeft + 100, flowerRight - 100);
-        drawBracketLabel(ctx, W / 2, zoneBottom - 30 + 30, `${spec.bottomLength.in}in`, `${spec.bottomLength.cm.toFixed(2)}cm`);
+        drawHBracket(ctx, bracketBottomY, cardLeftX + 80, cardRightX - 80);
+        drawBracketLabel(ctx, W / 2, bracketBottomY + 30, `${spec.bottomLength.in}in`, `${spec.bottomLength.cm.toFixed(2)}cm`);
       }
       if (spec.rightWidth) {
-        drawVBracket(ctx, W - 60, mid + 20, flowerBottom);
-        ctx.save(); ctx.translate(W - 30, (mid + 20 + flowerBottom) / 2); ctx.rotate(Math.PI / 2);
+        drawVBracket(ctx, bracketRightX, mid + 20, bracketBottom);
+        ctx.save(); ctx.translate(bracketRightX + 30, (mid + 20 + bracketBottom) / 2); ctx.rotate(Math.PI / 2);
         drawBracketLabel(ctx, 0, 0, `${spec.rightWidth.in}in`, `${spec.rightWidth.cm.toFixed(2)}cm`);
         ctx.restore();
       }
     } else {
       if (spec.height) {
-        drawVBracket(ctx, 60, flowerTop, flowerBottom);
-        ctx.save(); ctx.translate(30, (flowerTop + flowerBottom) / 2); ctx.rotate(-Math.PI / 2);
+        // Vertical bracket on the left side of the white card
+        ctx.beginPath();
+        ctx.moveTo(bracketLeftX, bracketTop);
+        ctx.lineTo(bracketLeftX, bracketBottom);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(bracketLeftX - 7, bracketTop);
+        ctx.lineTo(bracketLeftX + 7, bracketTop);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(bracketLeftX - 7, bracketBottom);
+        ctx.lineTo(bracketLeftX + 7, bracketBottom);
+        ctx.stroke();
+        // Label rotated alongside the bracket
+        const midY = (bracketTop + bracketBottom) / 2;
+        ctx.save();
+        ctx.translate(bracketLeftX - 25, midY);
+        ctx.rotate(-Math.PI / 2);
         drawBracketLabel(ctx, 0, 0, `${spec.height.in}in`, `${spec.height.cm.toFixed(2)}cm`);
         ctx.restore();
       }
       if (spec.width) {
-        drawHBracket(ctx, zoneTop + 30, flowerLeft + 100, flowerRight - 100);
-        drawBracketLabel(ctx, W / 2, zoneTop + 30 - 30, `${spec.width.in}in`, `${spec.width.cm.toFixed(2)}cm`);
+        drawHBracket(ctx, bracketTopY, cardLeftX + 80, cardRightX - 80);
+        drawBracketLabel(ctx, W / 2, bracketTopY - 30, `${spec.width.in}in`, `${spec.width.cm.toFixed(2)}cm`);
       }
       if (spec.bottomLength) {
-        drawHBracket(ctx, zoneBottom - 30, flowerLeft + 100, flowerRight - 100);
-        drawBracketLabel(ctx, W / 2, zoneBottom - 30 + 30, `${spec.bottomLength.in}in`, `${spec.bottomLength.cm.toFixed(2)}cm`);
+        drawHBracket(ctx, bracketBottomY, cardLeftX + 80, cardRightX - 80);
+        drawBracketLabel(ctx, W / 2, bracketBottomY + 30, `${spec.bottomLength.in}in`, `${spec.bottomLength.cm.toFixed(2)}cm`);
       }
       if (spec.rightWidth) {
-        drawVBracket(ctx, W - 60, flowerTop, flowerBottom);
-        ctx.save(); ctx.translate(W - 30, (flowerTop + flowerBottom) / 2); ctx.rotate(Math.PI / 2);
+        drawVBracket(ctx, bracketRightX, bracketTop, bracketBottom);
+        ctx.save(); ctx.translate(bracketRightX + 30, (bracketTop + bracketBottom) / 2); ctx.rotate(Math.PI / 2);
         drawBracketLabel(ctx, 0, 0, `${spec.rightWidth.in}in`, `${spec.rightWidth.cm.toFixed(2)}cm`);
         ctx.restore();
       }
@@ -259,13 +294,13 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
         ctx.font = 'bold 24px Cinzel, Georgia, serif';
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(spec.heightLabelOnly, 90, flowerTop + 40);
+        ctx.fillText(spec.heightLabelOnly, 90, bracketTop + 40);
       }
       if (spec.note) {
         ctx.fillStyle = "#6B6B6B";
         ctx.font = 'italic 16px "Cormorant Garamond", Georgia, serif';
         ctx.textAlign = "center";
-        ctx.fillText(spec.note, W / 2, zoneBottom - 70);
+        ctx.fillText(spec.note, W / 2, bracketBottom + 60);
       }
     }
   }
