@@ -341,13 +341,16 @@ export default function FlowerCompositor() {
   }, [arrangements]);
 
   async function generate(a: Arrangement) {
-    if (!canvasRef.current) return;
     setGenerating(a.id);
     setActiveId(a.id);
+    setPreviewArr(a);
     try {
       await ensureFonts();
+      // Wait for the preview canvas to mount in the DOM before drawing
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      if (!canvasRef.current) throw new Error("Canvas not ready");
       await composite(canvasRef.current, a);
-      setPreviewArr(a);
       toast.success("Preview generated. Review and Save.");
     } catch (e: any) {
       console.error(e);
