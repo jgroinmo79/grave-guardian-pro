@@ -1,11 +1,12 @@
 // Batch Fetch FFC Images — server-side multi-image scraper.
-// For each flower_arrangements row with ffc_code, scrapes the FFC product
-// page, extracts main product images from flowers.nyc3.digitaloceanspaces.com
-// (filtering out outdoor/cemetery shots via top-third hue sampling), uploads
-// raw bytes to flower-images bucket as {gd_code}_{slot}_raw.jpg, and writes
-// a {gd_code}_manifest.json file listing the public URLs in order.
+// Processes a BATCH of arrangements (default 20) starting at ?offset=N.
+// Caller loops with increasing offsets until processed >= total.
 //
-// Streams NDJSON progress lines back to the caller.
+// Hard limits enforced:
+//  - 10s timeout per fetch (AbortController)
+//  - 25s overall function runtime guard (Edge Function 30s hard limit)
+//  - 200ms delay between arrangements
+//  - Non-200 product page → skip immediately, no retry
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { decode as decodeJpeg } from "https://esm.sh/jpeg-js@0.4.4";
@@ -18,9 +19,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SLEEP_MS = 500;
+const SLEEP_MS = 200;
 const MAX_SLOTS = 5;
 const OUTDOOR_THRESHOLD = 0.30;
+const FETCH_TIMEOUT_MS = 10000;
+const FUNCTION_TIMEOUT_MS = 25000;
+const DEFAULT_BATCH_SIZE = 20;
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -31,46 +35,46 @@ function normalizeFfcCode(raw: string | null | undefined): string {
   return raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
+async function fetchWithTimeout(url: string, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function fetchHtml(url: string): Promise<string> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (compatible; GraveDetailBot/1.0; +https://gravedetail.net)",
       Accept: "text/html,application/xhtml+xml",
     },
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+  if (res.status !== 200) {
+    throw new Error(`HTTP ${res.status} fetching ${url}`);
+  }
   return await res.text();
 }
 
-// Restrict extraction to the main product gallery section. Strip out
-// "You May Also Like" / related-product blocks and color-swatch thumbnails
-// before harvesting URLs.
 function extractMainProductImages(html: string): string[] {
   let scoped = html;
-
-  // Drop "you may also like" / related products sections (common patterns)
   const cutPatterns = [
     /<[^>]+class="[^"]*(?:you[-_ ]?may[-_ ]?also|related[-_ ]?products?|upsell|cross[-_ ]?sell)[^"]*"[\s\S]*$/i,
     /<section[^>]*id="[^"]*(?:related|upsell)[^"]*"[\s\S]*$/i,
   ];
-  for (const re of cutPatterns) {
-    scoped = scoped.replace(re, "");
-  }
-
-  // Drop color-swatch / variant thumbnail blocks
+  for (const re of cutPatterns) scoped = scoped.replace(re, "");
   scoped = scoped.replace(
     /<[^>]+class="[^"]*(?:swatch|variant[-_ ]?thumb|color[-_ ]?option)[^"]*"[^>]*>[\s\S]*?<\/[^>]+>/gi,
     "",
   );
-
   const matches = Array.from(
     scoped.matchAll(
       /https:\/\/flowers\.nyc3\.digitaloceanspaces\.com\/[^"'\s)]+\.(?:jpe?g|png|webp)/gi,
     ),
   ).map((m) => m[0]);
-
-  // Dedupe preserving order
   const seen = new Set<string>();
   const unique: string[] = [];
   for (const u of matches) {
@@ -85,67 +89,50 @@ function extractMainProductImages(html: string): string[] {
 async function downloadBytes(
   url: string,
 ): Promise<{ bytes: Uint8Array; contentType: string }> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (compatible; GraveDetailBot/1.0; +https://gravedetail.net)",
     },
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching image`);
+  if (res.status !== 200) throw new Error(`HTTP ${res.status} fetching image`);
   const bytes = new Uint8Array(await res.arrayBuffer());
   const contentType =
     res.headers.get("content-type")?.split(";")[0].trim() || "image/jpeg";
   return { bytes, contentType };
 }
 
-// Sample top third — return true if studio (keep), false if outdoor (skip).
 function isStudioImage(bytes: Uint8Array, contentType: string): boolean {
   try {
-    let width = 0;
-    let height = 0;
+    let width = 0, height = 0;
     let data: Uint8Array | Uint8ClampedArray | null = null;
     let channels = 4;
-
     if (contentType.includes("jpeg") || contentType.includes("jpg")) {
       const img = decodeJpeg(bytes, { useTArray: true });
-      width = img.width;
-      height = img.height;
-      data = img.data;
-      channels = 4;
+      width = img.width; height = img.height; data = img.data; channels = 4;
     } else if (contentType.includes("png")) {
       const img = decodePng(bytes);
-      width = img.width;
-      height = img.height;
-      data = img.data as Uint8Array;
+      width = img.width; height = img.height; data = img.data as Uint8Array;
       channels = img.channels ?? 4;
     } else {
-      return true; // unknown format (e.g. webp) — keep
+      return true;
     }
     if (!data || width === 0 || height === 0) return true;
-
     const topRows = Math.max(1, Math.floor(height / 3));
     const stepX = Math.max(1, Math.floor(width / 60));
     const stepY = Math.max(1, Math.floor(topRows / 30));
-
-    let outdoorPixels = 0;
-    let total = 0;
-
+    let outdoorPixels = 0, total = 0;
     for (let y = 0; y < topRows; y += stepY) {
       for (let x = 0; x < width; x += stepX) {
         const idx = (y * width + x) * channels;
-        const r = data[idx];
-        const g = data[idx + 1];
-        const b = data[idx + 2];
+        const r = data[idx], g = data[idx + 1], b = data[idx + 2];
         if (r === undefined || g === undefined || b === undefined) continue;
         total++;
-
         const isGreen = g > 70 && g > r + 15 && g > b + 10;
         const isSky = b > 110 && b > r + 10 && b > g - 10 && r < 200;
-
         if (isGreen || isSky) outdoorPixels++;
       }
     }
-
     if (total === 0) return true;
     return outdoorPixels / total < OUTDOOR_THRESHOLD;
   } catch (_e) {
@@ -157,6 +144,7 @@ interface ArrangementRow {
   id: string;
   gd_code: string | null;
   ffc_code: string | null;
+  name: string;
 }
 
 Deno.serve(async (req) => {
@@ -164,7 +152,8 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Auth: admin only
+  const startTime = Date.now();
+
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -200,6 +189,23 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Parse offset + batchSize from query OR body
+  const reqUrl = new URL(req.url);
+  let offset = parseInt(reqUrl.searchParams.get("offset") || "0", 10);
+  let batchSize = parseInt(
+    reqUrl.searchParams.get("batchSize") || String(DEFAULT_BATCH_SIZE),
+    10,
+  );
+  try {
+    const body = await req.json().catch(() => null);
+    if (body && typeof body === "object") {
+      if (typeof body.offset === "number") offset = body.offset;
+      if (typeof body.batchSize === "number") batchSize = body.batchSize;
+    }
+  } catch (_e) { /* ignore */ }
+  if (!Number.isFinite(offset) || offset < 0) offset = 0;
+  if (!Number.isFinite(batchSize) || batchSize <= 0) batchSize = DEFAULT_BATCH_SIZE;
+
   const admin = createClient(supabaseUrl, serviceKey);
 
   const stream = new ReadableStream({
@@ -211,20 +217,29 @@ Deno.serve(async (req) => {
       let processed = 0;
       let updated = 0;
       let skipped = 0;
-      const failed: { id: string; gd_code: string | null; reason: string }[] =
-        [];
+      let timedOut = false;
+      const failed: { id: string; gd_code: string | null; reason: string }[] = [];
 
       try {
+        // Get total count for caller's loop
+        const { count: totalCount } = await admin
+          .from("flower_arrangements")
+          .select("id", { count: "exact", head: true })
+          .not("ffc_code", "is", null);
+
+        const total = totalCount ?? 0;
+
         const { data: rows, error } = await admin
           .from("flower_arrangements")
           .select("id, gd_code, ffc_code, name")
-          .not("ffc_code", "is", null);
+          .not("ffc_code", "is", null)
+          .order("id", { ascending: true })
+          .range(offset, offset + batchSize - 1);
         if (error) throw error;
 
-        const list = (rows ?? []) as (ArrangementRow & { name: string })[];
-        send({ type: "start", total: list.length });
+        const list = (rows ?? []) as ArrangementRow[];
+        send({ type: "start", total, batchSize: list.length, offset });
 
-        // Pull cached product URLs from ffc-scrape run output
         const codes = Array.from(
           new Set(list.map((r) => normalizeFfcCode(r.ffc_code)).filter(Boolean)),
         );
@@ -240,6 +255,12 @@ Deno.serve(async (req) => {
         }
 
         for (const row of list) {
+          if (Date.now() - startTime > FUNCTION_TIMEOUT_MS) {
+            console.warn("[batch-fetch] runtime guard hit, exiting batch early");
+            timedOut = true;
+            break;
+          }
+
           processed++;
           const gd = row.gd_code || row.id;
           const norm = normalizeFfcCode(row.ffc_code);
@@ -248,6 +269,7 @@ Deno.serve(async (req) => {
             type: "progress",
             processed,
             total: list.length,
+            offset,
             gd_code: row.gd_code,
             name: row.name,
             status: "fetching",
@@ -258,30 +280,34 @@ Deno.serve(async (req) => {
             if (!productUrl) {
               skipped++;
               send({
-                type: "progress",
-                processed,
-                total: list.length,
-                gd_code: row.gd_code,
-                name: row.name,
-                status: "skipped",
+                type: "progress", processed, total: list.length, offset,
+                gd_code: row.gd_code, name: row.name, status: "skipped",
                 reason: "no cached product URL — run FFC scrape first",
               });
               await sleep(SLEEP_MS);
               continue;
             }
 
-            const html = await fetchHtml(productUrl);
-            const candidates = extractMainProductImages(html);
+            let html: string;
+            try {
+              html = await fetchHtml(productUrl);
+            } catch (fetchErr) {
+              const reason = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+              failed.push({ id: row.id, gd_code: row.gd_code, reason });
+              send({
+                type: "progress", processed, total: list.length, offset,
+                gd_code: row.gd_code, name: row.name, status: "failed", reason,
+              });
+              await sleep(SLEEP_MS);
+              continue;
+            }
 
+            const candidates = extractMainProductImages(html);
             if (candidates.length === 0) {
               skipped++;
               send({
-                type: "progress",
-                processed,
-                total: list.length,
-                gd_code: row.gd_code,
-                name: row.name,
-                status: "skipped",
+                type: "progress", processed, total: list.length, offset,
+                gd_code: row.gd_code, name: row.name, status: "skipped",
                 reason: "no images on page",
               });
               await sleep(SLEEP_MS);
@@ -293,22 +319,17 @@ Deno.serve(async (req) => {
 
             for (const url of candidates) {
               if (slot > MAX_SLOTS) break;
+              if (Date.now() - startTime > FUNCTION_TIMEOUT_MS) break;
               try {
                 const { bytes, contentType } = await downloadBytes(url);
                 if (!isStudioImage(bytes, contentType)) continue;
-
                 const fileName = `${gd}_${slot}_raw.jpg`;
                 const { error: upErr } = await admin.storage
                   .from("flower-images")
-                  .upload(fileName, bytes, {
-                    contentType,
-                    upsert: true,
-                  });
+                  .upload(fileName, bytes, { contentType, upsert: true });
                 if (upErr) throw upErr;
-
                 const { data: pub } = admin.storage
-                  .from("flower-images")
-                  .getPublicUrl(fileName);
+                  .from("flower-images").getPublicUrl(fileName);
                 manifest.push(pub.publicUrl);
                 slot++;
               } catch (e) {
@@ -319,49 +340,35 @@ Deno.serve(async (req) => {
             if (manifest.length === 0) {
               skipped++;
               send({
-                type: "progress",
-                processed,
-                total: list.length,
-                gd_code: row.gd_code,
-                name: row.name,
-                status: "skipped",
+                type: "progress", processed, total: list.length, offset,
+                gd_code: row.gd_code, name: row.name, status: "skipped",
                 reason: "no studio images detected",
               });
               await sleep(SLEEP_MS);
               continue;
             }
 
-            // Write manifest JSON to storage
             const manifestName = `${gd}_manifest.json`;
             const manifestBody = new TextEncoder().encode(
-              JSON.stringify(
-                {
-                  gd_code: row.gd_code,
-                  ffc_code: row.ffc_code,
-                  product_url: productUrl,
-                  fetched_at: new Date().toISOString(),
-                  raw_images: manifest,
-                },
-                null,
-                2,
-              ),
+              JSON.stringify({
+                gd_code: row.gd_code,
+                ffc_code: row.ffc_code,
+                product_url: productUrl,
+                fetched_at: new Date().toISOString(),
+                raw_images: manifest,
+              }, null, 2),
             );
             const { error: manErr } = await admin.storage
               .from("flower-images")
               .upload(manifestName, manifestBody, {
-                contentType: "application/json",
-                upsert: true,
+                contentType: "application/json", upsert: true,
               });
             if (manErr) throw manErr;
 
             updated++;
             send({
-              type: "progress",
-              processed,
-              total: list.length,
-              gd_code: row.gd_code,
-              name: row.name,
-              status: "saved",
+              type: "progress", processed, total: list.length, offset,
+              gd_code: row.gd_code, name: row.name, status: "saved",
               slots_filled: manifest.length,
             });
           } catch (e) {
@@ -369,26 +376,27 @@ Deno.serve(async (req) => {
             console.warn(`[batch-fetch] arrangement ${gd} failed:`, reason);
             failed.push({ id: row.id, gd_code: row.gd_code, reason });
             send({
-              type: "progress",
-              processed,
-              total: list.length,
-              gd_code: row.gd_code,
-              name: row.name,
-              status: "failed",
-              reason,
+              type: "progress", processed, total: list.length, offset,
+              gd_code: row.gd_code, name: row.name, status: "failed", reason,
             });
           }
 
           await sleep(SLEEP_MS);
         }
 
+        const nextOffset = offset + processed;
         send({
           type: "done",
-          total: list.length,
+          totalAll: total,
+          offset,
+          batchSize: list.length,
           processed,
           updated,
           skipped,
           failed,
+          timedOut,
+          nextOffset,
+          hasMore: nextOffset < total,
         });
       } catch (e) {
         const reason = e instanceof Error ? e.message : String(e);
