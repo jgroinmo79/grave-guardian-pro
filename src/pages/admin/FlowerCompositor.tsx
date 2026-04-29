@@ -157,12 +157,48 @@ function drawHBracket(ctx: CanvasRenderingContext2D, y: number, left: number, ri
   ctx.stroke();
 }
 
+// Detect a previously branded GD image by sampling its top-left pixel.
+// Branded images are drawn on a #141414 granite background → near-black corner.
+// Raw FFC images sit on white → bright corner.
+async function isAlreadyBrandedImage(imageUrl: string): Promise<boolean> {
+  try {
+    const res = await fetch(imageUrl, { cache: "no-store" });
+    if (!res.ok) return false;
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = objectUrl;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("image decode failed"));
+      });
+      const sample = document.createElement("canvas");
+      sample.width = 10;
+      sample.height = 10;
+      const sCtx = sample.getContext("2d")!;
+      sCtx.drawImage(img, 0, 0, 10, 10);
+      const pixel = sCtx.getImageData(0, 0, 1, 1).data;
+      return pixel[0] < 30 && pixel[1] < 30 && pixel[2] < 30;
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  } catch (e) {
+    console.warn("[isAlreadyBrandedImage] check failed; assuming not branded", e);
+    return false;
+  }
+}
+
 async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { imageUrlOverride?: string; skipBrackets?: boolean }) {
   const W = 1200, H = 1200;
-  canvas.width = W; canvas.height = H;
+  // HARD canvas reset: reassigning width wipes all pixels and resets ctx state.
+  canvas.width = W;
+  canvas.width = canvas.width;
+  canvas.height = H;
   const ctx = canvas.getContext("2d")!;
 
-  // Reset all canvas state to prevent bleed between renders
+  // Belt-and-suspenders state reset
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.shadowBlur = 0;
   ctx.shadowOffsetX = 0;
@@ -171,6 +207,7 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { ima
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = "source-over";
   ctx.clearRect(0, 0, W, H);
+
 
   // 1. base
   ctx.fillStyle = "#141414";
