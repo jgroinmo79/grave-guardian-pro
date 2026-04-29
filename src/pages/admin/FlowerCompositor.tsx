@@ -922,7 +922,7 @@ export default function FlowerCompositor() {
 
       const { data: rows, error } = await supabase
         .from("flower_arrangements")
-        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2")
+        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2,image_url_3,image_url_4,image_url_5")
         .not("ffc_code", "is", null)
         .order("name");
       if (error) throw error;
