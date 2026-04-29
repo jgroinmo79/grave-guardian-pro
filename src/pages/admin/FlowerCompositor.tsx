@@ -997,7 +997,36 @@ export default function FlowerCompositor() {
               ? `Fetching ${fetchBatch.processed}/${fetchBatch.total}`
               : "Fetch All FFC Images (Server-Side)"}
           </Button>
-          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}>
+          <div className="flex items-center gap-2">
+            {brandBatch.running ? (
+              <Button
+                onClick={pauseBrandBatch}
+                disabled={brandBatch.paused}
+                variant="outline"
+              >
+                {brandBatch.paused ? "Pausing…" : "Pause"}
+              </Button>
+            ) : (
+              <Button
+                onClick={runBrandBatch}
+                disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}
+                style={{ backgroundColor: "#C9976B", color: "#141414" }}
+                className="hover:opacity-90"
+              >
+                Brand All Images
+              </Button>
+            )}
+            <label className="flex items-center gap-1 text-xs text-muted-foreground select-none">
+              <input
+                type="checkbox"
+                checked={reprocess}
+                onChange={(e) => setReprocess(e.target.checked)}
+                disabled={brandBatch.running}
+              />
+              Reprocess
+            </label>
+          </div>
+          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running || brandBatch.running}>
             {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
           </Button>
         </div>
