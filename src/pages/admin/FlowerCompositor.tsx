@@ -313,21 +313,34 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.fillText("Measurements approximate", 1168, 1090);
 
   // 5. footer bar
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "transparent";
   ctx.fillStyle = "#2C2C2C";
   ctx.fillRect(0, 1100, W, 100);
+  // Footer top border line
+  ctx.strokeStyle = "#C9976B";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 1100);
+  ctx.lineTo(W, 1100);
+  ctx.stroke();
+  // Footer bottom line
   ctx.fillStyle = "#C9976B";
-  ctx.fillRect(0, 1100, W, 3);
+  ctx.fillRect(0, 1197, W, 3);
   ctx.textBaseline = "middle";
+  // Footer left
   ctx.fillStyle = "#C9976B";
   ctx.font = '18px Cinzel, Georgia, serif';
   ctx.textAlign = "left";
   ctx.fillText("gravedetail.net", 32, 1150);
+  // Footer center
   ctx.fillStyle = "#6B6B6B";
-  ctx.font = 'italic 16px "Cormorant Garamond", Georgia, serif';
+  ctx.font = 'italic 15px "Cormorant Garamond", Georgia, serif';
   ctx.textAlign = "center";
   ctx.fillText("CCUS Certified · Fully Insured", W / 2, 1150);
+  // Footer right
   ctx.fillStyle = "#6B6B6B";
-  ctx.font = '16px Cinzel, Georgia, serif';
+  ctx.font = '15px Cinzel, Georgia, serif';
   ctx.textAlign = "right";
   ctx.fillText("@Grave_Detail", 1168, 1150);
 
