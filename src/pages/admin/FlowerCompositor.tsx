@@ -1122,6 +1122,8 @@ export default function FlowerCompositor() {
         </Card>
       )}
 
+      {isLoading && <p className="text-muted-foreground">Loading…</p>}
+
       {Object.keys(grouped).sort().map((type) => (
         <Card key={type}>
           <CardContent className="p-4">
