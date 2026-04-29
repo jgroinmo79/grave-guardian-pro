@@ -251,7 +251,7 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { ima
   void cardX; void cardY; void cardW; void cardH;
 
   // 8. brackets — drawn relative to the white card
-  const spec = bracketSpec(a);
+  const spec = opts?.skipBrackets ? null : bracketSpec(a);
   if (spec) {
     ctx.strokeStyle = "#C9976B";
     ctx.lineWidth = 2;
