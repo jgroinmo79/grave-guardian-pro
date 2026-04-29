@@ -1014,6 +1014,11 @@ export default function FlowerCompositor() {
 
           for (let slot = 0; slot < sourceUrls.length; slot++) {
             const rawUrl = sourceUrls[slot];
+            // Skip slot if URL already points to our branded storage for this gd_code
+            if (!reprocess && rawUrl.includes("flower-images") && a.gd_code && rawUrl.includes(`${a.gd_code}_`)) {
+              slotUrls[slot] = rawUrl;
+              continue;
+            }
             let slotStep = "fetch image";
             try {
               slotStep = "canvas draw";
