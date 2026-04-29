@@ -162,6 +162,16 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { ima
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
 
+  // Reset all canvas state to prevent bleed between renders
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowColor = "rgba(0,0,0,0)";
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, W, H);
+
   // 1. base
   ctx.fillStyle = "#141414";
   ctx.fillRect(0, 0, W, H);
@@ -759,6 +769,12 @@ export default function FlowerCompositor() {
           for (let slot = 0; slot < sourceUrls.length; slot++) {
             const rawUrl = sourceUrls[slot];
 
+            // Skip slot if URL already points to our branded storage for this gd_code
+            if (!reprocess && rawUrl.includes("flower-images") && a.gd_code && rawUrl.includes(`${a.gd_code}_`)) {
+              slotUrls[slot] = rawUrl;
+              continue;
+            }
+
             // canvas draw
             let drawn = false;
             try {
@@ -998,6 +1014,11 @@ export default function FlowerCompositor() {
 
           for (let slot = 0; slot < sourceUrls.length; slot++) {
             const rawUrl = sourceUrls[slot];
+            // Skip slot if URL already points to our branded storage for this gd_code
+            if (!reprocess && rawUrl.includes("flower-images") && a.gd_code && rawUrl.includes(`${a.gd_code}_`)) {
+              slotUrls[slot] = rawUrl;
+              continue;
+            }
             let slotStep = "fetch image";
             try {
               slotStep = "canvas draw";
