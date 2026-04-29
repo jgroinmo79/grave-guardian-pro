@@ -177,31 +177,57 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.fillText(a.gd_code || "", 1172, 64);
   ctx.textBaseline = "middle";
 
-  // 7. White card zone for flower image
+  // 7. Flower image (white background keyed out, drawn directly on granite)
   const cardX = 80, cardY = 150, cardW = 1040, cardH = 910;
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.5)";
-  ctx.shadowBlur = 20;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(cardX, cardY, cardW, cardH);
-  ctx.restore();
-
   if (a.image_url) {
     try {
       const img = await loadImage(a.image_url);
-      const innerPad = 20;
-      const availW = cardW - innerPad * 2;
-      const availH = Math.min(870, cardH - innerPad * 2);
-      const scale = Math.min(availW / img.width, availH / img.height);
-      const dw = img.width * scale;
-      const dh = img.height * scale;
-      const dx = cardX + (cardW - dw) / 2;
-      const dy = cardY + (cardH - dh) / 2;
-      ctx.drawImage(img, dx, dy, dw, dh);
+      // Offscreen canvas for chroma keying
+      const offscreen = document.createElement("canvas");
+      offscreen.width = img.naturalWidth || img.width;
+      offscreen.height = img.naturalHeight || img.height;
+      const off = offscreen.getContext("2d")!;
+      off.drawImage(img, 0, 0);
+      try {
+        const imageData = off.getImageData(0, 0, offscreen.width, offscreen.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          if (r > 230 && g > 230 && b > 230) {
+            data[i + 3] = 0;
+          } else if (r > 200 && g > 200 && b > 200) {
+            const whiteness = (r + g + b - 600) / 105;
+            data[i + 3] = Math.round(255 * (1 - whiteness));
+          }
+        }
+        off.putImageData(imageData, 0, 0);
+      } catch (keyErr) {
+        console.warn("chroma key failed (likely CORS); drawing as-is", keyErr);
+      }
+
+      // Fit within 1080 x 965, centered between header (y=130) and footer (y=1095)
+      const availW = 1080;
+      const availH = 965;
+      const centerX = 1200 / 2;
+      const centerY = (130 + 1095) / 2;
+      const scale = Math.min(availW / offscreen.width, availH / offscreen.height);
+      const dw = offscreen.width * scale;
+      const dh = offscreen.height * scale;
+      const dx = centerX - dw / 2;
+      const dy = centerY - dh / 2;
+
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.7)";
+      ctx.shadowBlur = 25;
+      ctx.shadowOffsetY = 8;
+      ctx.drawImage(offscreen, dx, dy, dw, dh);
+      ctx.restore();
     } catch (e) {
       console.warn("flower image failed", e);
     }
   }
+  // Keep card coords available for bracket geometry (no rect drawn)
+  void cardX; void cardY; void cardW; void cardH;
 
   // 8. brackets — drawn relative to the white card
   const spec = bracketSpec(a);
