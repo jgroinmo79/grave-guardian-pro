@@ -144,7 +144,7 @@ function drawHBracket(ctx: CanvasRenderingContext2D, y: number, left: number, ri
   ctx.stroke();
 }
 
-async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
+async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { imageUrlOverride?: string; skipBrackets?: boolean }) {
   const W = 1200, H = 1200;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
