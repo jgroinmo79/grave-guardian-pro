@@ -1065,6 +1065,14 @@ export default function FlowerCompositor() {
             if (!reprocess && rawUrl.includes("flower-images") && a.gd_code && rawUrl.includes(`${a.gd_code}_`)) {
               slotUrls[slot] = rawUrl;
               continue;
+            // Pixel-level branded check: dark top-left corner = already branded
+            if (!reprocess) {
+              const branded = await isAlreadyBrandedImage(rawUrl);
+              if (branded) {
+                slotUrls[slot] = rawUrl;
+                console.log(`[brand-batch] ${a.gd_code || "?"} slot ${slot + 1} already branded (pixel check), skipping`);
+                continue;
+              }
             }
             let slotStep = "fetch image";
             try {
