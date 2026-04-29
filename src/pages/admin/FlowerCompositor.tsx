@@ -1205,18 +1205,27 @@ export default function FlowerCompositor() {
                 {processBatch.lastMessage}
               </div>
             )}
-            {processBatch.finalReport && processBatch.finalReport.failed.length > 0 && (
-              <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({processBatch.finalReport.failed.length})</summary>
-                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {processBatch.finalReport.failed.map((f, i) => (
-                    <li key={i} className="font-mono">
-                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
+            {(() => {
+              const list = processBatch.finalReport?.failed ?? processBatch.failures;
+              if (!list || list.length === 0) return null;
+              const shown = list.slice(0, 50);
+              return (
+                <details className="text-xs" open={processBatch.running}>
+                  <summary className="cursor-pointer">
+                    Failed ({list.length}){list.length > 50 ? " — showing first 50" : ""}
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 max-h-60 overflow-auto">
+                    {shown.map((f, i) => (
+                      <li key={i} className="font-mono break-all">
+                        <span className="text-foreground">{f.gd_code || "?"}</span>{" "}
+                        <span className="text-muted-foreground">[{f.step}]</span>{" "}
+                        <span className="text-destructive">{f.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              );
+            })()}
           </CardContent>
         </Card>
       )}
