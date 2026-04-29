@@ -178,7 +178,7 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.textBaseline = "middle";
 
   // 7. White card zone for flower image
-  const cardX = 80, cardY = 150, cardW = 1040, cardH = 820;
+  const cardX = 80, cardY = 150, cardW = 1040, cardH = 910;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.5)";
   ctx.shadowBlur = 20;
@@ -189,9 +189,9 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   if (a.image_url) {
     try {
       const img = await loadImage(a.image_url);
-      const innerPad = 30;
+      const innerPad = 20;
       const availW = cardW - innerPad * 2;
-      const availH = cardH - innerPad * 2;
+      const availH = Math.min(870, cardH - innerPad * 2);
       const scale = Math.min(availW / img.width, availH / img.height);
       const dw = img.width * scale;
       const dh = img.height * scale;
@@ -313,21 +313,34 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.fillText("Measurements approximate", 1168, 1090);
 
   // 5. footer bar
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "transparent";
   ctx.fillStyle = "#2C2C2C";
   ctx.fillRect(0, 1100, W, 100);
+  // Footer top border line
+  ctx.strokeStyle = "#C9976B";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 1100);
+  ctx.lineTo(W, 1100);
+  ctx.stroke();
+  // Footer bottom line
   ctx.fillStyle = "#C9976B";
-  ctx.fillRect(0, 1100, W, 3);
+  ctx.fillRect(0, 1197, W, 3);
   ctx.textBaseline = "middle";
+  // Footer left
   ctx.fillStyle = "#C9976B";
   ctx.font = '18px Cinzel, Georgia, serif';
   ctx.textAlign = "left";
   ctx.fillText("gravedetail.net", 32, 1150);
+  // Footer center
   ctx.fillStyle = "#6B6B6B";
-  ctx.font = 'italic 16px "Cormorant Garamond", Georgia, serif';
+  ctx.font = 'italic 15px "Cormorant Garamond", Georgia, serif';
   ctx.textAlign = "center";
   ctx.fillText("CCUS Certified · Fully Insured", W / 2, 1150);
+  // Footer right
   ctx.fillStyle = "#6B6B6B";
-  ctx.font = '16px Cinzel, Georgia, serif';
+  ctx.font = '15px Cinzel, Georgia, serif';
   ctx.textAlign = "right";
   ctx.fillText("@Grave_Detail", 1168, 1150);
 
