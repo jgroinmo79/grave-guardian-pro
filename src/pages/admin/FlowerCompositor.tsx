@@ -703,13 +703,15 @@ export default function FlowerCompositor() {
           lastMessage: `Processing ${i + 1} of ${list.length} — ${label}`,
         }));
 
-        // Skip if already has image_url and reprocess off
-        if (!reprocess && a.image_url) {
+        // Skip only if image_url_2 is already populated (i.e. additional
+        // angles were already fetched). Having only image_url means we
+        // still need to fetch slots 2-5. Reprocess overrides everything.
+        if (!reprocess && a.image_url_2) {
           skipped++;
           setProcessBatch((s) => ({
             ...s,
             skipped,
-            lastMessage: `Skipped ${label} (already has image)`,
+            lastMessage: `Skipped ${label} (already has multiple images)`,
           }));
           await new Promise((r) => setTimeout(r, 30));
           continue;
