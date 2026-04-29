@@ -548,7 +548,101 @@ export default function FlowerCompositor() {
     qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
   }
 
-  return (
+  async function runServerBatch() {
+    setServerBatch({
+      running: true,
+      processed: 0,
+      total: 0,
+      updated: 0,
+      skipped: 0,
+      failed: 0,
+      lastMessage: "Starting…",
+      finalReport: null,
+    });
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+      const url = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-image-processor`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
+      if (!res.ok || !res.body) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${txt}`);
+      }
+
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let updated = 0;
+      let skipped = 0;
+      let failed = 0;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          let evt: any;
+          try { evt = JSON.parse(trimmed); } catch { continue; }
+
+          if (evt.type === "start") {
+            setServerBatch((s) => ({
+              ...s,
+              total: evt.total,
+              lastMessage: `Found ${evt.total} arrangements`,
+            }));
+          } else if (evt.type === "progress") {
+            if (evt.status === "updated") updated++;
+            else if (evt.status === "skipped") skipped++;
+            else if (evt.status === "failed") failed++;
+            const u = updated, sk = skipped, fl = failed;
+            setServerBatch((s) => ({
+              ...s,
+              processed: evt.processed,
+              total: evt.total,
+              updated: u,
+              skipped: sk,
+              failed: fl,
+              lastMessage: `${evt.gd_code || "?"}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}`,
+            }));
+          } else if (evt.type === "done") {
+            setServerBatch((s) => ({
+              ...s,
+              running: false,
+              processed: evt.processed,
+              total: evt.total,
+              updated: evt.updated,
+              skipped: evt.skipped,
+              failed: evt.failed.length,
+              lastMessage: "Complete",
+              finalReport: evt,
+            }));
+            toast.success(`Server batch complete: ${evt.updated} updated`);
+          } else if (evt.type === "error") {
+            throw new Error(evt.error);
+          }
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Server batch failed");
+      setServerBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+    }
+  }
+
+
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
