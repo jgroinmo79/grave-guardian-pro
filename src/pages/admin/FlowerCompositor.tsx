@@ -922,7 +922,7 @@ export default function FlowerCompositor() {
 
       const { data: rows, error } = await supabase
         .from("flower_arrangements")
-        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2")
+        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2,image_url_3,image_url_4,image_url_5")
         .not("ffc_code", "is", null)
         .order("name");
       if (error) throw error;
@@ -961,26 +961,25 @@ export default function FlowerCompositor() {
         }
 
         try {
-          // Fetch manifest
           const gd = a.gd_code || a.id;
-          const manifestName = `${gd}_manifest.json`;
-          const { data: manifestPub } = supabase.storage
-            .from("flower-images")
-            .getPublicUrl(manifestName);
-          const mRes = await fetch(`${manifestPub.publicUrl}?t=${Date.now()}`);
-          if (!mRes.ok) throw new Error(`manifest HTTP ${mRes.status}`);
-          const manifest = await mRes.json() as { raw_images?: string[] };
-          const rawUrls = (manifest.raw_images || []).slice(0, 5);
-          if (rawUrls.length === 0) {
+          const sourceUrls = [
+            a.image_url,
+            (a as any).image_url_2,
+            (a as any).image_url_3,
+            (a as any).image_url_4,
+            (a as any).image_url_5,
+          ].filter((u): u is string => !!u).slice(0, 5);
+
+          if (sourceUrls.length === 0) {
             skipped++;
-            setBrandBatch((s) => ({ ...s, skipped, lastMessage: `Skipped ${label} (empty manifest)` }));
+            setBrandBatch((s) => ({ ...s, skipped, lastMessage: `Skipped ${label} (no image URLs)` }));
             continue;
           }
 
           const slotUrls: (string | null)[] = [null, null, null, null, null];
 
-          for (let slot = 0; slot < rawUrls.length; slot++) {
-            const rawUrl = rawUrls[slot];
+          for (let slot = 0; slot < sourceUrls.length; slot++) {
+            const rawUrl = sourceUrls[slot];
             try {
               await composite(canvasRef.current!, a, {
                 imageUrlOverride: rawUrl,
