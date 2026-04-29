@@ -926,13 +926,26 @@ export default function FlowerCompositor() {
       skipped: 0,
       failed: 0,
       lastMessage: "Starting…",
+      failures: [],
       finalReport: null,
     });
 
     let branded = 0;
     let skipped = 0;
     let failed = 0;
-    const failedList: { gd_code: string | null; reason: string }[] = [];
+    const failedList: { gd_code: string | null; step: string; reason: string }[] = [];
+    const recordBrandFailure = (gd_code: string | null, step: string, err: any) => {
+      const reason = err?.message || String(err);
+      console.error(`[brand-batch] ${gd_code || "?"} step="${step}" error:`, err);
+      failed++;
+      failedList.push({ gd_code, step, reason });
+      setBrandBatch((s) => ({
+        ...s,
+        failed,
+        failures: [...s.failures, { gd_code, step, reason }].slice(0, 50),
+        lastMessage: `Failed ${gd_code || "?"} @ ${step}: ${reason}`,
+      }));
+    };
 
     try {
       await ensureFonts();
