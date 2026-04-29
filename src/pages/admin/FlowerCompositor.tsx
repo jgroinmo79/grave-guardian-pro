@@ -643,6 +643,7 @@ export default function FlowerCompositor() {
   }
 
 
+  return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -653,10 +654,52 @@ export default function FlowerCompositor() {
             Composite arrangements onto branded backgrounds.
           </p>
         </div>
-        <Button onClick={generateAll} disabled={!!bulkProgress || !!generating}>
-          {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={runServerBatch}
+            disabled={serverBatch.running || !!bulkProgress || !!generating}
+            style={{ backgroundColor: "#C9976B", color: "#141414" }}
+            className="hover:opacity-90"
+          >
+            {serverBatch.running
+              ? `Server ${serverBatch.processed}/${serverBatch.total}`
+              : "Batch Process All (Server-Side)"}
+          </Button>
+          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running}>
+            {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
+          </Button>
+        </div>
       </div>
+
+      {(serverBatch.running || serverBatch.finalReport) && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {serverBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              Server-side batch
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Processed {serverBatch.processed}/{serverBatch.total} ·
+              Updated {serverBatch.updated} · Skipped {serverBatch.skipped} · Failed {serverBatch.failed}
+            </div>
+            {serverBatch.lastMessage && (
+              <div className="text-xs font-mono truncate">{serverBatch.lastMessage}</div>
+            )}
+            {serverBatch.finalReport && serverBatch.finalReport.failed.length > 0 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer">Failed ({serverBatch.finalReport.failed.length})</summary>
+                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
+                  {serverBatch.finalReport.failed.map((f) => (
+                    <li key={f.id} className="font-mono">
+                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading && <p className="text-muted-foreground">Loading…</p>}
 
