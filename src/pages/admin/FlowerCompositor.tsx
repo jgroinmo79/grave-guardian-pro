@@ -667,6 +667,103 @@ export default function FlowerCompositor() {
     }
   }
 
+  async function runFetchBatch() {
+    setFetchBatch({
+      running: true,
+      processed: 0,
+      total: 0,
+      saved: 0,
+      skipped: 0,
+      failed: 0,
+      lastMessage: "Starting…",
+      finalReport: null,
+    });
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+      const url = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-fetch-ffc-images`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
+      if (!res.ok || !res.body) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${txt}`);
+      }
+
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let saved = 0;
+      let skipped = 0;
+      let failed = 0;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          let evt: any;
+          try { evt = JSON.parse(trimmed); } catch { continue; }
+
+          if (evt.type === "start") {
+            setFetchBatch((s) => ({
+              ...s,
+              total: evt.total,
+              lastMessage: `Found ${evt.total} arrangements with FFC code`,
+            }));
+          } else if (evt.type === "progress") {
+            if (evt.status === "saved") saved++;
+            else if (evt.status === "skipped") skipped++;
+            else if (evt.status === "failed") failed++;
+            const sv = saved, sk = skipped, fl = failed;
+            const label = evt.name || evt.gd_code || "?";
+            const msg =
+              evt.status === "fetching"
+                ? `Processing ${evt.processed} of ${evt.total} — ${label}`
+                : `${label}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}${evt.slots_filled ? ` — ${evt.slots_filled} images` : ""}`;
+            setFetchBatch((s) => ({
+              ...s,
+              processed: evt.processed,
+              total: evt.total,
+              saved: sv,
+              skipped: sk,
+              failed: fl,
+              lastMessage: msg,
+            }));
+          } else if (evt.type === "done") {
+            setFetchBatch((s) => ({
+              ...s,
+              running: false,
+              processed: evt.processed,
+              total: evt.total,
+              saved: evt.updated,
+              skipped: evt.skipped,
+              failed: evt.failed.length,
+              lastMessage: "Complete",
+              finalReport: evt,
+            }));
+            toast.success(`FFC fetch complete: ${evt.updated} saved`);
+          } else if (evt.type === "error") {
+            throw new Error(evt.error);
+          }
+        }
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "FFC fetch failed");
+      setFetchBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+    }
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
