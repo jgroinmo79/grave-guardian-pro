@@ -1055,27 +1055,44 @@ export default function FlowerCompositor() {
             Composite arrangements onto branded backgrounds.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            onClick={runServerBatch}
-            disabled={serverBatch.running || !!bulkProgress || !!generating}
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            className="hover:opacity-90"
-          >
-            {serverBatch.running
-              ? `Server ${serverBatch.processed}/${serverBatch.total}`
-              : "Batch Process All (Server-Side)"}
-          </Button>
-          <Button
-            onClick={runFetchBatch}
-            disabled={fetchBatch.running || serverBatch.running || !!bulkProgress || !!generating}
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            className="hover:opacity-90"
-          >
-            {fetchBatch.running
-              ? `Fetching ${fetchBatch.processed}/${fetchBatch.total}`
-              : "Fetch All FFC Images (Server-Side)"}
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            {processBatch.running ? (
+              <Button
+                onClick={pauseProcessBatch}
+                disabled={processBatch.paused}
+                variant="outline"
+              >
+                {processBatch.paused ? "Pausing…" : "Pause"}
+              </Button>
+            ) : processBatch.paused ? (
+              <Button
+                onClick={resumeProcessBatch}
+                style={{ backgroundColor: "#C9976B", color: "#141414" }}
+                className="hover:opacity-90"
+              >
+                Resume
+              </Button>
+            ) : (
+              <Button
+                onClick={() => runProcessBatch()}
+                disabled={!!bulkProgress || !!generating || brandBatch.running}
+                style={{ backgroundColor: "#C9976B", color: "#141414" }}
+                className="hover:opacity-90"
+              >
+                Process All Images
+              </Button>
+            )}
+            <label className="flex items-center gap-1 text-xs text-muted-foreground select-none">
+              <input
+                type="checkbox"
+                checked={reprocess}
+                onChange={(e) => setReprocess(e.target.checked)}
+                disabled={processBatch.running || brandBatch.running}
+              />
+              Reprocess
+            </label>
+          </div>
           <div className="flex items-center gap-2">
             {brandBatch.running ? (
               <Button
@@ -1088,80 +1105,62 @@ export default function FlowerCompositor() {
             ) : (
               <Button
                 onClick={runBrandBatch}
-                disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}
+                disabled={!!bulkProgress || !!generating || processBatch.running}
                 style={{ backgroundColor: "#C9976B", color: "#141414" }}
                 className="hover:opacity-90"
               >
                 Brand All Images
               </Button>
             )}
-            <label className="flex items-center gap-1 text-xs text-muted-foreground select-none">
-              <input
-                type="checkbox"
-                checked={reprocess}
-                onChange={(e) => setReprocess(e.target.checked)}
-                disabled={brandBatch.running}
-              />
-              Reprocess
-            </label>
           </div>
-          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running || brandBatch.running}>
+          <Button
+            onClick={generateAll}
+            disabled={!!bulkProgress || !!generating || processBatch.running || brandBatch.running}
+          >
             {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
           </Button>
         </div>
       </div>
 
-      {(serverBatch.running || serverBatch.finalReport) && (
+      {(processBatch.running || processBatch.paused || processBatch.finalReport) && (
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium">
-              {serverBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
-              Server-side batch
+              {processBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              Process All Images (client-side)
             </div>
+            {processBatch.total > 0 && (
+              <div className="w-full h-2 rounded bg-muted overflow-hidden">
+                <div
+                  className="h-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.round((processBatch.processed / Math.max(1, processBatch.total)) * 100))}%`,
+                    backgroundColor: "#C9976B",
+                  }}
+                />
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">
-              Processed {serverBatch.processed}/{serverBatch.total} ·
-              Updated {serverBatch.updated} · Skipped {serverBatch.skipped} · Failed {serverBatch.failed}
+              {processBatch.processed} of {processBatch.total} ·
+              {" "}{processBatch.saved} images saved, {processBatch.skipped} skipped (outdoor / existing), {processBatch.failed} failed
             </div>
-            {serverBatch.lastMessage && (
-              <div className="text-xs font-mono truncate">{serverBatch.lastMessage}</div>
+            {processBatch.currentName && processBatch.running && (
+              <div className="text-xs font-medium truncate">
+                Current: {processBatch.currentName}
+              </div>
             )}
-            {serverBatch.finalReport && serverBatch.finalReport.failed.length > 0 && (
+            {processBatch.lastMessage && (
+              <div className="text-xs font-mono truncate text-muted-foreground">
+                {processBatch.lastMessage}
+              </div>
+            )}
+            {processBatch.finalReport && processBatch.finalReport.failed.length > 0 && (
               <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({serverBatch.finalReport.failed.length})</summary>
+                <summary className="cursor-pointer">Failed ({processBatch.finalReport.failed.length})</summary>
                 <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {serverBatch.finalReport.failed.map((f) => (
-                    <li key={f.id} className="font-mono">
-                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {(fetchBatch.running || fetchBatch.finalReport) && (
-        <Card>
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              {fetchBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
-              FFC image fetch
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Processed {fetchBatch.processed}/{fetchBatch.total} ·
-              Saved {fetchBatch.saved} · Skipped {fetchBatch.skipped} · Failed {fetchBatch.failed}
-            </div>
-            {fetchBatch.lastMessage && (
-              <div className="text-xs font-mono truncate">{fetchBatch.lastMessage}</div>
-            )}
-            {fetchBatch.finalReport && fetchBatch.finalReport.failed.length > 0 && (
-              <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({fetchBatch.finalReport.failed.length})</summary>
-                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {fetchBatch.finalReport.failed.map((f) => (
-                    <li key={f.id} className="font-mono">
-                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                  {processBatch.finalReport.failed.map((f, i) => (
+                    <li key={i} className="font-mono">
+                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
                     </li>
                   ))}
                 </ul>
