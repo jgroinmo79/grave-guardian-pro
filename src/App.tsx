@@ -30,8 +30,6 @@ import AdminLeads from "./pages/admin/Leads";
 import FrameBuilder from "./pages/FrameBuilder";
 import AdminMemorials from "./pages/admin/Memorials";
 import AdminFlowerCatalog from "./pages/admin/FlowerCatalog";
-import AdminFlowerImageImport from "./pages/admin/FlowerImageImport";
-import AdminFlowerCompositor from "./pages/admin/FlowerCompositor";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import Services from "./pages/Services";
