@@ -459,6 +459,35 @@ export default function FlowerCompositor() {
     lastMessage: "",
     finalReport: null,
   });
+  const [brandBatch, setBrandBatch] = useState<{
+    running: boolean;
+    paused: boolean;
+    processed: number;
+    total: number;
+    branded: number;
+    skipped: number;
+    failed: number;
+    lastMessage: string;
+    finalReport: null | {
+      total: number;
+      processed: number;
+      branded: number;
+      skipped: number;
+      failed: { gd_code: string | null; reason: string }[];
+    };
+  }>({
+    running: false,
+    paused: false,
+    processed: 0,
+    total: 0,
+    branded: 0,
+    skipped: 0,
+    failed: 0,
+    lastMessage: "",
+    finalReport: null,
+  });
+  const [reprocess, setReprocess] = useState(false);
+  const pauseRequestedRef = useRef(false);
 
   useEffect(() => { ensureFonts(); }, []);
 
