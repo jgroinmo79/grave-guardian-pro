@@ -812,6 +812,16 @@ export default function FlowerCompositor() {
               continue;
             }
 
+            // Pixel-level branded check: dark top-left corner = already branded
+            if (!reprocess) {
+              const branded = await isAlreadyBrandedImage(rawUrl);
+              if (branded) {
+                slotUrls[slot] = rawUrl;
+                console.log(`[process-batch] ${a.gd_code || "?"} slot ${slot + 1} already branded (pixel check), skipping`);
+                continue;
+              }
+            }
+
             // canvas draw
             let drawn = false;
             try {
