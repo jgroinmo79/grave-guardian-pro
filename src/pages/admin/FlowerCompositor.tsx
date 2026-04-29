@@ -38,14 +38,27 @@ async function ensureFonts() {
   }
 }
 
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
+async function loadImage(url: string): Promise<HTMLImageElement> {
+  // Fetch as blob → object URL so the canvas is never CORS-tainted,
+  // regardless of whether the source is Supabase Storage, FFC, or a proxy.
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`image fetch HTTP ${res.status}`);
+  const blob = await res.blob();
+  if (!blob.type.startsWith("image/")) {
+    throw new Error(`expected image, got ${blob.type || "unknown"}`);
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    return await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("image decode failed"));
+      img.src = objectUrl;
+    });
+  } finally {
+    // Defer revoke a tick so the image is fully decoded before release.
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  }
 }
 
 function categoryLabel(a: Arrangement): string {
@@ -690,13 +703,15 @@ export default function FlowerCompositor() {
           lastMessage: `Processing ${i + 1} of ${list.length} — ${label}`,
         }));
 
-        // Skip if already has image_url and reprocess off
-        if (!reprocess && a.image_url) {
+        // Skip only if image_url_2 is already populated (i.e. additional
+        // angles were already fetched). Having only image_url means we
+        // still need to fetch slots 2-5. Reprocess overrides everything.
+        if (!reprocess && a.image_url_2) {
           skipped++;
           setProcessBatch((s) => ({
             ...s,
             skipped,
-            lastMessage: `Skipped ${label} (already has image)`,
+            lastMessage: `Skipped ${label} (already has multiple images)`,
           }));
           await new Promise((r) => setTimeout(r, 30));
           continue;
