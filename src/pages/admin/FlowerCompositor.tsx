@@ -162,6 +162,16 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { ima
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
 
+  // Reset all canvas state to prevent bleed between renders
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowColor = "rgba(0,0,0,0)";
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, W, H);
+
   // 1. base
   ctx.fillStyle = "#141414";
   ctx.fillRect(0, 0, W, H);
