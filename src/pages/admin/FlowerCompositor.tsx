@@ -144,7 +144,7 @@ function drawHBracket(ctx: CanvasRenderingContext2D, y: number, left: number, ri
   ctx.stroke();
 }
 
-async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
+async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { imageUrlOverride?: string; skipBrackets?: boolean }) {
   const W = 1200, H = 1200;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
@@ -199,9 +199,10 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
 
   // 7. Flower image (white background keyed out, drawn directly on granite)
   const cardX = 80, cardY = 150, cardW = 1040, cardH = 910;
-  if (a.image_url) {
+  const flowerSrc = opts?.imageUrlOverride || a.image_url;
+  if (flowerSrc) {
     try {
-      const img = await loadImage(a.image_url);
+      const img = await loadImage(flowerSrc);
       // Offscreen canvas for chroma keying
       const offscreen = document.createElement("canvas");
       offscreen.width = img.naturalWidth || img.width;
@@ -250,7 +251,7 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   void cardX; void cardY; void cardW; void cardH;
 
   // 8. brackets — drawn relative to the white card
-  const spec = bracketSpec(a);
+  const spec = opts?.skipBrackets ? null : bracketSpec(a);
   if (spec) {
     ctx.strokeStyle = "#C9976B";
     ctx.lineWidth = 2;
@@ -458,6 +459,35 @@ export default function FlowerCompositor() {
     lastMessage: "",
     finalReport: null,
   });
+  const [brandBatch, setBrandBatch] = useState<{
+    running: boolean;
+    paused: boolean;
+    processed: number;
+    total: number;
+    branded: number;
+    skipped: number;
+    failed: number;
+    lastMessage: string;
+    finalReport: null | {
+      total: number;
+      processed: number;
+      branded: number;
+      skipped: number;
+      failed: { gd_code: string | null; reason: string }[];
+    };
+  }>({
+    running: false,
+    paused: false,
+    processed: 0,
+    total: 0,
+    branded: 0,
+    skipped: 0,
+    failed: 0,
+    lastMessage: "",
+    finalReport: null,
+  });
+  const [reprocess, setReprocess] = useState(false);
+  const pauseRequestedRef = useRef(false);
 
   useEffect(() => { ensureFonts(); }, []);
 
@@ -765,6 +795,176 @@ export default function FlowerCompositor() {
     }
   }
 
+  function pauseBrandBatch() {
+    pauseRequestedRef.current = true;
+    setBrandBatch((s) => ({ ...s, paused: true, lastMessage: "Pause requested — will stop after current arrangement…" }));
+  }
+
+  async function runBrandBatch() {
+    if (!canvasRef.current) {
+      toast.error("Canvas not ready");
+      return;
+    }
+    pauseRequestedRef.current = false;
+    setBrandBatch({
+      running: true,
+      paused: false,
+      processed: 0,
+      total: 0,
+      branded: 0,
+      skipped: 0,
+      failed: 0,
+      lastMessage: "Starting…",
+      finalReport: null,
+    });
+
+    let branded = 0;
+    let skipped = 0;
+    let failed = 0;
+    const failedList: { gd_code: string | null; reason: string }[] = [];
+
+    try {
+      await ensureFonts();
+
+      const { data: rows, error } = await supabase
+        .from("flower_arrangements")
+        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2")
+        .not("ffc_code", "is", null)
+        .order("name");
+      if (error) throw error;
+      const list = (rows || []) as Arrangement[];
+
+      setBrandBatch((s) => ({ ...s, total: list.length, lastMessage: `Found ${list.length} arrangements` }));
+
+      for (let i = 0; i < list.length; i++) {
+        if (pauseRequestedRef.current) {
+          setBrandBatch((s) => ({ ...s, running: false, lastMessage: `Paused after ${i} arrangements` }));
+          toast.info(`Paused after ${i} arrangements`);
+          qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+          return;
+        }
+
+        const a = list[i];
+        const label = a.name || a.gd_code || a.id;
+        setBrandBatch((s) => ({
+          ...s,
+          processed: i + 1,
+          lastMessage: `Branding ${i + 1} of ${list.length} — ${label}`,
+        }));
+
+        // Skip if already branded with our storage URL and reprocess off
+        const alreadyBranded = (a.image_url || "").includes("gravedetail") &&
+          (a.image_url || "").includes("flower-images");
+        if (alreadyBranded && !reprocess) {
+          skipped++;
+          setBrandBatch((s) => ({
+            ...s,
+            skipped,
+            lastMessage: `Skipped ${label} (already branded)`,
+          }));
+          await new Promise((r) => setTimeout(r, 50));
+          continue;
+        }
+
+        try {
+          // Fetch manifest
+          const gd = a.gd_code || a.id;
+          const manifestName = `${gd}_manifest.json`;
+          const { data: manifestPub } = supabase.storage
+            .from("flower-images")
+            .getPublicUrl(manifestName);
+          const mRes = await fetch(`${manifestPub.publicUrl}?t=${Date.now()}`);
+          if (!mRes.ok) throw new Error(`manifest HTTP ${mRes.status}`);
+          const manifest = await mRes.json() as { raw_images?: string[] };
+          const rawUrls = (manifest.raw_images || []).slice(0, 5);
+          if (rawUrls.length === 0) {
+            skipped++;
+            setBrandBatch((s) => ({ ...s, skipped, lastMessage: `Skipped ${label} (empty manifest)` }));
+            continue;
+          }
+
+          const slotUrls: (string | null)[] = [null, null, null, null, null];
+
+          for (let slot = 0; slot < rawUrls.length; slot++) {
+            const rawUrl = rawUrls[slot];
+            try {
+              await composite(canvasRef.current!, a, {
+                imageUrlOverride: rawUrl,
+                skipBrackets: slot !== 0,
+              });
+              const blob = await canvasToBlob(canvasRef.current!);
+              const filename = `${gd}_${slot + 1}.jpg`;
+              const { error: upErr } = await supabase.storage
+                .from("flower-images")
+                .upload(filename, blob, { contentType: "image/jpeg", upsert: true });
+              if (upErr) throw upErr;
+              const { data: pub } = supabase.storage.from("flower-images").getPublicUrl(filename);
+              slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
+            } catch (slotErr) {
+              console.warn(`brand slot ${slot + 1} failed for ${label}:`, slotErr);
+            }
+            // 300ms between images to keep browser responsive
+            await new Promise((r) => setTimeout(r, 300));
+          }
+
+          if (!slotUrls.some(Boolean)) {
+            failed++;
+            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
+            setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label} (no slots produced)` }));
+            continue;
+          }
+
+          const { error: updErr } = await supabase
+            .from("flower_arrangements")
+            .update({
+              image_url: slotUrls[0] ?? a.image_url ?? undefined,
+              image_url_2: slotUrls[1],
+              image_url_3: slotUrls[2],
+              image_url_4: slotUrls[3],
+              image_url_5: slotUrls[4],
+            })
+            .eq("id", a.id);
+          if (updErr) throw updErr;
+
+          branded++;
+          setBrandBatch((s) => ({
+            ...s,
+            branded,
+            lastMessage: `Branded ${label} (${slotUrls.filter(Boolean).length} slots)`,
+          }));
+        } catch (e: any) {
+          failed++;
+          const reason = e?.message || String(e);
+          failedList.push({ gd_code: a.gd_code, reason });
+          setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label}: ${reason}` }));
+          console.warn(`brand batch failed for ${label}:`, e);
+        }
+      }
+
+      setBrandBatch((s) => ({
+        ...s,
+        running: false,
+        branded,
+        skipped,
+        failed,
+        lastMessage: "Complete",
+        finalReport: {
+          total: list.length,
+          processed: list.length,
+          branded,
+          skipped,
+          failed: failedList,
+        },
+      }));
+      toast.success(`Branding complete: ${branded} branded, ${skipped} skipped, ${failed} failed`);
+      qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Brand batch failed");
+      setBrandBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -797,7 +997,36 @@ export default function FlowerCompositor() {
               ? `Fetching ${fetchBatch.processed}/${fetchBatch.total}`
               : "Fetch All FFC Images (Server-Side)"}
           </Button>
-          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}>
+          <div className="flex items-center gap-2">
+            {brandBatch.running ? (
+              <Button
+                onClick={pauseBrandBatch}
+                disabled={brandBatch.paused}
+                variant="outline"
+              >
+                {brandBatch.paused ? "Pausing…" : "Pause"}
+              </Button>
+            ) : (
+              <Button
+                onClick={runBrandBatch}
+                disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}
+                style={{ backgroundColor: "#C9976B", color: "#141414" }}
+                className="hover:opacity-90"
+              >
+                Brand All Images
+              </Button>
+            )}
+            <label className="flex items-center gap-1 text-xs text-muted-foreground select-none">
+              <input
+                type="checkbox"
+                checked={reprocess}
+                onChange={(e) => setReprocess(e.target.checked)}
+                disabled={brandBatch.running}
+              />
+              Reprocess
+            </label>
+          </div>
+          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running || brandBatch.running}>
             {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
           </Button>
         </div>
@@ -854,6 +1083,36 @@ export default function FlowerCompositor() {
                   {fetchBatch.finalReport.failed.map((f) => (
                     <li key={f.id} className="font-mono">
                       {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {(brandBatch.running || brandBatch.finalReport) && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {brandBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              Client-side branding
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Processed {brandBatch.processed}/{brandBatch.total} ·
+              Branded {brandBatch.branded} · Skipped {brandBatch.skipped} · Failed {brandBatch.failed}
+            </div>
+            {brandBatch.lastMessage && (
+              <div className="text-xs font-mono truncate">{brandBatch.lastMessage}</div>
+            )}
+            {brandBatch.finalReport && brandBatch.finalReport.failed.length > 0 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer">Failed ({brandBatch.finalReport.failed.length})</summary>
+                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
+                  {brandBatch.finalReport.failed.map((f, i) => (
+                    <li key={i} className="font-mono">
+                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
                     </li>
                   ))}
                 </ul>
