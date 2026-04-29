@@ -47,7 +47,7 @@ const items = [
   { title: "Frame Builder", url: "/admin/frame-builder", icon: Frame },
   { title: "Memorials", url: "/admin/memorials", icon: Landmark },
   { title: "Flower Catalog", url: "/admin/flowers", icon: Flower2 },
-  { title: "Image Compositor", url: "/admin/flower-compositor", icon: Wand2 },
+  
   { title: "Email Signups", url: "/admin/signups", icon: Mail },
 ];
 
