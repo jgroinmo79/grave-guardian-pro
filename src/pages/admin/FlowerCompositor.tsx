@@ -708,86 +708,114 @@ export default function FlowerCompositor() {
       lastMessage: "Starting…",
       finalReport: null,
     });
+
+    const aggFailed: { id: string; gd_code: string | null; reason: string }[] = [];
+    let aggProcessed = 0;
+    let aggSaved = 0;
+    let aggSkipped = 0;
+    let totalAll = 0;
+    let offset = 0;
+    const MAX_BATCHES = 200; // safety cap
+
     try {
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
       if (!token) throw new Error("Not authenticated");
-      const url = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-fetch-ffc-images`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: "{}",
-      });
-      if (!res.ok || !res.body) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status}: ${txt}`);
-      }
+      const fnUrl = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-fetch-ffc-images`;
 
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = "";
-      let saved = 0;
-      let skipped = 0;
-      let failed = 0;
+      for (let batchNum = 0; batchNum < MAX_BATCHES; batchNum++) {
+        const res = await fetch(fnUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ offset, batchSize: 20 }),
+        });
+        if (!res.ok || !res.body) {
+          const txt = await res.text().catch(() => "");
+          throw new Error(`HTTP ${res.status}: ${txt}`);
+        }
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop() || "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          let evt: any;
-          try { evt = JSON.parse(trimmed); } catch { continue; }
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        let buf = "";
+        let doneEvt: any = null;
 
-          if (evt.type === "start") {
-            setFetchBatch((s) => ({
-              ...s,
-              total: evt.total,
-              lastMessage: `Found ${evt.total} arrangements with FFC code`,
-            }));
-          } else if (evt.type === "progress") {
-            if (evt.status === "saved") saved++;
-            else if (evt.status === "skipped") skipped++;
-            else if (evt.status === "failed") failed++;
-            const sv = saved, sk = skipped, fl = failed;
-            const label = evt.name || evt.gd_code || "?";
-            const msg =
-              evt.status === "fetching"
-                ? `Processing ${evt.processed} of ${evt.total} — ${label}`
-                : `${label}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}${evt.slots_filled ? ` — ${evt.slots_filled} images` : ""}`;
-            setFetchBatch((s) => ({
-              ...s,
-              processed: evt.processed,
-              total: evt.total,
-              saved: sv,
-              skipped: sk,
-              failed: fl,
-              lastMessage: msg,
-            }));
-          } else if (evt.type === "done") {
-            setFetchBatch((s) => ({
-              ...s,
-              running: false,
-              processed: evt.processed,
-              total: evt.total,
-              saved: evt.updated,
-              skipped: evt.skipped,
-              failed: evt.failed.length,
-              lastMessage: "Complete",
-              finalReport: evt,
-            }));
-            toast.success(`FFC fetch complete: ${evt.updated} saved`);
-          } else if (evt.type === "error") {
-            throw new Error(evt.error);
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          const lines = buf.split("\n");
+          buf = lines.pop() || "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            let evt: any;
+            try { evt = JSON.parse(trimmed); } catch { continue; }
+
+            if (evt.type === "start") {
+              if (evt.total) totalAll = evt.total;
+              setFetchBatch((s) => ({
+                ...s,
+                total: totalAll,
+                lastMessage: `Batch ${batchNum + 1}: offset ${evt.offset}, ${evt.batchSize} arrangements (of ${totalAll} total)`,
+              }));
+            } else if (evt.type === "progress") {
+              if (evt.status === "saved") aggSaved++;
+              else if (evt.status === "skipped") aggSkipped++;
+              const label = evt.name || evt.gd_code || "?";
+              const globalIdx = offset + evt.processed;
+              const msg =
+                evt.status === "fetching"
+                  ? `Processing ${globalIdx} of ${totalAll} — ${label}`
+                  : `${label}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}${evt.slots_filled ? ` — ${evt.slots_filled} images` : ""}`;
+              setFetchBatch((s) => ({
+                ...s,
+                processed: globalIdx,
+                total: totalAll,
+                saved: aggSaved,
+                skipped: aggSkipped,
+                failed: aggFailed.length,
+                lastMessage: msg,
+              }));
+            } else if (evt.type === "done") {
+              doneEvt = evt;
+            } else if (evt.type === "error") {
+              throw new Error(evt.error);
+            }
           }
         }
+
+        if (!doneEvt) throw new Error("Batch ended without done event");
+        aggProcessed += doneEvt.processed || 0;
+        if (Array.isArray(doneEvt.failed)) aggFailed.push(...doneEvt.failed);
+        totalAll = doneEvt.totalAll ?? totalAll;
+
+        if (!doneEvt.hasMore || (doneEvt.processed ?? 0) === 0) {
+          break;
+        }
+        offset = doneEvt.nextOffset;
       }
+
+      setFetchBatch((s) => ({
+        ...s,
+        running: false,
+        processed: aggProcessed,
+        total: totalAll,
+        saved: aggSaved,
+        skipped: aggSkipped,
+        failed: aggFailed.length,
+        lastMessage: "Complete",
+        finalReport: {
+          total: totalAll,
+          processed: aggProcessed,
+          updated: aggSaved,
+          skipped: aggSkipped,
+          failed: aggFailed,
+        },
+      }));
+      toast.success(`FFC fetch complete: ${aggSaved} saved, ${aggFailed.length} failed`);
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "FFC fetch failed");
