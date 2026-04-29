@@ -199,9 +199,10 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement, opts?: { ima
 
   // 7. Flower image (white background keyed out, drawn directly on granite)
   const cardX = 80, cardY = 150, cardW = 1040, cardH = 910;
-  if (a.image_url) {
+  const flowerSrc = opts?.imageUrlOverride || a.image_url;
+  if (flowerSrc) {
     try {
-      const img = await loadImage(a.image_url);
+      const img = await loadImage(flowerSrc);
       // Offscreen canvas for chroma keying
       const offscreen = document.createElement("canvas");
       offscreen.width = img.naturalWidth || img.width;
