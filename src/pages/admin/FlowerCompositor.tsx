@@ -650,52 +650,42 @@ export default function FlowerCompositor() {
     };
 
     try {
-      await ensureFonts();
+      try {
+        await ensureFonts();
+      } catch (fontErr) {
+        console.error("[process-batch] font load failed (continuing):", fontErr);
+      }
 
-      // Load all arrangements with FFC code
-      const { data: rows, error } = await supabase
-        .from("flower_arrangements")
-        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2")
-        .not("ffc_code", "is", null)
-        .order("name");
-      if (error) throw error;
-      const list = (rows || []) as Arrangement[];
-
-      // Pull cached product URLs (built during original FFC import)
-      const codes = Array.from(
-        new Set(
-          list
-            .map((a) =>
-              (a.ffc_code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""),
-            )
-            .filter(Boolean),
-        ),
-      );
-      const productUrlMap = new Map<string, string>();
-      if (codes.length > 0) {
-        // Supabase .in() chunked to be safe
-        for (let i = 0; i < codes.length; i += 200) {
-          const chunk = codes.slice(i, i + 200);
-          const { data: cacheRows } = await supabase
-            .from("ffc_catalog_cache")
-            .select("ffc_code,product_url")
-            .in("ffc_code", chunk);
-          for (const c of cacheRows || []) {
-            if (c.product_url) productUrlMap.set(c.ffc_code, c.product_url);
-          }
-        }
+      // Load all arrangements with FFC code (and all 5 image slots so we can
+      // brand whatever already exists without scraping FFC).
+      let list: Arrangement[] = [];
+      try {
+        const { data: rows, error } = await supabase
+          .from("flower_arrangements")
+          .select(
+            "id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2,image_url_3,image_url_4,image_url_5",
+          )
+          .not("ffc_code", "is", null)
+          .order("name");
+        if (error) throw error;
+        list = (rows || []) as Arrangement[];
+      } catch (loadErr: any) {
+        console.error("[process-batch] failed to load arrangements:", loadErr);
+        toast.error(loadErr?.message || "Failed to load arrangements");
+        setProcessBatch((s) => ({
+          ...s,
+          running: false,
+          paused: false,
+          lastMessage: `Load failed: ${loadErr?.message || loadErr}`,
+        }));
+        return;
       }
 
       setProcessBatch((s) => ({
         ...s,
         total: list.length,
-        lastMessage: `Found ${list.length} arrangements (${productUrlMap.size} with product URLs)`,
+        lastMessage: `Found ${list.length} arrangements`,
       }));
-
-      // Resume aggregates if continuing
-      if (startIndex > 0) {
-        saved = 0; // we still report only new work this run; processed counter shows global
-      }
 
       for (let i = startIndex; i < list.length; i++) {
         if (processPauseRef.current) {
@@ -707,7 +697,9 @@ export default function FlowerCompositor() {
             lastMessage: `Paused at ${i} of ${list.length}. Resume to continue.`,
           }));
           toast.info(`Paused at ${i} of ${list.length}`);
-          qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+          try {
+            qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+          } catch {}
           return;
         }
 
@@ -722,101 +714,92 @@ export default function FlowerCompositor() {
           lastMessage: `Processing ${i + 1} of ${list.length} — ${label}`,
         }));
 
-        // Skip only if image_url_2 is already populated (i.e. additional
-        // angles were already fetched). Having only image_url means we
-        // still need to fetch slots 2-5. Reprocess overrides everything.
-        if (!reprocess && a.image_url_2) {
-          skipped++;
-          setProcessBatch((s) => ({
-            ...s,
-            skipped,
-            lastMessage: `Skipped ${label} (already has multiple images)`,
-          }));
-          await new Promise((r) => setTimeout(r, 30));
-          continue;
-        }
-
-        const norm = (a.ffc_code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-        const productUrl = productUrlMap.get(norm);
-        if (!productUrl) {
-          skipped++;
-          setProcessBatch((s) => ({
-            ...s,
-            skipped,
-            lastMessage: `Skipped ${label} (no product URL)`,
-          }));
-          await new Promise((r) => setTimeout(r, 30));
-          continue;
-        }
-
-        let currentStep: string = "fetch FFC page";
         try {
-          // 1. Fetch product page via allorigins proxy with 10s timeout
-          const proxyUrl =
-            "https://api.allorigins.win/get?url=" +
-            encodeURIComponent(productUrl);
-          const ac = new AbortController();
-          const tid = setTimeout(() => ac.abort(), 10000);
-          let html = "";
-          try {
-            const r = await fetch(proxyUrl, { signal: ac.signal });
-            if (!r.ok) throw new Error(`proxy HTTP ${r.status}`);
-            const j = await r.json();
-            html = j?.contents || "";
-          } finally {
-            clearTimeout(tid);
-          }
-          if (!html) throw new Error("empty product HTML");
-
-          // 2. Strip "You May Also Like" and below
-          currentStep = "parse FFC page";
-          const cutAt = html.search(/you\s*may\s*also\s*like/i);
-          const scoped = cutAt > 0 ? html.slice(0, cutAt) : html;
-
-          // Extract optimized image URLs, dedupe, take first 5
-          const matches = Array.from(
-            scoped.matchAll(
-              /https:\/\/flowers\.nyc3\.digitaloceanspaces\.com\/optimized[^"'\s)]+\.(?:jpe?g|png|webp)/gi,
-            ),
-          ).map((m) => m[0]);
-          const seen = new Set<string>();
-          const imageUrls: string[] = [];
-          for (const u of matches) {
-            if (!seen.has(u)) {
-              seen.add(u);
-              imageUrls.push(u);
-            }
-            if (imageUrls.length >= 5) break;
-          }
-
-          if (imageUrls.length === 0) {
+          // Skip rule: image_url already points at our branded storage and
+          // reprocess off => nothing to do. Otherwise we (re)brand.
+          const alreadyBranded =
+            (a.image_url || "").includes("gravedetail") &&
+            (a.image_url || "").includes("flower-images");
+          if (!reprocess && alreadyBranded) {
             skipped++;
             setProcessBatch((s) => ({
               ...s,
               skipped,
-              lastMessage: `Skipped ${label} (no images on page)`,
+              lastMessage: `Skipped ${label} (already branded)`,
             }));
-            await new Promise((r) => setTimeout(r, 500));
+            await new Promise((r) => setTimeout(r, 30));
             continue;
           }
 
-          // 3. Process each image: brand + upload
+          // Use whatever image URLs are already on the row. No FFC scraping.
+          const sourceUrls = [
+            a.image_url,
+            (a as any).image_url_2,
+            (a as any).image_url_3,
+            (a as any).image_url_4,
+            (a as any).image_url_5,
+          ]
+            .filter((u): u is string => !!u)
+            .slice(0, 5);
+
+          if (sourceUrls.length === 0) {
+            skipped++;
+            setProcessBatch((s) => ({
+              ...s,
+              skipped,
+              lastMessage: `Skipped ${label} (no image URLs on row)`,
+            }));
+            await new Promise((r) => setTimeout(r, 30));
+            continue;
+          }
+
           const slotUrls: (string | null)[] = [null, null, null, null, null];
           const slotErrors: string[] = [];
-          for (let slot = 0; slot < imageUrls.length; slot++) {
-            const rawUrl = imageUrls[slot];
-            let slotStep = "fetch image";
+
+          for (let slot = 0; slot < sourceUrls.length; slot++) {
+            const rawUrl = sourceUrls[slot];
+
+            // canvas draw
+            let drawn = false;
             try {
-              const proxiedRaw =
-                "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawUrl);
-              slotStep = "canvas draw";
               await composite(canvasRef.current!, a, {
-                imageUrlOverride: proxiedRaw,
+                imageUrlOverride: rawUrl,
                 skipBrackets: slot !== 0,
               });
-              const blob = await canvasToBlob(canvasRef.current!);
-              slotStep = "upload to storage";
-              const filename = `${gd}_${slot + 1}.jpg`;
+              drawn = true;
+            } catch (drawErr: any) {
+              const reason = drawErr?.message || String(drawErr);
+              slotErrors.push(`slot ${slot + 1} canvas draw: ${reason}`);
+              console.error(
+                `[process-batch] ${a.gd_code || "?"} slot ${slot + 1} canvas draw error:`,
+                drawErr,
+              );
+            }
+            if (!drawn) {
+              await new Promise((r) => setTimeout(r, 100));
+              continue;
+            }
+
+            // canvas -> blob
+            let blob: Blob | null = null;
+            try {
+              blob = await canvasToBlob(canvasRef.current!);
+            } catch (blobErr: any) {
+              const reason = blobErr?.message || String(blobErr);
+              slotErrors.push(`slot ${slot + 1} canvas encode: ${reason}`);
+              console.error(
+                `[process-batch] ${a.gd_code || "?"} slot ${slot + 1} canvas encode error:`,
+                blobErr,
+              );
+            }
+            if (!blob) {
+              await new Promise((r) => setTimeout(r, 100));
+              continue;
+            }
+
+            // upload to storage
+            const filename = `${gd}_${slot + 1}.jpg`;
+            try {
               const { error: upErr } = await supabase.storage
                 .from("flower-images")
                 .upload(filename, blob, {
@@ -828,48 +811,51 @@ export default function FlowerCompositor() {
                 .from("flower-images")
                 .getPublicUrl(filename);
               slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
-            } catch (slotErr: any) {
-              const reason = slotErr?.message || String(slotErr);
-              const stepLabel = `slot ${slot + 1} ${slotStep}`;
-              slotErrors.push(`${stepLabel}: ${reason}`);
+            } catch (upErr: any) {
+              const reason = upErr?.message || String(upErr);
+              slotErrors.push(`slot ${slot + 1} upload to storage: ${reason}`);
               console.error(
-                `[process-batch] ${a.gd_code || "?"} ${stepLabel} error:`,
-                slotErr,
+                `[process-batch] ${a.gd_code || "?"} slot ${slot + 1} upload error:`,
+                upErr,
               );
             }
-            await new Promise((r) => setTimeout(r, 300));
+
+            await new Promise((r) => setTimeout(r, 200));
           }
 
           if (!slotUrls.some(Boolean)) {
-            const reason =
-              slotErrors[0] || "all slots failed (unknown reason)";
+            const reason = slotErrors[0] || "all slots failed (unknown reason)";
             recordFailure(a.gd_code, "all slots failed", new Error(reason));
           } else {
-            currentStep = "database update";
-            const { error: updErr } = await supabase
-              .from("flower_arrangements")
-              .update({
-                image_url: slotUrls[0] ?? a.image_url ?? undefined,
-                image_url_2: slotUrls[1],
-                image_url_3: slotUrls[2],
-                image_url_4: slotUrls[3],
-                image_url_5: slotUrls[4],
-              })
-              .eq("id", a.id);
-            if (updErr) throw updErr;
-            saved++;
-            setProcessBatch((s) => ({
-              ...s,
-              saved,
-              lastMessage: `Saved ${label} (${slotUrls.filter(Boolean).length} images)`,
-            }));
+            try {
+              const { error: updErr } = await supabase
+                .from("flower_arrangements")
+                .update({
+                  image_url: slotUrls[0] ?? a.image_url ?? undefined,
+                  image_url_2: slotUrls[1],
+                  image_url_3: slotUrls[2],
+                  image_url_4: slotUrls[3],
+                  image_url_5: slotUrls[4],
+                })
+                .eq("id", a.id);
+              if (updErr) throw updErr;
+              saved++;
+              setProcessBatch((s) => ({
+                ...s,
+                saved,
+                lastMessage: `Saved ${label} (${slotUrls.filter(Boolean).length} images)`,
+              }));
+            } catch (dbErr: any) {
+              recordFailure(a.gd_code, "database update", dbErr);
+            }
           }
         } catch (e: any) {
-          recordFailure(a.gd_code, currentStep, e);
+          // Defensive catch-all so the loop NEVER stops on a single arrangement
+          recordFailure(a.gd_code, "unexpected", e);
         }
 
-        // 500ms delay between arrangements
-        await new Promise((r) => setTimeout(r, 500));
+        // small delay between arrangements
+        await new Promise((r) => setTimeout(r, 200));
       }
 
       processResumeIndexRef.current = 0;
