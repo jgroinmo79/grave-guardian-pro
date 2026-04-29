@@ -1092,7 +1092,35 @@ export default function FlowerCompositor() {
         </Card>
       )}
 
-      {isLoading && <p className="text-muted-foreground">Loading…</p>}
+      {(brandBatch.running || brandBatch.finalReport) && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {brandBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              Client-side branding
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Processed {brandBatch.processed}/{brandBatch.total} ·
+              Branded {brandBatch.branded} · Skipped {brandBatch.skipped} · Failed {brandBatch.failed}
+            </div>
+            {brandBatch.lastMessage && (
+              <div className="text-xs font-mono truncate">{brandBatch.lastMessage}</div>
+            )}
+            {brandBatch.finalReport && brandBatch.finalReport.failed.length > 0 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer">Failed ({brandBatch.finalReport.failed.length})</summary>
+                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
+                  {brandBatch.finalReport.failed.map((f, i) => (
+                    <li key={i} className="font-mono">
+                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {Object.keys(grouped).sort().map((type) => (
         <Card key={type}>
