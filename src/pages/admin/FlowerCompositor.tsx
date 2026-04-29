@@ -464,12 +464,13 @@ export default function FlowerCompositor() {
     skipped: number;
     failed: number;
     lastMessage: string;
+    failures: { gd_code: string | null; step: string; reason: string }[];
     finalReport: null | {
       total: number;
       processed: number;
       branded: number;
       skipped: number;
-      failed: { gd_code: string | null; reason: string }[];
+      failed: { gd_code: string | null; step: string; reason: string }[];
     };
   }>({
     running: false,
@@ -480,6 +481,7 @@ export default function FlowerCompositor() {
     skipped: 0,
     failed: 0,
     lastMessage: "",
+    failures: [],
     finalReport: null,
   });
   const [reprocess, setReprocess] = useState(false);
