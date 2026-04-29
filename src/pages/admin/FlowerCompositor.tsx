@@ -1244,18 +1244,27 @@ export default function FlowerCompositor() {
             {brandBatch.lastMessage && (
               <div className="text-xs font-mono truncate">{brandBatch.lastMessage}</div>
             )}
-            {brandBatch.finalReport && brandBatch.finalReport.failed.length > 0 && (
-              <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({brandBatch.finalReport.failed.length})</summary>
-                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {brandBatch.finalReport.failed.map((f, i) => (
-                    <li key={i} className="font-mono">
-                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
+            {(() => {
+              const list = brandBatch.finalReport?.failed ?? brandBatch.failures;
+              if (!list || list.length === 0) return null;
+              const shown = list.slice(0, 50);
+              return (
+                <details className="text-xs" open={brandBatch.running}>
+                  <summary className="cursor-pointer">
+                    Failed ({list.length}){list.length > 50 ? " — showing first 50" : ""}
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 max-h-60 overflow-auto">
+                    {shown.map((f, i) => (
+                      <li key={i} className="font-mono break-all">
+                        <span className="text-foreground">{f.gd_code || "?"}</span>{" "}
+                        <span className="text-muted-foreground">[{f.step}]</span>{" "}
+                        <span className="text-destructive">{f.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              );
+            })()}
           </CardContent>
         </Card>
       )}
