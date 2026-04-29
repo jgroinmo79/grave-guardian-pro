@@ -795,6 +795,177 @@ export default function FlowerCompositor() {
     }
   }
 
+  function pauseBrandBatch() {
+    pauseRequestedRef.current = true;
+    setBrandBatch((s) => ({ ...s, paused: true, lastMessage: "Pause requested — will stop after current arrangement…" }));
+  }
+
+  async function runBrandBatch() {
+    if (!canvasRef.current) {
+      toast.error("Canvas not ready");
+      return;
+    }
+    pauseRequestedRef.current = false;
+    setBrandBatch({
+      running: true,
+      paused: false,
+      processed: 0,
+      total: 0,
+      branded: 0,
+      skipped: 0,
+      failed: 0,
+      lastMessage: "Starting…",
+      finalReport: null,
+    });
+
+    let branded = 0;
+    let skipped = 0;
+    let failed = 0;
+    const failedList: { gd_code: string | null; reason: string }[] = [];
+
+    try {
+      await ensureFonts();
+
+      const { data: rows, error } = await supabase
+        .from("flower_arrangements")
+        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2")
+        .not("ffc_code", "is", null)
+        .order("name");
+      if (error) throw error;
+      const list = (rows || []) as Arrangement[];
+
+      setBrandBatch((s) => ({ ...s, total: list.length, lastMessage: `Found ${list.length} arrangements` }));
+
+      for (let i = 0; i < list.length; i++) {
+        if (pauseRequestedRef.current) {
+          setBrandBatch((s) => ({ ...s, running: false, lastMessage: `Paused after ${i} arrangements` }));
+          toast.info(`Paused after ${i} arrangements`);
+          qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+          return;
+        }
+
+        const a = list[i];
+        const label = a.name || a.gd_code || a.id;
+        setBrandBatch((s) => ({
+          ...s,
+          processed: i + 1,
+          lastMessage: `Branding ${i + 1} of ${list.length} — ${label}`,
+        }));
+
+        // Skip if already branded with our storage URL and reprocess off
+        const alreadyBranded = (a.image_url || "").includes("gravedetail") &&
+          (a.image_url || "").includes("flower-images");
+        if (alreadyBranded && !reprocess) {
+          skipped++;
+          setBrandBatch((s) => ({
+            ...s,
+            skipped,
+            lastMessage: `Skipped ${label} (already branded)`,
+          }));
+          await new Promise((r) => setTimeout(r, 50));
+          continue;
+        }
+
+        try {
+          // Fetch manifest
+          const gd = a.gd_code || a.id;
+          const manifestName = `${gd}_manifest.json`;
+          const { data: manifestPub } = supabase.storage
+            .from("flower-images")
+            .getPublicUrl(manifestName);
+          const mRes = await fetch(`${manifestPub.publicUrl}?t=${Date.now()}`);
+          if (!mRes.ok) throw new Error(`manifest HTTP ${mRes.status}`);
+          const manifest = await mRes.json() as { raw_images?: string[] };
+          const rawUrls = (manifest.raw_images || []).slice(0, 5);
+          if (rawUrls.length === 0) {
+            skipped++;
+            setBrandBatch((s) => ({ ...s, skipped, lastMessage: `Skipped ${label} (empty manifest)` }));
+            continue;
+          }
+
+          const slotUrls: (string | null)[] = [null, null, null, null, null];
+
+          for (let slot = 0; slot < rawUrls.length; slot++) {
+            const rawUrl = rawUrls[slot];
+            try {
+              await composite(canvasRef.current!, a, {
+                imageUrlOverride: rawUrl,
+                skipBrackets: slot !== 0,
+              });
+              const blob = await canvasToBlob(canvasRef.current!);
+              const filename = `${gd}_${slot + 1}.jpg`;
+              const { error: upErr } = await supabase.storage
+                .from("flower-images")
+                .upload(filename, blob, { contentType: "image/jpeg", upsert: true });
+              if (upErr) throw upErr;
+              const { data: pub } = supabase.storage.from("flower-images").getPublicUrl(filename);
+              slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
+            } catch (slotErr) {
+              console.warn(`brand slot ${slot + 1} failed for ${label}:`, slotErr);
+            }
+            // 300ms between images to keep browser responsive
+            await new Promise((r) => setTimeout(r, 300));
+          }
+
+          if (!slotUrls.some(Boolean)) {
+            failed++;
+            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
+            setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label} (no slots produced)` }));
+            continue;
+          }
+
+          const updatePayload: Record<string, string | null> = {
+            image_url: slotUrls[0] ?? a.image_url,
+            image_url_2: slotUrls[1],
+            image_url_3: slotUrls[2],
+            image_url_4: slotUrls[3],
+            image_url_5: slotUrls[4],
+          };
+          const { error: updErr } = await supabase
+            .from("flower_arrangements")
+            .update(updatePayload)
+            .eq("id", a.id);
+          if (updErr) throw updErr;
+
+          branded++;
+          setBrandBatch((s) => ({
+            ...s,
+            branded,
+            lastMessage: `Branded ${label} (${slotUrls.filter(Boolean).length} slots)`,
+          }));
+        } catch (e: any) {
+          failed++;
+          const reason = e?.message || String(e);
+          failedList.push({ gd_code: a.gd_code, reason });
+          setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label}: ${reason}` }));
+          console.warn(`brand batch failed for ${label}:`, e);
+        }
+      }
+
+      setBrandBatch((s) => ({
+        ...s,
+        running: false,
+        branded,
+        skipped,
+        failed,
+        lastMessage: "Complete",
+        finalReport: {
+          total: list.length,
+          processed: list.length,
+          branded,
+          skipped,
+          failed: failedList,
+        },
+      }));
+      toast.success(`Branding complete: ${branded} branded, ${skipped} skipped, ${failed} failed`);
+      qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Brand batch failed");
+      setBrandBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
