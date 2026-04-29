@@ -990,6 +990,7 @@ export default function FlowerCompositor() {
           continue;
         }
 
+        let currentStep: string = "load arrangement";
         try {
           const gd = a.gd_code || a.id;
           const sourceUrls = [
@@ -1007,15 +1008,19 @@ export default function FlowerCompositor() {
           }
 
           const slotUrls: (string | null)[] = [null, null, null, null, null];
+          const slotErrors: string[] = [];
 
           for (let slot = 0; slot < sourceUrls.length; slot++) {
             const rawUrl = sourceUrls[slot];
+            let slotStep = "fetch image";
             try {
+              slotStep = "canvas draw";
               await composite(canvasRef.current!, a, {
                 imageUrlOverride: rawUrl,
                 skipBrackets: slot !== 0,
               });
               const blob = await canvasToBlob(canvasRef.current!);
+              slotStep = "upload to storage";
               const filename = `${gd}_${slot + 1}.jpg`;
               const { error: upErr } = await supabase.storage
                 .from("flower-images")
@@ -1023,20 +1028,26 @@ export default function FlowerCompositor() {
               if (upErr) throw upErr;
               const { data: pub } = supabase.storage.from("flower-images").getPublicUrl(filename);
               slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
-            } catch (slotErr) {
-              console.warn(`brand slot ${slot + 1} failed for ${label}:`, slotErr);
+            } catch (slotErr: any) {
+              const reason = slotErr?.message || String(slotErr);
+              const stepLabel = `slot ${slot + 1} ${slotStep}`;
+              slotErrors.push(`${stepLabel}: ${reason}`);
+              console.error(
+                `[brand-batch] ${a.gd_code || "?"} ${stepLabel} error:`,
+                slotErr,
+              );
             }
             // 300ms between images to keep browser responsive
             await new Promise((r) => setTimeout(r, 300));
           }
 
           if (!slotUrls.some(Boolean)) {
-            failed++;
-            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
-            setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label} (no slots produced)` }));
+            const reason = slotErrors[0] || "all slots failed (unknown reason)";
+            recordBrandFailure(a.gd_code, "all slots failed", new Error(reason));
             continue;
           }
 
+          currentStep = "database update";
           const { error: updErr } = await supabase
             .from("flower_arrangements")
             .update({
@@ -1056,11 +1067,7 @@ export default function FlowerCompositor() {
             lastMessage: `Branded ${label} (${slotUrls.filter(Boolean).length} slots)`,
           }));
         } catch (e: any) {
-          failed++;
-          const reason = e?.message || String(e);
-          failedList.push({ gd_code: a.gd_code, reason });
-          setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label}: ${reason}` }));
-          console.warn(`brand batch failed for ${label}:`, e);
+          recordBrandFailure(a.gd_code, currentStep, e);
         }
       }
 
