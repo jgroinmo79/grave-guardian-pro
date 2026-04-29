@@ -91,8 +91,6 @@ const App = () => (
               <Route path="leads" element={<AdminLeads />} />
               <Route path="memorials" element={<AdminMemorials />} />
               <Route path="flowers" element={<AdminFlowerCatalog />} />
-              <Route path="flower-image-import" element={<AdminFlowerImageImport />} />
-              <Route path="flower-compositor" element={<AdminFlowerCompositor />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
