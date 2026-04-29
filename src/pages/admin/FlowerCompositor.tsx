@@ -914,16 +914,15 @@ export default function FlowerCompositor() {
             continue;
           }
 
-          const updatePayload: Record<string, string | null> = {
-            image_url: slotUrls[0] ?? a.image_url,
-            image_url_2: slotUrls[1],
-            image_url_3: slotUrls[2],
-            image_url_4: slotUrls[3],
-            image_url_5: slotUrls[4],
-          };
           const { error: updErr } = await supabase
             .from("flower_arrangements")
-            .update(updatePayload)
+            .update({
+              image_url: slotUrls[0] ?? a.image_url ?? undefined,
+              image_url_2: slotUrls[1],
+              image_url_3: slotUrls[2],
+              image_url_4: slotUrls[3],
+              image_url_5: slotUrls[4],
+            })
             .eq("id", a.id);
           if (updErr) throw updErr;
 
