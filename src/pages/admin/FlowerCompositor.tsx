@@ -749,6 +749,7 @@ export default function FlowerCompositor() {
           continue;
         }
 
+        let currentStep: string = "fetch FFC page";
         try {
           // 1. Fetch product page via allorigins proxy with 10s timeout
           const proxyUrl =
@@ -768,6 +769,7 @@ export default function FlowerCompositor() {
           if (!html) throw new Error("empty product HTML");
 
           // 2. Strip "You May Also Like" and below
+          currentStep = "parse FFC page";
           const cutAt = html.search(/you\s*may\s*also\s*like/i);
           const scoped = cutAt > 0 ? html.slice(0, cutAt) : html;
 
@@ -800,16 +802,20 @@ export default function FlowerCompositor() {
 
           // 3. Process each image: brand + upload
           const slotUrls: (string | null)[] = [null, null, null, null, null];
+          const slotErrors: string[] = [];
           for (let slot = 0; slot < imageUrls.length; slot++) {
             const rawUrl = imageUrls[slot];
+            let slotStep = "fetch image";
             try {
               const proxiedRaw =
                 "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawUrl);
+              slotStep = "canvas draw";
               await composite(canvasRef.current!, a, {
                 imageUrlOverride: proxiedRaw,
                 skipBrackets: slot !== 0,
               });
               const blob = await canvasToBlob(canvasRef.current!);
+              slotStep = "upload to storage";
               const filename = `${gd}_${slot + 1}.jpg`;
               const { error: upErr } = await supabase.storage
                 .from("flower-images")
@@ -822,21 +828,24 @@ export default function FlowerCompositor() {
                 .from("flower-images")
                 .getPublicUrl(filename);
               slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
-            } catch (slotErr) {
-              console.warn(`process slot ${slot + 1} failed for ${label}:`, slotErr);
+            } catch (slotErr: any) {
+              const reason = slotErr?.message || String(slotErr);
+              const stepLabel = `slot ${slot + 1} ${slotStep}`;
+              slotErrors.push(`${stepLabel}: ${reason}`);
+              console.error(
+                `[process-batch] ${a.gd_code || "?"} ${stepLabel} error:`,
+                slotErr,
+              );
             }
             await new Promise((r) => setTimeout(r, 300));
           }
 
           if (!slotUrls.some(Boolean)) {
-            failed++;
-            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
-            setProcessBatch((s) => ({
-              ...s,
-              failed,
-              lastMessage: `Failed ${label} (no slots produced)`,
-            }));
+            const reason =
+              slotErrors[0] || "all slots failed (unknown reason)";
+            recordFailure(a.gd_code, "all slots failed", new Error(reason));
           } else {
+            currentStep = "database update";
             const { error: updErr } = await supabase
               .from("flower_arrangements")
               .update({
@@ -856,18 +865,7 @@ export default function FlowerCompositor() {
             }));
           }
         } catch (e: any) {
-          failed++;
-          const reason =
-            e?.name === "AbortError"
-              ? "fetch timeout (10s)"
-              : e?.message || String(e);
-          failedList.push({ gd_code: a.gd_code, reason });
-          setProcessBatch((s) => ({
-            ...s,
-            failed,
-            lastMessage: `Failed ${label}: ${reason}`,
-          }));
-          console.warn(`process batch failed for ${label}:`, e);
+          recordFailure(a.gd_code, currentStep, e);
         }
 
         // 500ms delay between arrangements
