@@ -432,12 +432,13 @@ export default function FlowerCompositor() {
     failed: number;
     lastMessage: string;
     currentName: string;
+    failures: { gd_code: string | null; step: string; reason: string }[];
     finalReport: null | {
       total: number;
       processed: number;
       saved: number;
       skipped: number;
-      failed: { gd_code: string | null; reason: string }[];
+      failed: { gd_code: string | null; step: string; reason: string }[];
     };
   }>({
     running: false,
@@ -449,6 +450,7 @@ export default function FlowerCompositor() {
     failed: 0,
     lastMessage: "",
     currentName: "",
+    failures: [],
     finalReport: null,
   });
   const processPauseRef = useRef(false);
