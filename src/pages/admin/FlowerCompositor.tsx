@@ -408,6 +408,31 @@ export default function FlowerCompositor() {
   const [generating, setGenerating] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [previewArr, setPreviewArr] = useState<Arrangement | null>(null);
+  const [serverBatch, setServerBatch] = useState<{
+    running: boolean;
+    processed: number;
+    total: number;
+    updated: number;
+    skipped: number;
+    failed: number;
+    lastMessage: string;
+    finalReport: null | {
+      total: number;
+      processed: number;
+      updated: number;
+      skipped: number;
+      failed: { id: string; gd_code: string | null; reason: string }[];
+    };
+  }>({
+    running: false,
+    processed: 0,
+    total: 0,
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+    lastMessage: "",
+    finalReport: null,
+  });
 
   useEffect(() => { ensureFonts(); }, []);
 
@@ -523,6 +548,101 @@ export default function FlowerCompositor() {
     qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
   }
 
+  async function runServerBatch() {
+    setServerBatch({
+      running: true,
+      processed: 0,
+      total: 0,
+      updated: 0,
+      skipped: 0,
+      failed: 0,
+      lastMessage: "Starting…",
+      finalReport: null,
+    });
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+      const url = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-image-processor`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
+      if (!res.ok || !res.body) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${txt}`);
+      }
+
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let updated = 0;
+      let skipped = 0;
+      let failed = 0;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          let evt: any;
+          try { evt = JSON.parse(trimmed); } catch { continue; }
+
+          if (evt.type === "start") {
+            setServerBatch((s) => ({
+              ...s,
+              total: evt.total,
+              lastMessage: `Found ${evt.total} arrangements`,
+            }));
+          } else if (evt.type === "progress") {
+            if (evt.status === "updated") updated++;
+            else if (evt.status === "skipped") skipped++;
+            else if (evt.status === "failed") failed++;
+            const u = updated, sk = skipped, fl = failed;
+            setServerBatch((s) => ({
+              ...s,
+              processed: evt.processed,
+              total: evt.total,
+              updated: u,
+              skipped: sk,
+              failed: fl,
+              lastMessage: `${evt.gd_code || "?"}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}`,
+            }));
+          } else if (evt.type === "done") {
+            setServerBatch((s) => ({
+              ...s,
+              running: false,
+              processed: evt.processed,
+              total: evt.total,
+              updated: evt.updated,
+              skipped: evt.skipped,
+              failed: evt.failed.length,
+              lastMessage: "Complete",
+              finalReport: evt,
+            }));
+            toast.success(`Server batch complete: ${evt.updated} updated`);
+          } else if (evt.type === "error") {
+            throw new Error(evt.error);
+          }
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Server batch failed");
+      setServerBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+    }
+  }
+
+
   return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -534,10 +654,52 @@ export default function FlowerCompositor() {
             Composite arrangements onto branded backgrounds.
           </p>
         </div>
-        <Button onClick={generateAll} disabled={!!bulkProgress || !!generating}>
-          {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={runServerBatch}
+            disabled={serverBatch.running || !!bulkProgress || !!generating}
+            style={{ backgroundColor: "#C9976B", color: "#141414" }}
+            className="hover:opacity-90"
+          >
+            {serverBatch.running
+              ? `Server ${serverBatch.processed}/${serverBatch.total}`
+              : "Batch Process All (Server-Side)"}
+          </Button>
+          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running}>
+            {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
+          </Button>
+        </div>
       </div>
+
+      {(serverBatch.running || serverBatch.finalReport) && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {serverBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              Server-side batch
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Processed {serverBatch.processed}/{serverBatch.total} ·
+              Updated {serverBatch.updated} · Skipped {serverBatch.skipped} · Failed {serverBatch.failed}
+            </div>
+            {serverBatch.lastMessage && (
+              <div className="text-xs font-mono truncate">{serverBatch.lastMessage}</div>
+            )}
+            {serverBatch.finalReport && serverBatch.finalReport.failed.length > 0 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer">Failed ({serverBatch.finalReport.failed.length})</summary>
+                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
+                  {serverBatch.finalReport.failed.map((f) => (
+                    <li key={f.id} className="font-mono">
+                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading && <p className="text-muted-foreground">Loading…</p>}
 
