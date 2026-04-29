@@ -833,6 +833,36 @@ export default function FlowerCompositor() {
         </Card>
       )}
 
+      {(fetchBatch.running || fetchBatch.finalReport) && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {fetchBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              FFC image fetch
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Processed {fetchBatch.processed}/{fetchBatch.total} ·
+              Saved {fetchBatch.saved} · Skipped {fetchBatch.skipped} · Failed {fetchBatch.failed}
+            </div>
+            {fetchBatch.lastMessage && (
+              <div className="text-xs font-mono truncate">{fetchBatch.lastMessage}</div>
+            )}
+            {fetchBatch.finalReport && fetchBatch.finalReport.failed.length > 0 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer">Failed ({fetchBatch.finalReport.failed.length})</summary>
+                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
+                  {fetchBatch.finalReport.failed.map((f) => (
+                    <li key={f.id} className="font-mono">
+                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {isLoading && <p className="text-muted-foreground">Loading…</p>}
 
       {Object.keys(grouped).sort().map((type) => (
