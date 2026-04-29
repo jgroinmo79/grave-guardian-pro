@@ -409,56 +409,37 @@ export default function FlowerCompositor() {
   const [generating, setGenerating] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [previewArr, setPreviewArr] = useState<Arrangement | null>(null);
-  const [serverBatch, setServerBatch] = useState<{
+  const [processBatch, setProcessBatch] = useState<{
     running: boolean;
-    processed: number;
-    total: number;
-    updated: number;
-    skipped: number;
-    failed: number;
-    lastMessage: string;
-    finalReport: null | {
-      total: number;
-      processed: number;
-      updated: number;
-      skipped: number;
-      failed: { id: string; gd_code: string | null; reason: string }[];
-    };
-  }>({
-    running: false,
-    processed: 0,
-    total: 0,
-    updated: 0,
-    skipped: 0,
-    failed: 0,
-    lastMessage: "",
-    finalReport: null,
-  });
-  const [fetchBatch, setFetchBatch] = useState<{
-    running: boolean;
+    paused: boolean;
     processed: number;
     total: number;
     saved: number;
     skipped: number;
     failed: number;
     lastMessage: string;
+    currentName: string;
     finalReport: null | {
       total: number;
       processed: number;
-      updated: number;
+      saved: number;
       skipped: number;
-      failed: { id: string; gd_code: string | null; reason: string }[];
+      failed: { gd_code: string | null; reason: string }[];
     };
   }>({
     running: false,
+    paused: false,
     processed: 0,
     total: 0,
     saved: 0,
     skipped: 0,
     failed: 0,
     lastMessage: "",
+    currentName: "",
     finalReport: null,
   });
+  const processPauseRef = useRef(false);
+  const processResumeIndexRef = useRef(0);
   const [brandBatch, setBrandBatch] = useState<{
     running: boolean;
     paused: boolean;
@@ -603,224 +584,294 @@ export default function FlowerCompositor() {
     qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
   }
 
-  async function runServerBatch() {
-    setServerBatch({
+  function pauseProcessBatch() {
+    processPauseRef.current = true;
+    setProcessBatch((s) => ({
+      ...s,
+      paused: true,
+      lastMessage: "Pause requested — stopping after current arrangement…",
+    }));
+  }
+
+  async function runProcessBatch(opts?: { startIndex?: number }) {
+    if (!canvasRef.current) {
+      toast.error("Canvas not ready");
+      return;
+    }
+    processPauseRef.current = false;
+    const startIndex = opts?.startIndex ?? 0;
+
+    setProcessBatch((s) => ({
+      ...s,
       running: true,
-      processed: 0,
-      total: 0,
-      updated: 0,
-      skipped: 0,
-      failed: 0,
-      lastMessage: "Starting…",
+      paused: false,
+      lastMessage: startIndex > 0 ? `Resuming at ${startIndex + 1}…` : "Starting…",
       finalReport: null,
-    });
+      ...(startIndex === 0
+        ? { processed: 0, saved: 0, skipped: 0, failed: 0, currentName: "" }
+        : {}),
+    }));
+
+    let saved = 0;
+    let skipped = 0;
+    let failed = 0;
+    const failedList: { gd_code: string | null; reason: string }[] = [];
+
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (!token) throw new Error("Not authenticated");
-      const url = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-image-processor`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: "{}",
-      });
-      if (!res.ok || !res.body) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status}: ${txt}`);
-      }
+      await ensureFonts();
 
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = "";
-      let updated = 0;
-      let skipped = 0;
-      let failed = 0;
+      // Load all arrangements with FFC code
+      const { data: rows, error } = await supabase
+        .from("flower_arrangements")
+        .select("id,name,arrangement_type,ffc_code,gd_code,image_url,image_url_2")
+        .not("ffc_code", "is", null)
+        .order("name");
+      if (error) throw error;
+      const list = (rows || []) as Arrangement[];
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop() || "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          let evt: any;
-          try { evt = JSON.parse(trimmed); } catch { continue; }
-
-          if (evt.type === "start") {
-            setServerBatch((s) => ({
-              ...s,
-              total: evt.total,
-              lastMessage: `Found ${evt.total} arrangements`,
-            }));
-          } else if (evt.type === "progress") {
-            if (evt.status === "updated") updated++;
-            else if (evt.status === "skipped") skipped++;
-            else if (evt.status === "failed") failed++;
-            const u = updated, sk = skipped, fl = failed;
-            setServerBatch((s) => ({
-              ...s,
-              processed: evt.processed,
-              total: evt.total,
-              updated: u,
-              skipped: sk,
-              failed: fl,
-              lastMessage: `${evt.gd_code || "?"}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}`,
-            }));
-          } else if (evt.type === "done") {
-            setServerBatch((s) => ({
-              ...s,
-              running: false,
-              processed: evt.processed,
-              total: evt.total,
-              updated: evt.updated,
-              skipped: evt.skipped,
-              failed: evt.failed.length,
-              lastMessage: "Complete",
-              finalReport: evt,
-            }));
-            toast.success(`Server batch complete: ${evt.updated} updated`);
-          } else if (evt.type === "error") {
-            throw new Error(evt.error);
+      // Pull cached product URLs (built during original FFC import)
+      const codes = Array.from(
+        new Set(
+          list
+            .map((a) =>
+              (a.ffc_code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""),
+            )
+            .filter(Boolean),
+        ),
+      );
+      const productUrlMap = new Map<string, string>();
+      if (codes.length > 0) {
+        // Supabase .in() chunked to be safe
+        for (let i = 0; i < codes.length; i += 200) {
+          const chunk = codes.slice(i, i + 200);
+          const { data: cacheRows } = await supabase
+            .from("ffc_catalog_cache")
+            .select("ffc_code,product_url")
+            .in("ffc_code", chunk);
+          for (const c of cacheRows || []) {
+            if (c.product_url) productUrlMap.set(c.ffc_code, c.product_url);
           }
         }
       }
+
+      setProcessBatch((s) => ({
+        ...s,
+        total: list.length,
+        lastMessage: `Found ${list.length} arrangements (${productUrlMap.size} with product URLs)`,
+      }));
+
+      // Resume aggregates if continuing
+      if (startIndex > 0) {
+        saved = 0; // we still report only new work this run; processed counter shows global
+      }
+
+      for (let i = startIndex; i < list.length; i++) {
+        if (processPauseRef.current) {
+          processResumeIndexRef.current = i;
+          setProcessBatch((s) => ({
+            ...s,
+            running: false,
+            paused: true,
+            lastMessage: `Paused at ${i} of ${list.length}. Resume to continue.`,
+          }));
+          toast.info(`Paused at ${i} of ${list.length}`);
+          qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
+          return;
+        }
+
+        const a = list[i];
+        const label = a.name || a.gd_code || a.id;
+        const gd = a.gd_code || a.id;
+
+        setProcessBatch((s) => ({
+          ...s,
+          processed: i + 1,
+          currentName: label,
+          lastMessage: `Processing ${i + 1} of ${list.length} — ${label}`,
+        }));
+
+        // Skip if already has image_url and reprocess off
+        if (!reprocess && a.image_url) {
+          skipped++;
+          setProcessBatch((s) => ({
+            ...s,
+            skipped,
+            lastMessage: `Skipped ${label} (already has image)`,
+          }));
+          await new Promise((r) => setTimeout(r, 30));
+          continue;
+        }
+
+        const norm = (a.ffc_code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const productUrl = productUrlMap.get(norm);
+        if (!productUrl) {
+          skipped++;
+          setProcessBatch((s) => ({
+            ...s,
+            skipped,
+            lastMessage: `Skipped ${label} (no product URL)`,
+          }));
+          await new Promise((r) => setTimeout(r, 30));
+          continue;
+        }
+
+        try {
+          // 1. Fetch product page via allorigins proxy with 10s timeout
+          const proxyUrl =
+            "https://api.allorigins.win/get?url=" +
+            encodeURIComponent(productUrl);
+          const ac = new AbortController();
+          const tid = setTimeout(() => ac.abort(), 10000);
+          let html = "";
+          try {
+            const r = await fetch(proxyUrl, { signal: ac.signal });
+            if (!r.ok) throw new Error(`proxy HTTP ${r.status}`);
+            const j = await r.json();
+            html = j?.contents || "";
+          } finally {
+            clearTimeout(tid);
+          }
+          if (!html) throw new Error("empty product HTML");
+
+          // 2. Strip "You May Also Like" and below
+          const cutAt = html.search(/you\s*may\s*also\s*like/i);
+          const scoped = cutAt > 0 ? html.slice(0, cutAt) : html;
+
+          // Extract optimized image URLs, dedupe, take first 5
+          const matches = Array.from(
+            scoped.matchAll(
+              /https:\/\/flowers\.nyc3\.digitaloceanspaces\.com\/optimized[^"'\s)]+\.(?:jpe?g|png|webp)/gi,
+            ),
+          ).map((m) => m[0]);
+          const seen = new Set<string>();
+          const imageUrls: string[] = [];
+          for (const u of matches) {
+            if (!seen.has(u)) {
+              seen.add(u);
+              imageUrls.push(u);
+            }
+            if (imageUrls.length >= 5) break;
+          }
+
+          if (imageUrls.length === 0) {
+            skipped++;
+            setProcessBatch((s) => ({
+              ...s,
+              skipped,
+              lastMessage: `Skipped ${label} (no images on page)`,
+            }));
+            await new Promise((r) => setTimeout(r, 500));
+            continue;
+          }
+
+          // 3. Process each image: brand + upload
+          const slotUrls: (string | null)[] = [null, null, null, null, null];
+          for (let slot = 0; slot < imageUrls.length; slot++) {
+            const rawUrl = imageUrls[slot];
+            try {
+              const proxiedRaw =
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawUrl);
+              await composite(canvasRef.current!, a, {
+                imageUrlOverride: proxiedRaw,
+                skipBrackets: slot !== 0,
+              });
+              const blob = await canvasToBlob(canvasRef.current!);
+              const filename = `${gd}_${slot + 1}.jpg`;
+              const { error: upErr } = await supabase.storage
+                .from("flower-images")
+                .upload(filename, blob, {
+                  contentType: "image/jpeg",
+                  upsert: true,
+                });
+              if (upErr) throw upErr;
+              const { data: pub } = supabase.storage
+                .from("flower-images")
+                .getPublicUrl(filename);
+              slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
+            } catch (slotErr) {
+              console.warn(`process slot ${slot + 1} failed for ${label}:`, slotErr);
+            }
+            await new Promise((r) => setTimeout(r, 300));
+          }
+
+          if (!slotUrls.some(Boolean)) {
+            failed++;
+            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
+            setProcessBatch((s) => ({
+              ...s,
+              failed,
+              lastMessage: `Failed ${label} (no slots produced)`,
+            }));
+          } else {
+            const { error: updErr } = await supabase
+              .from("flower_arrangements")
+              .update({
+                image_url: slotUrls[0] ?? a.image_url ?? undefined,
+                image_url_2: slotUrls[1],
+                image_url_3: slotUrls[2],
+                image_url_4: slotUrls[3],
+                image_url_5: slotUrls[4],
+              })
+              .eq("id", a.id);
+            if (updErr) throw updErr;
+            saved++;
+            setProcessBatch((s) => ({
+              ...s,
+              saved,
+              lastMessage: `Saved ${label} (${slotUrls.filter(Boolean).length} images)`,
+            }));
+          }
+        } catch (e: any) {
+          failed++;
+          const reason =
+            e?.name === "AbortError"
+              ? "fetch timeout (10s)"
+              : e?.message || String(e);
+          failedList.push({ gd_code: a.gd_code, reason });
+          setProcessBatch((s) => ({
+            ...s,
+            failed,
+            lastMessage: `Failed ${label}: ${reason}`,
+          }));
+          console.warn(`process batch failed for ${label}:`, e);
+        }
+
+        // 500ms delay between arrangements
+        await new Promise((r) => setTimeout(r, 500));
+      }
+
+      processResumeIndexRef.current = 0;
+      setProcessBatch((s) => ({
+        ...s,
+        running: false,
+        paused: false,
+        lastMessage: "Complete",
+        finalReport: {
+          total: list.length,
+          processed: list.length,
+          saved,
+          skipped,
+          failed: failedList,
+        },
+      }));
+      toast.success(
+        `Processing complete: ${saved} saved, ${skipped} skipped, ${failed} failed`,
+      );
       qc.invalidateQueries({ queryKey: ["compositor-arrangements"] });
     } catch (e: any) {
       console.error(e);
-      toast.error(e.message || "Server batch failed");
-      setServerBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+      toast.error(e.message || "Process batch failed");
+      setProcessBatch((s) => ({
+        ...s,
+        running: false,
+        paused: false,
+        lastMessage: e.message || "Failed",
+      }));
     }
   }
 
-  async function runFetchBatch() {
-    setFetchBatch({
-      running: true,
-      processed: 0,
-      total: 0,
-      saved: 0,
-      skipped: 0,
-      failed: 0,
-      lastMessage: "Starting…",
-      finalReport: null,
-    });
-
-    const aggFailed: { id: string; gd_code: string | null; reason: string }[] = [];
-    let aggProcessed = 0;
-    let aggSaved = 0;
-    let aggSkipped = 0;
-    let totalAll = 0;
-    let offset = 0;
-    const MAX_BATCHES = 200; // safety cap
-
-    try {
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (!token) throw new Error("Not authenticated");
-      const fnUrl = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-fetch-ffc-images`;
-
-      for (let batchNum = 0; batchNum < MAX_BATCHES; batchNum++) {
-        const res = await fetch(fnUrl, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ offset, batchSize: 20 }),
-        });
-        if (!res.ok || !res.body) {
-          const txt = await res.text().catch(() => "");
-          throw new Error(`HTTP ${res.status}: ${txt}`);
-        }
-
-        const reader = res.body.getReader();
-        const dec = new TextDecoder();
-        let buf = "";
-        let doneEvt: any = null;
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buf += dec.decode(value, { stream: true });
-          const lines = buf.split("\n");
-          buf = lines.pop() || "";
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-            let evt: any;
-            try { evt = JSON.parse(trimmed); } catch { continue; }
-
-            if (evt.type === "start") {
-              if (evt.total) totalAll = evt.total;
-              setFetchBatch((s) => ({
-                ...s,
-                total: totalAll,
-                lastMessage: `Batch ${batchNum + 1}: offset ${evt.offset}, ${evt.batchSize} arrangements (of ${totalAll} total)`,
-              }));
-            } else if (evt.type === "progress") {
-              if (evt.status === "saved") aggSaved++;
-              else if (evt.status === "skipped") aggSkipped++;
-              const label = evt.name || evt.gd_code || "?";
-              const globalIdx = offset + evt.processed;
-              const msg =
-                evt.status === "fetching"
-                  ? `Processing ${globalIdx} of ${totalAll} — ${label}`
-                  : `${label}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}${evt.slots_filled ? ` — ${evt.slots_filled} images` : ""}`;
-              setFetchBatch((s) => ({
-                ...s,
-                processed: globalIdx,
-                total: totalAll,
-                saved: aggSaved,
-                skipped: aggSkipped,
-                failed: aggFailed.length,
-                lastMessage: msg,
-              }));
-            } else if (evt.type === "done") {
-              doneEvt = evt;
-            } else if (evt.type === "error") {
-              throw new Error(evt.error);
-            }
-          }
-        }
-
-        if (!doneEvt) throw new Error("Batch ended without done event");
-        aggProcessed += doneEvt.processed || 0;
-        if (Array.isArray(doneEvt.failed)) aggFailed.push(...doneEvt.failed);
-        totalAll = doneEvt.totalAll ?? totalAll;
-
-        if (!doneEvt.hasMore || (doneEvt.processed ?? 0) === 0) {
-          break;
-        }
-        offset = doneEvt.nextOffset;
-      }
-
-      setFetchBatch((s) => ({
-        ...s,
-        running: false,
-        processed: aggProcessed,
-        total: totalAll,
-        saved: aggSaved,
-        skipped: aggSkipped,
-        failed: aggFailed.length,
-        lastMessage: "Complete",
-        finalReport: {
-          total: totalAll,
-          processed: aggProcessed,
-          updated: aggSaved,
-          skipped: aggSkipped,
-          failed: aggFailed,
-        },
-      }));
-      toast.success(`FFC fetch complete: ${aggSaved} saved, ${aggFailed.length} failed`);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "FFC fetch failed");
-      setFetchBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
-    }
+  function resumeProcessBatch() {
+    runProcessBatch({ startIndex: processResumeIndexRef.current });
   }
 
   function pauseBrandBatch() {
@@ -1004,27 +1055,44 @@ export default function FlowerCompositor() {
             Composite arrangements onto branded backgrounds.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            onClick={runServerBatch}
-            disabled={serverBatch.running || !!bulkProgress || !!generating}
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            className="hover:opacity-90"
-          >
-            {serverBatch.running
-              ? `Server ${serverBatch.processed}/${serverBatch.total}`
-              : "Batch Process All (Server-Side)"}
-          </Button>
-          <Button
-            onClick={runFetchBatch}
-            disabled={fetchBatch.running || serverBatch.running || !!bulkProgress || !!generating}
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            className="hover:opacity-90"
-          >
-            {fetchBatch.running
-              ? `Fetching ${fetchBatch.processed}/${fetchBatch.total}`
-              : "Fetch All FFC Images (Server-Side)"}
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            {processBatch.running ? (
+              <Button
+                onClick={pauseProcessBatch}
+                disabled={processBatch.paused}
+                variant="outline"
+              >
+                {processBatch.paused ? "Pausing…" : "Pause"}
+              </Button>
+            ) : processBatch.paused ? (
+              <Button
+                onClick={resumeProcessBatch}
+                style={{ backgroundColor: "#C9976B", color: "#141414" }}
+                className="hover:opacity-90"
+              >
+                Resume
+              </Button>
+            ) : (
+              <Button
+                onClick={() => runProcessBatch()}
+                disabled={!!bulkProgress || !!generating || brandBatch.running}
+                style={{ backgroundColor: "#C9976B", color: "#141414" }}
+                className="hover:opacity-90"
+              >
+                Process All Images
+              </Button>
+            )}
+            <label className="flex items-center gap-1 text-xs text-muted-foreground select-none">
+              <input
+                type="checkbox"
+                checked={reprocess}
+                onChange={(e) => setReprocess(e.target.checked)}
+                disabled={processBatch.running || brandBatch.running}
+              />
+              Reprocess
+            </label>
+          </div>
           <div className="flex items-center gap-2">
             {brandBatch.running ? (
               <Button
@@ -1037,80 +1105,62 @@ export default function FlowerCompositor() {
             ) : (
               <Button
                 onClick={runBrandBatch}
-                disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}
+                disabled={!!bulkProgress || !!generating || processBatch.running}
                 style={{ backgroundColor: "#C9976B", color: "#141414" }}
                 className="hover:opacity-90"
               >
                 Brand All Images
               </Button>
             )}
-            <label className="flex items-center gap-1 text-xs text-muted-foreground select-none">
-              <input
-                type="checkbox"
-                checked={reprocess}
-                onChange={(e) => setReprocess(e.target.checked)}
-                disabled={brandBatch.running}
-              />
-              Reprocess
-            </label>
           </div>
-          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running || brandBatch.running}>
+          <Button
+            onClick={generateAll}
+            disabled={!!bulkProgress || !!generating || processBatch.running || brandBatch.running}
+          >
             {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
           </Button>
         </div>
       </div>
 
-      {(serverBatch.running || serverBatch.finalReport) && (
+      {(processBatch.running || processBatch.paused || processBatch.finalReport) && (
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium">
-              {serverBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
-              Server-side batch
+              {processBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              Process All Images (client-side)
             </div>
+            {processBatch.total > 0 && (
+              <div className="w-full h-2 rounded bg-muted overflow-hidden">
+                <div
+                  className="h-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.round((processBatch.processed / Math.max(1, processBatch.total)) * 100))}%`,
+                    backgroundColor: "#C9976B",
+                  }}
+                />
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">
-              Processed {serverBatch.processed}/{serverBatch.total} ·
-              Updated {serverBatch.updated} · Skipped {serverBatch.skipped} · Failed {serverBatch.failed}
+              {processBatch.processed} of {processBatch.total} ·
+              {" "}{processBatch.saved} images saved, {processBatch.skipped} skipped (outdoor / existing), {processBatch.failed} failed
             </div>
-            {serverBatch.lastMessage && (
-              <div className="text-xs font-mono truncate">{serverBatch.lastMessage}</div>
+            {processBatch.currentName && processBatch.running && (
+              <div className="text-xs font-medium truncate">
+                Current: {processBatch.currentName}
+              </div>
             )}
-            {serverBatch.finalReport && serverBatch.finalReport.failed.length > 0 && (
+            {processBatch.lastMessage && (
+              <div className="text-xs font-mono truncate text-muted-foreground">
+                {processBatch.lastMessage}
+              </div>
+            )}
+            {processBatch.finalReport && processBatch.finalReport.failed.length > 0 && (
               <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({serverBatch.finalReport.failed.length})</summary>
+                <summary className="cursor-pointer">Failed ({processBatch.finalReport.failed.length})</summary>
                 <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {serverBatch.finalReport.failed.map((f) => (
-                    <li key={f.id} className="font-mono">
-                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {(fetchBatch.running || fetchBatch.finalReport) && (
-        <Card>
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              {fetchBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
-              FFC image fetch
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Processed {fetchBatch.processed}/{fetchBatch.total} ·
-              Saved {fetchBatch.saved} · Skipped {fetchBatch.skipped} · Failed {fetchBatch.failed}
-            </div>
-            {fetchBatch.lastMessage && (
-              <div className="text-xs font-mono truncate">{fetchBatch.lastMessage}</div>
-            )}
-            {fetchBatch.finalReport && fetchBatch.finalReport.failed.length > 0 && (
-              <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({fetchBatch.finalReport.failed.length})</summary>
-                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {fetchBatch.finalReport.failed.map((f) => (
-                    <li key={f.id} className="font-mono">
-                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                  {processBatch.finalReport.failed.map((f, i) => (
+                    <li key={i} className="font-mono">
+                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
                     </li>
                   ))}
                 </ul>
