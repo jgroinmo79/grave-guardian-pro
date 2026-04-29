@@ -408,6 +408,31 @@ export default function FlowerCompositor() {
   const [generating, setGenerating] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [previewArr, setPreviewArr] = useState<Arrangement | null>(null);
+  const [serverBatch, setServerBatch] = useState<{
+    running: boolean;
+    processed: number;
+    total: number;
+    updated: number;
+    skipped: number;
+    failed: number;
+    lastMessage: string;
+    finalReport: null | {
+      total: number;
+      processed: number;
+      updated: number;
+      skipped: number;
+      failed: { id: string; gd_code: string | null; reason: string }[];
+    };
+  }>({
+    running: false,
+    processed: 0,
+    total: 0,
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+    lastMessage: "",
+    finalReport: null,
+  });
 
   useEffect(() => { ensureFonts(); }, []);
 
