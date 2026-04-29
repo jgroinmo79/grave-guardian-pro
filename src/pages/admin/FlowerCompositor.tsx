@@ -632,7 +632,22 @@ export default function FlowerCompositor() {
     let saved = 0;
     let skipped = 0;
     let failed = 0;
-    const failedList: { gd_code: string | null; reason: string }[] = [];
+    const failedList: { gd_code: string | null; step: string; reason: string }[] = [];
+    const recordFailure = (gd_code: string | null, step: string, err: any) => {
+      const reason =
+        err?.name === "AbortError"
+          ? "fetch timeout (10s)"
+          : err?.message || String(err);
+      console.error(`[process-batch] ${gd_code || "?"} step="${step}" error:`, err);
+      failed++;
+      failedList.push({ gd_code, step, reason });
+      setProcessBatch((s) => ({
+        ...s,
+        failed,
+        failures: [...s.failures, { gd_code, step, reason }].slice(0, 50),
+        lastMessage: `Failed ${gd_code || "?"} @ ${step}: ${reason}`,
+      }));
+    };
 
     try {
       await ensureFonts();
