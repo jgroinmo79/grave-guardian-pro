@@ -71,6 +71,26 @@ type BracketSpec = {
 
 function bracketSpec(a: Arrangement): BracketSpec | null {
   const c = (a.ffc_code || "").toUpperCase();
+  const type = (a.arrangement_type || "").toLowerCase();
+
+  // Priority 1: arrangement_type === "saddle"
+  if (type === "saddle") {
+    return {
+      bottomLength: { in: 30, cm: 76.20 },
+      rightWidth: { in: 19, cm: 48.26 },
+      heightLabelOnly: "13in tall",
+      note: 'Fits headstones 4"–8.5" thick',
+    };
+  }
+
+  // Priority 1: arrangement_type === "bouquet" — use ffc_code MD/LG
+  if (type === "bouquet") {
+    if (c.startsWith("LG")) return { height: { in: 28, cm: 71.12 }, width: { in: 18, cm: 45.72 } };
+    if (c.startsWith("MD")) return { height: { in: 24, cm: 60.96 }, width: { in: 15, cm: 38.10 } };
+    return null;
+  }
+
+  // Priority 2: fallback to ffc_code prefix detection
   const isSD = c.startsWith("SD");
   const hasLG = c.includes("LG");
   const hasMD = c.includes("MD");
