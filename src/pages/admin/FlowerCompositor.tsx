@@ -433,6 +433,31 @@ export default function FlowerCompositor() {
     lastMessage: "",
     finalReport: null,
   });
+  const [fetchBatch, setFetchBatch] = useState<{
+    running: boolean;
+    processed: number;
+    total: number;
+    saved: number;
+    skipped: number;
+    failed: number;
+    lastMessage: string;
+    finalReport: null | {
+      total: number;
+      processed: number;
+      updated: number;
+      skipped: number;
+      failed: { id: string; gd_code: string | null; reason: string }[];
+    };
+  }>({
+    running: false,
+    processed: 0,
+    total: 0,
+    saved: 0,
+    skipped: 0,
+    failed: 0,
+    lastMessage: "",
+    finalReport: null,
+  });
 
   useEffect(() => { ensureFonts(); }, []);
 
