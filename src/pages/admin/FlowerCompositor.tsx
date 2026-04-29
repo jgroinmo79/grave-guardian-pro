@@ -433,6 +433,31 @@ export default function FlowerCompositor() {
     lastMessage: "",
     finalReport: null,
   });
+  const [fetchBatch, setFetchBatch] = useState<{
+    running: boolean;
+    processed: number;
+    total: number;
+    saved: number;
+    skipped: number;
+    failed: number;
+    lastMessage: string;
+    finalReport: null | {
+      total: number;
+      processed: number;
+      updated: number;
+      skipped: number;
+      failed: { id: string; gd_code: string | null; reason: string }[];
+    };
+  }>({
+    running: false,
+    processed: 0,
+    total: 0,
+    saved: 0,
+    skipped: 0,
+    failed: 0,
+    lastMessage: "",
+    finalReport: null,
+  });
 
   useEffect(() => { ensureFonts(); }, []);
 
@@ -642,6 +667,103 @@ export default function FlowerCompositor() {
     }
   }
 
+  async function runFetchBatch() {
+    setFetchBatch({
+      running: true,
+      processed: 0,
+      total: 0,
+      saved: 0,
+      skipped: 0,
+      failed: 0,
+      lastMessage: "Starting…",
+      finalReport: null,
+    });
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+      const url = `https://vqgduujezyvoieykzvca.supabase.co/functions/v1/batch-fetch-ffc-images`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
+      if (!res.ok || !res.body) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${txt}`);
+      }
+
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let saved = 0;
+      let skipped = 0;
+      let failed = 0;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          let evt: any;
+          try { evt = JSON.parse(trimmed); } catch { continue; }
+
+          if (evt.type === "start") {
+            setFetchBatch((s) => ({
+              ...s,
+              total: evt.total,
+              lastMessage: `Found ${evt.total} arrangements with FFC code`,
+            }));
+          } else if (evt.type === "progress") {
+            if (evt.status === "saved") saved++;
+            else if (evt.status === "skipped") skipped++;
+            else if (evt.status === "failed") failed++;
+            const sv = saved, sk = skipped, fl = failed;
+            const label = evt.name || evt.gd_code || "?";
+            const msg =
+              evt.status === "fetching"
+                ? `Processing ${evt.processed} of ${evt.total} — ${label}`
+                : `${label}: ${evt.status}${evt.reason ? ` (${evt.reason})` : ""}${evt.slots_filled ? ` — ${evt.slots_filled} images` : ""}`;
+            setFetchBatch((s) => ({
+              ...s,
+              processed: evt.processed,
+              total: evt.total,
+              saved: sv,
+              skipped: sk,
+              failed: fl,
+              lastMessage: msg,
+            }));
+          } else if (evt.type === "done") {
+            setFetchBatch((s) => ({
+              ...s,
+              running: false,
+              processed: evt.processed,
+              total: evt.total,
+              saved: evt.updated,
+              skipped: evt.skipped,
+              failed: evt.failed.length,
+              lastMessage: "Complete",
+              finalReport: evt,
+            }));
+            toast.success(`FFC fetch complete: ${evt.updated} saved`);
+          } else if (evt.type === "error") {
+            throw new Error(evt.error);
+          }
+        }
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "FFC fetch failed");
+      setFetchBatch((s) => ({ ...s, running: false, lastMessage: e.message || "Failed" }));
+    }
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-4 max-w-4xl">
@@ -665,7 +787,17 @@ export default function FlowerCompositor() {
               ? `Server ${serverBatch.processed}/${serverBatch.total}`
               : "Batch Process All (Server-Side)"}
           </Button>
-          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running}>
+          <Button
+            onClick={runFetchBatch}
+            disabled={fetchBatch.running || serverBatch.running || !!bulkProgress || !!generating}
+            style={{ backgroundColor: "#C9976B", color: "#141414" }}
+            className="hover:opacity-90"
+          >
+            {fetchBatch.running
+              ? `Fetching ${fetchBatch.processed}/${fetchBatch.total}`
+              : "Fetch All FFC Images (Server-Side)"}
+          </Button>
+          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}>
             {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
           </Button>
         </div>
@@ -690,6 +822,36 @@ export default function FlowerCompositor() {
                 <summary className="cursor-pointer">Failed ({serverBatch.finalReport.failed.length})</summary>
                 <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
                   {serverBatch.finalReport.failed.map((f) => (
+                    <li key={f.id} className="font-mono">
+                      {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {(fetchBatch.running || fetchBatch.finalReport) && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              {fetchBatch.running && <Loader2 className="w-4 h-4 animate-spin" />}
+              FFC image fetch
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Processed {fetchBatch.processed}/{fetchBatch.total} ·
+              Saved {fetchBatch.saved} · Skipped {fetchBatch.skipped} · Failed {fetchBatch.failed}
+            </div>
+            {fetchBatch.lastMessage && (
+              <div className="text-xs font-mono truncate">{fetchBatch.lastMessage}</div>
+            )}
+            {fetchBatch.finalReport && fetchBatch.finalReport.failed.length > 0 && (
+              <details className="text-xs">
+                <summary className="cursor-pointer">Failed ({fetchBatch.finalReport.failed.length})</summary>
+                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
+                  {fetchBatch.finalReport.failed.map((f) => (
                     <li key={f.id} className="font-mono">
                       {f.gd_code || f.id}: <span className="text-destructive">{f.reason}</span>
                     </li>
