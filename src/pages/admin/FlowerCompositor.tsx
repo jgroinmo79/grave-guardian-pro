@@ -787,7 +787,17 @@ export default function FlowerCompositor() {
               ? `Server ${serverBatch.processed}/${serverBatch.total}`
               : "Batch Process All (Server-Side)"}
           </Button>
-          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running}>
+          <Button
+            onClick={runFetchBatch}
+            disabled={fetchBatch.running || serverBatch.running || !!bulkProgress || !!generating}
+            style={{ backgroundColor: "#C9976B", color: "#141414" }}
+            className="hover:opacity-90"
+          >
+            {fetchBatch.running
+              ? `Fetching ${fetchBatch.processed}/${fetchBatch.total}`
+              : "Fetch All FFC Images (Server-Side)"}
+          </Button>
+          <Button onClick={generateAll} disabled={!!bulkProgress || !!generating || serverBatch.running || fetchBatch.running}>
             {bulkProgress ? `Generating ${bulkProgress.done}/${bulkProgress.total}` : "Generate All"}
           </Button>
         </div>
