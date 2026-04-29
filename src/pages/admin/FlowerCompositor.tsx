@@ -432,12 +432,13 @@ export default function FlowerCompositor() {
     failed: number;
     lastMessage: string;
     currentName: string;
+    failures: { gd_code: string | null; step: string; reason: string }[];
     finalReport: null | {
       total: number;
       processed: number;
       saved: number;
       skipped: number;
-      failed: { gd_code: string | null; reason: string }[];
+      failed: { gd_code: string | null; step: string; reason: string }[];
     };
   }>({
     running: false,
@@ -449,6 +450,7 @@ export default function FlowerCompositor() {
     failed: 0,
     lastMessage: "",
     currentName: "",
+    failures: [],
     finalReport: null,
   });
   const processPauseRef = useRef(false);
@@ -462,12 +464,13 @@ export default function FlowerCompositor() {
     skipped: number;
     failed: number;
     lastMessage: string;
+    failures: { gd_code: string | null; step: string; reason: string }[];
     finalReport: null | {
       total: number;
       processed: number;
       branded: number;
       skipped: number;
-      failed: { gd_code: string | null; reason: string }[];
+      failed: { gd_code: string | null; step: string; reason: string }[];
     };
   }>({
     running: false,
@@ -478,6 +481,7 @@ export default function FlowerCompositor() {
     skipped: 0,
     failed: 0,
     lastMessage: "",
+    failures: [],
     finalReport: null,
   });
   const [reprocess, setReprocess] = useState(false);
@@ -621,14 +625,29 @@ export default function FlowerCompositor() {
       lastMessage: startIndex > 0 ? `Resuming at ${startIndex + 1}…` : "Starting…",
       finalReport: null,
       ...(startIndex === 0
-        ? { processed: 0, saved: 0, skipped: 0, failed: 0, currentName: "" }
+        ? { processed: 0, saved: 0, skipped: 0, failed: 0, currentName: "", failures: [] }
         : {}),
     }));
 
     let saved = 0;
     let skipped = 0;
     let failed = 0;
-    const failedList: { gd_code: string | null; reason: string }[] = [];
+    const failedList: { gd_code: string | null; step: string; reason: string }[] = [];
+    const recordFailure = (gd_code: string | null, step: string, err: any) => {
+      const reason =
+        err?.name === "AbortError"
+          ? "fetch timeout (10s)"
+          : err?.message || String(err);
+      console.error(`[process-batch] ${gd_code || "?"} step="${step}" error:`, err);
+      failed++;
+      failedList.push({ gd_code, step, reason });
+      setProcessBatch((s) => ({
+        ...s,
+        failed,
+        failures: [...s.failures, { gd_code, step, reason }].slice(0, 50),
+        lastMessage: `Failed ${gd_code || "?"} @ ${step}: ${reason}`,
+      }));
+    };
 
     try {
       await ensureFonts();
@@ -730,6 +749,7 @@ export default function FlowerCompositor() {
           continue;
         }
 
+        let currentStep: string = "fetch FFC page";
         try {
           // 1. Fetch product page via allorigins proxy with 10s timeout
           const proxyUrl =
@@ -749,6 +769,7 @@ export default function FlowerCompositor() {
           if (!html) throw new Error("empty product HTML");
 
           // 2. Strip "You May Also Like" and below
+          currentStep = "parse FFC page";
           const cutAt = html.search(/you\s*may\s*also\s*like/i);
           const scoped = cutAt > 0 ? html.slice(0, cutAt) : html;
 
@@ -781,16 +802,20 @@ export default function FlowerCompositor() {
 
           // 3. Process each image: brand + upload
           const slotUrls: (string | null)[] = [null, null, null, null, null];
+          const slotErrors: string[] = [];
           for (let slot = 0; slot < imageUrls.length; slot++) {
             const rawUrl = imageUrls[slot];
+            let slotStep = "fetch image";
             try {
               const proxiedRaw =
                 "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawUrl);
+              slotStep = "canvas draw";
               await composite(canvasRef.current!, a, {
                 imageUrlOverride: proxiedRaw,
                 skipBrackets: slot !== 0,
               });
               const blob = await canvasToBlob(canvasRef.current!);
+              slotStep = "upload to storage";
               const filename = `${gd}_${slot + 1}.jpg`;
               const { error: upErr } = await supabase.storage
                 .from("flower-images")
@@ -803,21 +828,24 @@ export default function FlowerCompositor() {
                 .from("flower-images")
                 .getPublicUrl(filename);
               slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
-            } catch (slotErr) {
-              console.warn(`process slot ${slot + 1} failed for ${label}:`, slotErr);
+            } catch (slotErr: any) {
+              const reason = slotErr?.message || String(slotErr);
+              const stepLabel = `slot ${slot + 1} ${slotStep}`;
+              slotErrors.push(`${stepLabel}: ${reason}`);
+              console.error(
+                `[process-batch] ${a.gd_code || "?"} ${stepLabel} error:`,
+                slotErr,
+              );
             }
             await new Promise((r) => setTimeout(r, 300));
           }
 
           if (!slotUrls.some(Boolean)) {
-            failed++;
-            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
-            setProcessBatch((s) => ({
-              ...s,
-              failed,
-              lastMessage: `Failed ${label} (no slots produced)`,
-            }));
+            const reason =
+              slotErrors[0] || "all slots failed (unknown reason)";
+            recordFailure(a.gd_code, "all slots failed", new Error(reason));
           } else {
+            currentStep = "database update";
             const { error: updErr } = await supabase
               .from("flower_arrangements")
               .update({
@@ -837,18 +865,7 @@ export default function FlowerCompositor() {
             }));
           }
         } catch (e: any) {
-          failed++;
-          const reason =
-            e?.name === "AbortError"
-              ? "fetch timeout (10s)"
-              : e?.message || String(e);
-          failedList.push({ gd_code: a.gd_code, reason });
-          setProcessBatch((s) => ({
-            ...s,
-            failed,
-            lastMessage: `Failed ${label}: ${reason}`,
-          }));
-          console.warn(`process batch failed for ${label}:`, e);
+          recordFailure(a.gd_code, currentStep, e);
         }
 
         // 500ms delay between arrangements
@@ -909,13 +926,26 @@ export default function FlowerCompositor() {
       skipped: 0,
       failed: 0,
       lastMessage: "Starting…",
+      failures: [],
       finalReport: null,
     });
 
     let branded = 0;
     let skipped = 0;
     let failed = 0;
-    const failedList: { gd_code: string | null; reason: string }[] = [];
+    const failedList: { gd_code: string | null; step: string; reason: string }[] = [];
+    const recordBrandFailure = (gd_code: string | null, step: string, err: any) => {
+      const reason = err?.message || String(err);
+      console.error(`[brand-batch] ${gd_code || "?"} step="${step}" error:`, err);
+      failed++;
+      failedList.push({ gd_code, step, reason });
+      setBrandBatch((s) => ({
+        ...s,
+        failed,
+        failures: [...s.failures, { gd_code, step, reason }].slice(0, 50),
+        lastMessage: `Failed ${gd_code || "?"} @ ${step}: ${reason}`,
+      }));
+    };
 
     try {
       await ensureFonts();
@@ -960,6 +990,7 @@ export default function FlowerCompositor() {
           continue;
         }
 
+        let currentStep: string = "load arrangement";
         try {
           const gd = a.gd_code || a.id;
           const sourceUrls = [
@@ -977,15 +1008,19 @@ export default function FlowerCompositor() {
           }
 
           const slotUrls: (string | null)[] = [null, null, null, null, null];
+          const slotErrors: string[] = [];
 
           for (let slot = 0; slot < sourceUrls.length; slot++) {
             const rawUrl = sourceUrls[slot];
+            let slotStep = "fetch image";
             try {
+              slotStep = "canvas draw";
               await composite(canvasRef.current!, a, {
                 imageUrlOverride: rawUrl,
                 skipBrackets: slot !== 0,
               });
               const blob = await canvasToBlob(canvasRef.current!);
+              slotStep = "upload to storage";
               const filename = `${gd}_${slot + 1}.jpg`;
               const { error: upErr } = await supabase.storage
                 .from("flower-images")
@@ -993,20 +1028,26 @@ export default function FlowerCompositor() {
               if (upErr) throw upErr;
               const { data: pub } = supabase.storage.from("flower-images").getPublicUrl(filename);
               slotUrls[slot] = `${pub.publicUrl}?t=${Date.now()}`;
-            } catch (slotErr) {
-              console.warn(`brand slot ${slot + 1} failed for ${label}:`, slotErr);
+            } catch (slotErr: any) {
+              const reason = slotErr?.message || String(slotErr);
+              const stepLabel = `slot ${slot + 1} ${slotStep}`;
+              slotErrors.push(`${stepLabel}: ${reason}`);
+              console.error(
+                `[brand-batch] ${a.gd_code || "?"} ${stepLabel} error:`,
+                slotErr,
+              );
             }
             // 300ms between images to keep browser responsive
             await new Promise((r) => setTimeout(r, 300));
           }
 
           if (!slotUrls.some(Boolean)) {
-            failed++;
-            failedList.push({ gd_code: a.gd_code, reason: "all slots failed" });
-            setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label} (no slots produced)` }));
+            const reason = slotErrors[0] || "all slots failed (unknown reason)";
+            recordBrandFailure(a.gd_code, "all slots failed", new Error(reason));
             continue;
           }
 
+          currentStep = "database update";
           const { error: updErr } = await supabase
             .from("flower_arrangements")
             .update({
@@ -1026,11 +1067,7 @@ export default function FlowerCompositor() {
             lastMessage: `Branded ${label} (${slotUrls.filter(Boolean).length} slots)`,
           }));
         } catch (e: any) {
-          failed++;
-          const reason = e?.message || String(e);
-          failedList.push({ gd_code: a.gd_code, reason });
-          setBrandBatch((s) => ({ ...s, failed, lastMessage: `Failed ${label}: ${reason}` }));
-          console.warn(`brand batch failed for ${label}:`, e);
+          recordBrandFailure(a.gd_code, currentStep, e);
         }
       }
 
@@ -1168,18 +1205,27 @@ export default function FlowerCompositor() {
                 {processBatch.lastMessage}
               </div>
             )}
-            {processBatch.finalReport && processBatch.finalReport.failed.length > 0 && (
-              <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({processBatch.finalReport.failed.length})</summary>
-                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {processBatch.finalReport.failed.map((f, i) => (
-                    <li key={i} className="font-mono">
-                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
+            {(() => {
+              const list = processBatch.finalReport?.failed ?? processBatch.failures;
+              if (!list || list.length === 0) return null;
+              const shown = list.slice(0, 50);
+              return (
+                <details className="text-xs" open={processBatch.running}>
+                  <summary className="cursor-pointer">
+                    Failed ({list.length}){list.length > 50 ? " — showing first 50" : ""}
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 max-h-60 overflow-auto">
+                    {shown.map((f, i) => (
+                      <li key={i} className="font-mono break-all">
+                        <span className="text-foreground">{f.gd_code || "?"}</span>{" "}
+                        <span className="text-muted-foreground">[{f.step}]</span>{" "}
+                        <span className="text-destructive">{f.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              );
+            })()}
           </CardContent>
         </Card>
       )}
@@ -1198,18 +1244,27 @@ export default function FlowerCompositor() {
             {brandBatch.lastMessage && (
               <div className="text-xs font-mono truncate">{brandBatch.lastMessage}</div>
             )}
-            {brandBatch.finalReport && brandBatch.finalReport.failed.length > 0 && (
-              <details className="text-xs">
-                <summary className="cursor-pointer">Failed ({brandBatch.finalReport.failed.length})</summary>
-                <ul className="mt-1 space-y-0.5 max-h-40 overflow-auto">
-                  {brandBatch.finalReport.failed.map((f, i) => (
-                    <li key={i} className="font-mono">
-                      {f.gd_code || "?"}: <span className="text-destructive">{f.reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
+            {(() => {
+              const list = brandBatch.finalReport?.failed ?? brandBatch.failures;
+              if (!list || list.length === 0) return null;
+              const shown = list.slice(0, 50);
+              return (
+                <details className="text-xs" open={brandBatch.running}>
+                  <summary className="cursor-pointer">
+                    Failed ({list.length}){list.length > 50 ? " — showing first 50" : ""}
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 max-h-60 overflow-auto">
+                    {shown.map((f, i) => (
+                      <li key={i} className="font-mono break-all">
+                        <span className="text-foreground">{f.gd_code || "?"}</span>{" "}
+                        <span className="text-muted-foreground">[{f.step}]</span>{" "}
+                        <span className="text-destructive">{f.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              );
+            })()}
           </CardContent>
         </Card>
       )}
