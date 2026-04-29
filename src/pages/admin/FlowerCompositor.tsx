@@ -409,56 +409,37 @@ export default function FlowerCompositor() {
   const [generating, setGenerating] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [previewArr, setPreviewArr] = useState<Arrangement | null>(null);
-  const [serverBatch, setServerBatch] = useState<{
+  const [processBatch, setProcessBatch] = useState<{
     running: boolean;
-    processed: number;
-    total: number;
-    updated: number;
-    skipped: number;
-    failed: number;
-    lastMessage: string;
-    finalReport: null | {
-      total: number;
-      processed: number;
-      updated: number;
-      skipped: number;
-      failed: { id: string; gd_code: string | null; reason: string }[];
-    };
-  }>({
-    running: false,
-    processed: 0,
-    total: 0,
-    updated: 0,
-    skipped: 0,
-    failed: 0,
-    lastMessage: "",
-    finalReport: null,
-  });
-  const [fetchBatch, setFetchBatch] = useState<{
-    running: boolean;
+    paused: boolean;
     processed: number;
     total: number;
     saved: number;
     skipped: number;
     failed: number;
     lastMessage: string;
+    currentName: string;
     finalReport: null | {
       total: number;
       processed: number;
-      updated: number;
+      saved: number;
       skipped: number;
-      failed: { id: string; gd_code: string | null; reason: string }[];
+      failed: { gd_code: string | null; reason: string }[];
     };
   }>({
     running: false,
+    paused: false,
     processed: 0,
     total: 0,
     saved: 0,
     skipped: 0,
     failed: 0,
     lastMessage: "",
+    currentName: "",
     finalReport: null,
   });
+  const processPauseRef = useRef(false);
+  const processResumeIndexRef = useRef(0);
   const [brandBatch, setBrandBatch] = useState<{
     running: boolean;
     paused: boolean;
