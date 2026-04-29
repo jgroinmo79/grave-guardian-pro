@@ -178,7 +178,7 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   ctx.textBaseline = "middle";
 
   // 7. White card zone for flower image
-  const cardX = 80, cardY = 150, cardW = 1040, cardH = 820;
+  const cardX = 80, cardY = 150, cardW = 1040, cardH = 910;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.5)";
   ctx.shadowBlur = 20;
@@ -189,9 +189,9 @@ async function composite(canvas: HTMLCanvasElement, a: Arrangement) {
   if (a.image_url) {
     try {
       const img = await loadImage(a.image_url);
-      const innerPad = 30;
+      const innerPad = 20;
       const availW = cardW - innerPad * 2;
-      const availH = cardH - innerPad * 2;
+      const availH = Math.min(870, cardH - innerPad * 2);
       const scale = Math.min(availW / img.width, availH / img.height);
       const dw = img.width * scale;
       const dh = img.height * scale;
