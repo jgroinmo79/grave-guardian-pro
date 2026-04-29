@@ -625,7 +625,7 @@ export default function FlowerCompositor() {
       lastMessage: startIndex > 0 ? `Resuming at ${startIndex + 1}…` : "Starting…",
       finalReport: null,
       ...(startIndex === 0
-        ? { processed: 0, saved: 0, skipped: 0, failed: 0, currentName: "" }
+        ? { processed: 0, saved: 0, skipped: 0, failed: 0, currentName: "", failures: [] }
         : {}),
     }));
 
