@@ -166,7 +166,7 @@ export default function FfcScraper() {
           </Button>
           {fetchingList && (
             <p className="font-body text-sm text-muted-foreground">
-              Fetching product list from FFC...
+              {fetchStatus || "Fetching product list from FFC..."}
             </p>
           )}
           {productUrls.length > 0 && !fetchingList && (
