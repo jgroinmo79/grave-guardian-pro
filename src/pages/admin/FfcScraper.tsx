@@ -24,20 +24,44 @@ export default function FfcScraper() {
   const [batchNum, setBatchNum] = useState(0);
   const pauseRef = useRef(false);
 
+  const [fetchStatus, setFetchStatus] = useState("");
+
+  const CATEGORY_URLS = [
+    "https://flowersforcemeteries.com/catalog?categories[]=2",
+    "https://flowersforcemeteries.com/catalog?categories[]=17",
+    "https://flowersforcemeteries.com/catalog?categories[]=19",
+    "https://flowersforcemeteries.com/catalog?categories[]=20",
+    "https://flowersforcemeteries.com/catalog?categories[]=22",
+    "https://flowersforcemeteries.com/catalog?categories[]=249",
+    "https://flowersforcemeteries.com/catalog?categories[]=377",
+    "https://flowersforcemeteries.com/catalog?categories[]=382",
+  ];
+
   const fetchProductList = async () => {
     setFetchingList(true);
     setProductUrls([]);
+    const all = new Set<string>();
     try {
-      const { data, error } = await supabase.functions.invoke("ffc-get-products", {
-        body: {},
-      });
-      if (error) throw error;
-      const list: string[] = data?.urls ?? [];
+      for (let i = 0; i < CATEGORY_URLS.length; i++) {
+        const categoryUrl = CATEGORY_URLS[i];
+        setFetchStatus(`Fetching category ${i + 1} of ${CATEGORY_URLS.length}...`);
+        const { data, error } = await supabase.functions.invoke("ffc-get-products", {
+          body: { categoryUrl, maxPages: 25 },
+        });
+        if (error) {
+          toast.error(`Category ${i + 1} failed: ${error.message}`);
+          continue;
+        }
+        (data?.urls ?? []).forEach((u: string) => all.add(u));
+        setFetchStatus(`Found ${all.size} products so far...`);
+      }
+      const list = Array.from(all);
       setProductUrls(list);
       toast.success(`Found ${list.length} products — ready to import`);
     } catch (e) {
       toast.error(`Error: ${(e as Error).message}`);
     } finally {
+      setFetchStatus("");
       setFetchingList(false);
     }
   };
@@ -142,7 +166,7 @@ export default function FfcScraper() {
           </Button>
           {fetchingList && (
             <p className="font-body text-sm text-muted-foreground">
-              Fetching product list from FFC...
+              {fetchStatus || "Fetching product list from FFC..."}
             </p>
           )}
           {productUrls.length > 0 && !fetchingList && (
