@@ -46,16 +46,17 @@ const BookingFlow = () => {
     setData((prev) => ({ ...prev, ...partial }));
   };
 
-  const hasAnnualPlan = data.selectedMaintenancePlan !== '' || data.selectedFlowerPlan !== '';
-  const needsFlowerDates = data.selectedFlowerPlan !== '' || data.selectedFlowerOnly !== '';
+  const intent = data.intent;
+  const isFlowerOnly = intent === 'flowers';
+  const needsFlowerDates = intent === 'flowers' || intent === 'both';
 
-  // Calculate how many flower dates the user needs to pick
+  // Number of flower slots based on chosen plan (matches new ServiceStep semantics)
   const flowerPickLimit = (() => {
-    if (data.selectedFlowerPlan) {
+    if (intent === 'both' && data.selectedFlowerPlan) {
       const plan = FLOWER_PLANS[data.selectedFlowerPlan as keyof typeof FLOWER_PLANS];
       return plan ? plan.flowers : 0;
     }
-    if (data.selectedFlowerOnly) {
+    if (intent === 'flowers' && data.selectedFlowerOnly) {
       const entry = FLOWER_ONLY_PLANS.find((f) => f.id === data.selectedFlowerOnly);
       return entry ? entry.placements : 0;
     }
