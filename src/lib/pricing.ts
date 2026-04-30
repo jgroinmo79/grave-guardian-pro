@@ -86,6 +86,48 @@ export const FLOWER_ONLY_PLANS = [
   { id: 'flower_4', label: '4 Flower Placements', placements: 4, price: 325 },
 ];
 
+// ===== New plan-spec pricing helpers (used by the redesigned ServiceStep) =====
+// These coexist with the older MAINTENANCE/FLOWER plan tables above so we don't
+// disturb existing checkout/subscription code paths that still reference them.
+
+export type IntentChoice = '' | 'monument' | 'flowers' | 'both';
+
+// Multipliers applied to the monument's base cleaning price
+export const CLEANING_MULTIPLIERS = [1.0, 1.9, 2.75, 3.5] as const;
+
+// Flat flower placement totals (1, 2, 3, 4 placements)
+export const FLOWER_FLAT_TOTALS = [100, 175, 250, 325] as const;
+
+export type ComboPlanId = 'combo_1' | 'combo_2' | 'combo_3' | 'combo_4';
+export type CleaningPlanId = 'cleaning_1' | 'cleaning_2' | 'cleaning_3' | 'cleaning_4';
+
+export const cleaningPlanPrice = (basePrice: number, count: 1 | 2 | 3 | 4) =>
+  Math.round(basePrice * CLEANING_MULTIPLIERS[count - 1]);
+
+export const flowerFlatPrice = (count: 1 | 2 | 3 | 4) => FLOWER_FLAT_TOTALS[count - 1];
+
+export const comboPlanPrice = (basePrice: number, count: 1 | 2 | 3 | 4) =>
+  cleaningPlanPrice(basePrice, count) + flowerFlatPrice(count);
+
+// Standard holidays vs custom-date occasions for the per-slot picker
+export const STANDARD_HOLIDAYS = [
+  "Mother's Day",
+  "Father's Day",
+  "Memorial Day",
+  "Easter",
+  "Christmas",
+  "Veterans Day",
+  "Halloween",
+  "Thanksgiving",
+] as const;
+
+export const CUSTOM_DATE_OCCASIONS = [
+  "Birthday of deceased",
+  "Anniversary",
+  "Date of passing",
+  "Other",
+] as const;
+
 export const ADD_ONS = [
   { id: 'damage_report', label: 'Damage Documentation Report', price: 65, description: 'Formal shareable document with GPS-timestamped damage photos' },
   { id: 'inscription_repainting', label: 'Inscription Repainting', price: 75, priceMax: 150, description: 'Per inscription — $75 to $150' },
