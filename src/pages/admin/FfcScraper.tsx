@@ -7,17 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Loader2, Play, Pause, Search } from "lucide-react";
 
-const CATEGORY_URLS = [
-  "https://flowersforcemeteries.com/catalog?categories[]=2",
-  "https://flowersforcemeteries.com/catalog?categories[]=17",
-  "https://flowersforcemeteries.com/catalog?categories[]=19",
-  "https://flowersforcemeteries.com/catalog?categories[]=20",
-  "https://flowersforcemeteries.com/catalog?categories[]=22",
-  "https://flowersforcemeteries.com/catalog?categories[]=249",
-  "https://flowersforcemeteries.com/catalog?categories[]=377",
-  "https://flowersforcemeteries.com/catalog?categories[]=382",
-];
-
 const BATCH_SIZE = 15;
 
 type Failed = { url: string; reason: string };
@@ -37,21 +26,15 @@ export default function FfcScraper() {
 
   const fetchProductList = async () => {
     setFetchingList(true);
-    const all = new Set<string>();
+    setProductUrls([]);
     try {
-      for (const url of CATEGORY_URLS) {
-        try {
-          const res = await fetch(url);
-          const text = await res.text();
-          const matches = text.match(/\/product\/\d+/g) || [];
-          matches.forEach((m) => all.add(`https://flowersforcemeteries.com${m}`));
-        } catch (e) {
-          console.warn("Category fetch failed", url, e);
-        }
-      }
-      const list = Array.from(all);
+      const { data, error } = await supabase.functions.invoke("ffc-get-products", {
+        body: {},
+      });
+      if (error) throw error;
+      const list: string[] = data?.urls ?? [];
       setProductUrls(list);
-      toast.success(`Found ${list.length} products`);
+      toast.success(`Found ${list.length} products — ready to import`);
     } catch (e) {
       toast.error(`Error: ${(e as Error).message}`);
     } finally {
@@ -157,7 +140,12 @@ export default function FfcScraper() {
             )}
             Fetch Product List
           </Button>
-          {productUrls.length > 0 && (
+          {fetchingList && (
+            <p className="font-body text-sm text-muted-foreground">
+              Fetching product list from FFC...
+            </p>
+          )}
+          {productUrls.length > 0 && !fetchingList && (
             <p className="font-body text-sm">
               Found <span className="font-bold text-primary">{productUrls.length}</span> products
             </p>
