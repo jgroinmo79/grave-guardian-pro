@@ -52,14 +52,15 @@ export const MAINTENANCE_PLANS = {
   legacy: { label: 'The Legacy', visits: 4, description: '4 cleaning visits per year' },
 };
 
+// Pricing formula: B × {1.9, 2.75, 3.5} for {keeper(2), sentinel(3), legacy(4)} cleanings/yr
 export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
-  single_marker: { keeper: 180, sentinel: 260, legacy: 340 },
-  double_marker: { keeper: 230, sentinel: 330, legacy: 430 },
-  single_slant: { keeper: 230, sentinel: 330, legacy: 430 },
-  single_upright: { keeper: 270, sentinel: 390, legacy: 510 },
-  double_slant: { keeper: 320, sentinel: 460, legacy: 600 },
-  double_upright: { keeper: 360, sentinel: 520, legacy: 680 },
-  grave_ledger: { keeper: 450, sentinel: 650, legacy: 850 },
+  single_marker: { keeper: 238, sentinel: 344, legacy: 438 },
+  double_marker: { keeper: 285, sentinel: 413, legacy: 525 },
+  single_slant: { keeper: 285, sentinel: 413, legacy: 525 },
+  single_upright: { keeper: 333, sentinel: 481, legacy: 613 },
+  double_slant: { keeper: 380, sentinel: 550, legacy: 700 },
+  double_upright: { keeper: 428, sentinel: 619, legacy: 788 },
+  grave_ledger: { keeper: 523, sentinel: 756, legacy: 963 },
 };
 
 export const FLOWER_PLANS = {
