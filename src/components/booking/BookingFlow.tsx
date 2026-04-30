@@ -66,6 +66,11 @@ const BookingFlow = () => {
   const steps: StepDef[] = useMemo(() => {
     const base: StepDef[] = [
       {
+        id: 'intent-landing',
+        render: (d, u) => <IntentLandingStep data={d} update={u} />,
+        canProceed: (d) => d.intent !== '',
+      },
+      {
         id: 'cemetery',
         render: (d, u) => <CemeteryStep data={d} update={u} />,
         canProceed: (d) => d.cemeteryName.trim().length > 0,
@@ -75,19 +80,28 @@ const BookingFlow = () => {
         render: (d, u) => <ContactStep data={d} update={u} />,
         canProceed: (d) => d.shopperName.trim().length > 0 && d.shopperEmail.trim().length > 0,
       },
-      {
-        id: 'monument',
-        render: (d, u) => <MonumentStep data={d} update={u} />,
-        canProceed: (d) => {
-          if (d.isVeteran) return d.veteranMonumentType !== '' && d.veteranMaterial !== '';
-          return d.monumentType !== '' && d.material !== '';
+    ];
+
+    // Monument-detail + condition steps only when monument care is involved
+    if (!isFlowerOnly) {
+      base.push(
+        {
+          id: 'monument',
+          render: (d, u) => <MonumentStep data={d} update={u} />,
+          canProceed: (d) => {
+            if (d.isVeteran) return d.veteranMonumentType !== '' && d.veteranMaterial !== '';
+            return d.monumentType !== '' && d.material !== '';
+          },
         },
-      },
-      {
-        id: 'condition',
-        render: (d, u) => <ConditionStep data={d} update={u} />,
-        canProceed: () => true,
-      },
+        {
+          id: 'condition',
+          render: (d, u) => <ConditionStep data={d} update={u} />,
+          canProceed: () => true,
+        },
+      );
+    }
+
+    base.push(
       {
         id: 'service',
         render: (d, u) => <ServiceStep data={d} update={u} />,
@@ -103,50 +117,44 @@ const BookingFlow = () => {
         render: (d, u) => <AddOnsStep data={d} update={u} />,
         canProceed: () => true,
       },
-    ];
+    );
 
-    // Add holiday picker + flower arrangement only if flowers are involved
-    if (needsFlowerDates) {
+    // Per-slot flower wizard (replaces holiday + arrangement steps)
+    if (needsFlowerDates && flowerPickLimit > 0) {
       base.push({
-        id: 'holidays',
-        render: (d, u) => <HolidayPickerStep data={d} update={u} />,
+        id: 'flower-slots',
+        render: (d, u) => <FlowerSlotWizardStep data={d} update={u} totalSlots={flowerPickLimit} />,
         canProceed: (d) => {
-          if (d.selectedHolidays.length !== flowerPickLimit) return false;
-          for (const h of d.selectedHolidays) {
-            if ((h === "Deceased's Birthday" || h === "Deceased's Anniversary") && !d.holidayCustomDates[h]?.trim()) {
-              return false;
-            }
-          }
-          return true;
+          const slots = d.flowerSlotKeys.slice(0, flowerPickLimit);
+          if (slots.length !== flowerPickLimit) return false;
+          return slots.every((k) => k && !!d.selectedArrangements[k]);
         },
-      });
-      base.push({
-        id: 'flower-arrangement',
-        render: (d, u) => <FlowerArrangementStep data={d} update={u} />,
-        canProceed: (d) => d.selectedHolidays.length > 0 && d.selectedHolidays.every((h) => !!d.selectedArrangements[h]),
       });
     }
 
-    base.push(
-      {
-        id: 'schedule',
-        render: (d, u) => <ScheduleDateStep data={d} update={u} />,
-        canProceed: () => true,
-      },
-      {
+    base.push({
+      id: 'schedule',
+      render: (d, u) => <ScheduleDateStep data={d} update={u} />,
+      canProceed: () => true,
+    });
+
+    // Consent only applies when biological cleaning is happening
+    if (!isFlowerOnly) {
+      base.push({
         id: 'consent',
         render: (d, u) => <ConsentStep data={d} update={u} />,
         canProceed: (d) => d.consentBiological && d.consentAuthorize,
-      },
-      {
-        id: 'checkout',
-        render: (d) => <CheckoutStep data={d} />,
-        canProceed: () => true,
-      },
-    );
+      });
+    }
+
+    base.push({
+      id: 'checkout',
+      render: (d) => <CheckoutStep data={d} />,
+      canProceed: () => true,
+    });
 
     return base;
-  }, [hasAnnualPlan, needsFlowerDates, flowerPickLimit, data.selectedFlowerPlan]);
+  }, [intent, isFlowerOnly, needsFlowerDates, flowerPickLimit]);
 
   // Track abandoned lead on step changes
   useEffect(() => {
