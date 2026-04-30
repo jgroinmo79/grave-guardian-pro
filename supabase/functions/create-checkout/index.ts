@@ -34,13 +34,13 @@ const ADD_ONS: Record<string, { label: string; price: number }> = {
 };
 
 const MAINTENANCE_PLAN_PRICES: Record<string, Record<string, number>> = {
-  single_marker: { keeper: 180, sentinel: 260, legacy: 340 },
-  double_marker: { keeper: 230, sentinel: 330, legacy: 430 },
-  single_slant: { keeper: 230, sentinel: 330, legacy: 430 },
-  single_upright: { keeper: 270, sentinel: 390, legacy: 510 },
-  double_slant: { keeper: 320, sentinel: 460, legacy: 600 },
-  double_upright: { keeper: 360, sentinel: 520, legacy: 680 },
-  grave_ledger: { keeper: 450, sentinel: 650, legacy: 850 },
+  single_marker: { keeper: 238, sentinel: 344, legacy: 438 },
+  double_marker: { keeper: 285, sentinel: 413, legacy: 525 },
+  single_slant: { keeper: 285, sentinel: 413, legacy: 525 },
+  single_upright: { keeper: 333, sentinel: 481, legacy: 613 },
+  double_slant: { keeper: 380, sentinel: 550, legacy: 700 },
+  double_upright: { keeper: 428, sentinel: 619, legacy: 788 },
+  grave_ledger: { keeper: 523, sentinel: 756, legacy: 963 },
 };
 
 const MAINTENANCE_PLANS: Record<string, string> = {
@@ -50,13 +50,13 @@ const MAINTENANCE_PLANS: Record<string, string> = {
 };
 
 const FLOWER_PLAN_PRICES: Record<string, Record<string, number>> = {
-  single_marker: { tribute: 200, remembrance: 355, devotion: 510, eternal: 665 },
-  double_marker: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
-  single_slant: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
-  single_upright: { tribute: 250, remembrance: 445, devotion: 640, eternal: 835 },
-  double_slant: { tribute: 275, remembrance: 490, devotion: 705, eternal: 920 },
-  double_upright: { tribute: 300, remembrance: 535, devotion: 770, eternal: 1005 },
-  grave_ledger: { tribute: 350, remembrance: 625, devotion: 900, eternal: 1175 },
+  single_marker: { tribute: 225, remembrance: 413, devotion: 594, eternal: 763 },
+  double_marker: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
+  single_slant: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
+  single_upright: { tribute: 275, remembrance: 508, devotion: 731, eternal: 938 },
+  double_slant: { tribute: 300, remembrance: 555, devotion: 800, eternal: 1025 },
+  double_upright: { tribute: 325, remembrance: 603, devotion: 869, eternal: 1113 },
+  grave_ledger: { tribute: 375, remembrance: 698, devotion: 1006, eternal: 1288 },
 };
 
 const FLOWER_PLANS_LABELS: Record<string, string> = {

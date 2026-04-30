@@ -52,14 +52,15 @@ export const MAINTENANCE_PLANS = {
   legacy: { label: 'The Legacy', visits: 4, description: '4 cleaning visits per year' },
 };
 
+// Pricing formula: B × {1.9, 2.75, 3.5} for {keeper(2), sentinel(3), legacy(4)} cleanings/yr
 export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
-  single_marker: { keeper: 180, sentinel: 260, legacy: 340 },
-  double_marker: { keeper: 230, sentinel: 330, legacy: 430 },
-  single_slant: { keeper: 230, sentinel: 330, legacy: 430 },
-  single_upright: { keeper: 270, sentinel: 390, legacy: 510 },
-  double_slant: { keeper: 320, sentinel: 460, legacy: 600 },
-  double_upright: { keeper: 360, sentinel: 520, legacy: 680 },
-  grave_ledger: { keeper: 450, sentinel: 650, legacy: 850 },
+  single_marker: { keeper: 238, sentinel: 344, legacy: 438 },
+  double_marker: { keeper: 285, sentinel: 413, legacy: 525 },
+  single_slant: { keeper: 285, sentinel: 413, legacy: 525 },
+  single_upright: { keeper: 333, sentinel: 481, legacy: 613 },
+  double_slant: { keeper: 380, sentinel: 550, legacy: 700 },
+  double_upright: { keeper: 428, sentinel: 619, legacy: 788 },
+  grave_ledger: { keeper: 523, sentinel: 756, legacy: 963 },
 };
 
 export const FLOWER_PLANS = {
@@ -69,14 +70,16 @@ export const FLOWER_PLANS = {
   eternal: { label: 'The Eternal', cleanings: 4, flowers: 4, description: '4 cleanings + 4 flower placements per year' },
 };
 
+// Combo pricing: cleaningPlanPrice(B, n) + flowerFlatPrice(n) where n in {1,2,3,4}
+// tribute=1+1, remembrance=2+2, devotion=3+3, eternal=4+4
 export const FLOWER_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
-  single_marker: { tribute: 200, remembrance: 355, devotion: 510, eternal: 665 },
-  double_marker: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
-  single_slant: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
-  single_upright: { tribute: 250, remembrance: 445, devotion: 640, eternal: 835 },
-  double_slant: { tribute: 275, remembrance: 490, devotion: 705, eternal: 920 },
-  double_upright: { tribute: 300, remembrance: 535, devotion: 770, eternal: 1005 },
-  grave_ledger: { tribute: 350, remembrance: 625, devotion: 900, eternal: 1175 },
+  single_marker: { tribute: 225, remembrance: 413, devotion: 594, eternal: 763 },
+  double_marker: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
+  single_slant: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
+  single_upright: { tribute: 275, remembrance: 508, devotion: 731, eternal: 938 },
+  double_slant: { tribute: 300, remembrance: 555, devotion: 800, eternal: 1025 },
+  double_upright: { tribute: 325, remembrance: 603, devotion: 869, eternal: 1113 },
+  grave_ledger: { tribute: 375, remembrance: 698, devotion: 1006, eternal: 1288 },
 };
 
 export const FLOWER_ONLY_PLANS = [
@@ -85,6 +88,48 @@ export const FLOWER_ONLY_PLANS = [
   { id: 'flower_3', label: '3 Flower Placements', placements: 3, price: 250 },
   { id: 'flower_4', label: '4 Flower Placements', placements: 4, price: 325 },
 ];
+
+// ===== New plan-spec pricing helpers (used by the redesigned ServiceStep) =====
+// These coexist with the older MAINTENANCE/FLOWER plan tables above so we don't
+// disturb existing checkout/subscription code paths that still reference them.
+
+export type IntentChoice = '' | 'monument' | 'flowers' | 'both';
+
+// Multipliers applied to the monument's base cleaning price
+export const CLEANING_MULTIPLIERS = [1.0, 1.9, 2.75, 3.5] as const;
+
+// Flat flower placement totals (1, 2, 3, 4 placements)
+export const FLOWER_FLAT_TOTALS = [100, 175, 250, 325] as const;
+
+export type ComboPlanId = 'combo_1' | 'combo_2' | 'combo_3' | 'combo_4';
+export type CleaningPlanId = 'cleaning_1' | 'cleaning_2' | 'cleaning_3' | 'cleaning_4';
+
+export const cleaningPlanPrice = (basePrice: number, count: 1 | 2 | 3 | 4) =>
+  Math.round(basePrice * CLEANING_MULTIPLIERS[count - 1]);
+
+export const flowerFlatPrice = (count: 1 | 2 | 3 | 4) => FLOWER_FLAT_TOTALS[count - 1];
+
+export const comboPlanPrice = (basePrice: number, count: 1 | 2 | 3 | 4) =>
+  cleaningPlanPrice(basePrice, count) + flowerFlatPrice(count);
+
+// Standard holidays vs custom-date occasions for the per-slot picker
+export const STANDARD_HOLIDAYS = [
+  "Mother's Day",
+  "Father's Day",
+  "Memorial Day",
+  "Easter",
+  "Christmas",
+  "Veterans Day",
+  "Halloween",
+  "Thanksgiving",
+] as const;
+
+export const CUSTOM_DATE_OCCASIONS = [
+  "Birthday of deceased",
+  "Anniversary",
+  "Date of passing",
+  "Other",
+] as const;
 
 export const ADD_ONS = [
   { id: 'damage_report', label: 'Damage Documentation Report', price: 65, description: 'Formal shareable document with GPS-timestamped damage photos' },
@@ -139,6 +184,10 @@ export interface IntakeFormData {
   selectedFlowerOnly: string;
   // Step 6
   addOns: string[];
+  // Booking intent (Monument Care / Flower Placement / Both)
+  intent: IntentChoice;
+  // Per-slot flower picker: ordered list of slot keys, plus date + arrangement maps
+  flowerSlotKeys: string[]; // e.g. ["slot_1", "slot_2"]
   // Holiday picker for annual plans
   selectedHolidays: string[];
   holidayCustomDates: Record<string, string>;
@@ -194,6 +243,8 @@ export const initialFormData: IntakeFormData = {
   selectedFlowerPlan: '',
   selectedFlowerOnly: '',
   addOns: [],
+  intent: '',
+  flowerSlotKeys: [],
   selectedHolidays: [],
   holidayCustomDates: {},
   selectedArrangements: {},
