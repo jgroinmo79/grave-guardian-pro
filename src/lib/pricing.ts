@@ -181,6 +181,10 @@ export interface IntakeFormData {
   selectedFlowerOnly: string;
   // Step 6
   addOns: string[];
+  // Booking intent (Monument Care / Flower Placement / Both)
+  intent: IntentChoice;
+  // Per-slot flower picker: ordered list of slot keys, plus date + arrangement maps
+  flowerSlotKeys: string[]; // e.g. ["slot_1", "slot_2"]
   // Holiday picker for annual plans
   selectedHolidays: string[];
   holidayCustomDates: Record<string, string>;
