@@ -162,7 +162,8 @@ serve(async (req) => {
     const monument = MONUMENT_PRICES[monumentType];
     if (!monument) throw new Error("Invalid monument type");
 
-    const offer = selectedOffer || "A";
+    // DB enum offer_type only accepts "A" | "B" — coerce any other intent values
+    const offer: "A" | "B" = selectedOffer === "B" ? "B" : "A";
     const basePrice = isVeteran ? Math.round(monument.price * 0.9) : monument.price;
     const travelFee = getTravelFee(estimatedMiles || 0);
 
