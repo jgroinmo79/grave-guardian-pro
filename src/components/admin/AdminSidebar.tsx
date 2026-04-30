@@ -13,6 +13,7 @@ import {
   UserX,
   Landmark,
   Mail,
+  Flower2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -45,6 +46,7 @@ const items = [
   { title: "Frame Builder", url: "/admin/frame-builder", icon: Frame },
   { title: "Memorials", url: "/admin/memorials", icon: Landmark },
   { title: "Email Signups", url: "/admin/signups", icon: Mail },
+  { title: "Flower Catalog", url: "/admin/flower-catalog", icon: Flower2 },
 ];
 
 export function AdminSidebar() {
