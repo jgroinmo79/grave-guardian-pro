@@ -70,14 +70,16 @@ export const FLOWER_PLANS = {
   eternal: { label: 'The Eternal', cleanings: 4, flowers: 4, description: '4 cleanings + 4 flower placements per year' },
 };
 
+// Combo pricing: cleaningPlanPrice(B, n) + flowerFlatPrice(n) where n in {1,2,3,4}
+// tribute=1+1, remembrance=2+2, devotion=3+3, eternal=4+4
 export const FLOWER_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
-  single_marker: { tribute: 200, remembrance: 355, devotion: 510, eternal: 665 },
-  double_marker: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
-  single_slant: { tribute: 225, remembrance: 400, devotion: 575, eternal: 750 },
-  single_upright: { tribute: 250, remembrance: 445, devotion: 640, eternal: 835 },
-  double_slant: { tribute: 275, remembrance: 490, devotion: 705, eternal: 920 },
-  double_upright: { tribute: 300, remembrance: 535, devotion: 770, eternal: 1005 },
-  grave_ledger: { tribute: 350, remembrance: 625, devotion: 900, eternal: 1175 },
+  single_marker: { tribute: 225, remembrance: 413, devotion: 594, eternal: 763 },
+  double_marker: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
+  single_slant: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
+  single_upright: { tribute: 275, remembrance: 508, devotion: 731, eternal: 938 },
+  double_slant: { tribute: 300, remembrance: 555, devotion: 800, eternal: 1025 },
+  double_upright: { tribute: 325, remembrance: 603, devotion: 869, eternal: 1113 },
+  grave_ledger: { tribute: 375, remembrance: 698, devotion: 1006, eternal: 1288 },
 };
 
 export const FLOWER_ONLY_PLANS = [
