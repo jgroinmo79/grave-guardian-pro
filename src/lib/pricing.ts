@@ -240,6 +240,8 @@ export const initialFormData: IntakeFormData = {
   selectedFlowerPlan: '',
   selectedFlowerOnly: '',
   addOns: [],
+  intent: '',
+  flowerSlotKeys: [],
   selectedHolidays: [],
   holidayCustomDates: {},
   selectedArrangements: {},
