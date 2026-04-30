@@ -1,0 +1,1 @@
+CREATE POLICY "Public can read flower_arrangements" ON public.flower_arrangements FOR SELECT USING (true);
