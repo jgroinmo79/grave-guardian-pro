@@ -170,6 +170,7 @@ const BookingFlow = () => {
         name: data.shopperName || null,
         phone: data.shopperPhone || null,
         form_data: {
+          intent: data.intent,
           cemeteryName: data.cemeteryName,
           monumentType: data.monumentType,
           selectedOffer: data.selectedOffer,
