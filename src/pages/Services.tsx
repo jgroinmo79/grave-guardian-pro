@@ -86,19 +86,23 @@ const Services = () => {
         <SectionHeading title="Annual Maintenance Plans" subtitle="Recurring cleanings so your monument stays pristine year-round." />
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {maintenancePlans.map((plan, i) => (
-            <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.15 }}
-              className="rounded-lg p-8 relative" style={{ backgroundColor: "#2C2C2C", border: `${i === 1 ? "2px" : "1px"} solid ${i === 1 ? "#C9976B" : "#3a3a3a"}` }}>
-              {i === 1 && (
-                <span className="absolute top-4 right-4 font-cinzel text-[10px] tracking-[0.15em] uppercase px-3 py-1 rounded-full" style={{ backgroundColor: "#C9976B", color: "#141414" }}>
-                  Most Popular
-                </span>
-              )}
-              <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
-              <p className="font-cinzel text-sm font-bold mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
-              <p className="font-garamond text-sm leading-relaxed mb-3" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
-              <p className="font-garamond text-xs italic" style={{ color: "#6B6B6B" }}>
-                Price shown for Single Upright. Prices vary by monument type.
-              </p>
+            <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.15 }}>
+              <Link to="/auth" aria-label={`Book ${plan.name}`}
+                className="block rounded-lg p-8 relative h-full transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                style={{ backgroundColor: "#2C2C2C", border: `${i === 1 ? "2px" : "1px"} solid ${i === 1 ? "#C9976B" : "#3a3a3a"}` }}>
+                {i === 1 && (
+                  <span className="absolute top-4 right-4 font-cinzel text-[10px] tracking-[0.15em] uppercase px-3 py-1 rounded-full" style={{ backgroundColor: "#C9976B", color: "#141414" }}>
+                    Most Popular
+                  </span>
+                )}
+                <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
+                <p className="font-cinzel text-sm font-bold mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
+                <p className="font-garamond text-sm leading-relaxed mb-3" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
+                <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
+                  Price shown for Single Upright. Prices vary by monument type.
+                </p>
+                <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select Plan →</p>
+              </Link>
             </motion.div>
           ))}
         </div>
@@ -115,14 +119,18 @@ const Services = () => {
         <SectionHeading title="Cleaning + Flower Plans" subtitle="Combined monument care and artificial flower placements." />
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {flowerPlans.map((plan, i) => (
-            <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.12 }}
-              className="rounded-lg p-8" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-              <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
-              <p className="font-cinzel text-sm font-bold mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
-              <p className="font-garamond text-sm leading-relaxed mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
-              <p className="font-garamond text-xs italic" style={{ color: "#6B6B6B" }}>
-                Price shown for Single Upright. Prices vary by monument type.
-              </p>
+            <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.12 }}>
+              <Link to="/auth" aria-label={`Book ${plan.name}`}
+                className="block rounded-lg p-8 h-full transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
+                <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
+                <p className="font-cinzel text-sm font-bold mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
+                <p className="font-garamond text-sm leading-relaxed mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
+                <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
+                  Price shown for Single Upright. Prices vary by monument type.
+                </p>
+                <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select Plan →</p>
+              </Link>
             </motion.div>
           ))}
         </div>
@@ -139,11 +147,15 @@ const Services = () => {
         <SectionHeading title="Flower-Only Plans" subtitle="Standalone artificial flower placements — no cleaning included." />
         <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FLOWER_ONLY_PLANS.map((plan, i) => (
-            <motion.div key={plan.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.1 }}
-              className="rounded-lg p-6 text-center" style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
-              <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
-              <p className="font-cinzel text-lg font-bold" style={{ color: "#C9976B" }}>${plan.price}</p>
-              <p className="font-garamond text-xs mt-2" style={{ color: "#6B6B6B" }}>{plan.placements} placement{plan.placements > 1 ? "s" : ""}/year</p>
+            <motion.div key={plan.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: i * 0.1 }}>
+              <Link to="/auth" aria-label={`Book ${plan.label}`}
+                className="block rounded-lg p-6 text-center h-full transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer"
+                style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
+                <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
+                <p className="font-cinzel text-lg font-bold" style={{ color: "#C9976B" }}>${plan.price}</p>
+                <p className="font-garamond text-xs mt-2 mb-3" style={{ color: "#6B6B6B" }}>{plan.placements} placement{plan.placements > 1 ? "s" : ""}/year</p>
+                <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select →</p>
+              </Link>
             </motion.div>
           ))}
         </div>
