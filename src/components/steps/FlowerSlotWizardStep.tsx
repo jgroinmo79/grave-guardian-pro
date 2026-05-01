@@ -12,7 +12,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  ImageIcon,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
