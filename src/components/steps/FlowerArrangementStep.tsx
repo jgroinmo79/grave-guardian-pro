@@ -31,50 +31,6 @@ const TYPE_LABELS: Record<string, string> = {
 const needsCustomDate = (holiday: string) =>
   holiday === "Deceased's Birthday" || holiday === "Deceased's Anniversary";
 
-const ImageCarousel = ({ images, name, selected }: { images: string[]; name: string; selected: boolean }) => {
-  const [idx, setIdx] = useState(0);
-  const hasMultiple = images.length > 1;
-
-  return (
-    <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-      {images.length > 0 ? (
-        <img src={images[idx]} alt={name} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <ImageIcon className="w-10 h-10 text-muted-foreground/20" />
-        </div>
-      )}
-      {hasMultiple && (
-        <>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i === 0 ? images.length - 1 : i - 1)); }}
-            className="absolute left-1 top-1/2 -translate-y-1/2 bg-background/70 rounded-full p-1"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i + 1) % images.length); }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 bg-background/70 rounded-full p-1"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-          <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
-            {images.map((_, i) => (
-              <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === idx ? "bg-primary" : "bg-background/60"}`} />
-            ))}
-          </div>
-        </>
-      )}
-      {selected && (
-        <div className="absolute top-2 right-2 bg-primary rounded-full p-1">
-          <Check className="w-4 h-4 text-primary-foreground" />
-        </div>
-      )}
-    </div>
-  );
-};
 
 const FlowerArrangementStep = ({ data, update }: Props) => {
   const [filter, setFilter] = useState("all");
