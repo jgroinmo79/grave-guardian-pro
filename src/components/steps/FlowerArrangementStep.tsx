@@ -254,11 +254,6 @@ const FlowerArrangementStep = ({ data, update }: Props) => {
                     : "border-border"
                 }`}
               >
-                <ImageCarousel
-                  images={[a.image_url, a.image_url_2, a.image_url_3, a.image_url_4, a.image_url_5].filter(Boolean)}
-                  name={a.name}
-                  selected={selected}
-                />
                 <div className="p-3 space-y-2 flex-1 flex flex-col">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-sm leading-tight">
