@@ -373,7 +373,6 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {arrangements.map((a: any) => {
                 const selected = data.selectedArrangements[slotKey] === a.id;
-                const images = [a.image_url, a.image_url_2, a.image_url_3, a.image_url_4, a.image_url_5].filter(Boolean);
                 return (
                   <div
                     key={a.id}
@@ -381,7 +380,6 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
                       selected ? 'border-primary ring-2 ring-primary/30 shadow-patina' : 'border-border'
                     }`}
                   >
-                    <ImageCarousel images={images} name={a.name} selected={selected} />
                     <div className="p-3 space-y-2 flex-1 flex flex-col">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-semibold text-sm leading-tight">{a.name}</h4>
