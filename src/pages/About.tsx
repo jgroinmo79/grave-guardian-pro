@@ -39,18 +39,6 @@ const About = () => (
       </motion.div>
     </section>
 
-    {/* Owner Photo */}
-    <section className="px-6 py-16 sm:py-20" style={{ backgroundColor: "#141414" }}>
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
-        <img
-          src={aboutOwner}
-          alt="Owner of Grave Detail at a family cemetery"
-          className="w-full rounded-lg shadow-xl"
-          style={{ border: "1px solid #3a3a3a" }}
-        />
-      </motion.div>
-    </section>
-
     {/* Values */}
     <section className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
