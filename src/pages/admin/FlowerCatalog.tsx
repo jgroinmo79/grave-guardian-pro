@@ -387,17 +387,6 @@ export default function FlowerCatalog() {
                 />
               </div>
 
-              {(["image_url", "image_url_2", "image_url_3", "image_url_4", "image_url_5"] as const).map(
-                (key, idx) => (
-                  <div key={key}>
-                    <Label>Image URL {idx + 1}</Label>
-                    <Input
-                      value={(editing[key] as string) || ""}
-                      onChange={(e) => setEditing({ ...editing, [key]: e.target.value })}
-                    />
-                  </div>
-                ),
-              )}
 
               <div className="flex items-center gap-3 pt-2">
                 <Switch
