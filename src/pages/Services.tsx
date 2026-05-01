@@ -22,13 +22,13 @@ const Services = () => {
   const monumentList = Object.entries(MONUMENT_PRICES).map(([, v]) => [v.label, `$${v.price}`]);
 
   const maintenancePlans = Object.entries(MAINTENANCE_PLANS).map(([key, plan]) => ({
-    name: plan.label,
+    name: `${plan.visits} Cleanings / Year`,
     visits: plan.description,
     price: `$${MAINTENANCE_PLAN_PRICES.single_upright[key]}/year`,
   }));
 
   const flowerPlans = Object.entries(FLOWER_PLANS).map(([key, plan]) => ({
-    name: plan.label,
+    name: `${plan.cleanings} Cleaning${plan.cleanings > 1 ? 's' : ''} + ${plan.flowers} Flower${plan.flowers > 1 ? 's' : ''} / Year`,
     desc: plan.description,
     price: `$${FLOWER_PLAN_PRICES.single_upright[key]}/year`,
   }));
