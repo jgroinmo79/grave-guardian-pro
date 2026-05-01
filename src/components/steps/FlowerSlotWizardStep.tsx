@@ -12,7 +12,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  ImageIcon,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,45 +41,6 @@ const TYPE_LABELS: Record<string, string> = {
   easel: "Easel",
 };
 
-// Image carousel for arrangement card
-const ImageCarousel = ({ images, name, selected }: { images: string[]; name: string; selected: boolean }) => {
-  const [idx, setIdx] = useState(0);
-  const has = images.length > 1;
-  return (
-    <div className="aspect-[4/3] bg-muted relative overflow-hidden rounded-t-xl">
-      {images.length > 0 ? (
-        <img src={images[idx]} alt={name} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <ImageIcon className="w-10 h-10 text-muted-foreground/30" />
-        </div>
-      )}
-      {has && (
-        <>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i === 0 ? images.length - 1 : i - 1)); }}
-            className="absolute left-1 top-1/2 -translate-y-1/2 bg-background/70 rounded-full p-1"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setIdx((i) => (i + 1) % images.length); }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 bg-background/70 rounded-full p-1"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </>
-      )}
-      {selected && (
-        <div className="absolute top-2 right-2 bg-primary rounded-full p-1.5">
-          <Check className="w-4 h-4 text-primary-foreground" />
-        </div>
-      )}
-    </div>
-  );
-};
 
 const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
   // The slot keys list lives in form data so navigation in/out preserves state.
@@ -373,7 +333,6 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {arrangements.map((a: any) => {
                 const selected = data.selectedArrangements[slotKey] === a.id;
-                const images = [a.image_url, a.image_url_2, a.image_url_3, a.image_url_4, a.image_url_5].filter(Boolean);
                 return (
                   <div
                     key={a.id}
@@ -381,7 +340,6 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
                       selected ? 'border-primary ring-2 ring-primary/30 shadow-patina' : 'border-border'
                     }`}
                   >
-                    <ImageCarousel images={images} name={a.name} selected={selected} />
                     <div className="p-3 space-y-2 flex-1 flex flex-col">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="font-semibold text-sm leading-tight">{a.name}</h4>

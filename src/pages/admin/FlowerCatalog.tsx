@@ -224,20 +224,6 @@ export default function FlowerCatalog() {
             const m = margin(a.retail_price, a.wholesale_price);
             return (
               <Card key={a.id} className="p-3 flex items-center gap-3">
-                <div className="w-[60px] h-[60px] rounded-md overflow-hidden bg-muted shrink-0">
-                  {a.image_url ? (
-                    <img
-                      src={a.image_url}
-                      alt={a.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <Flower2 className="w-5 h-5" />
-                    </div>
-                  )}
-                </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="font-bold truncate">{a.name}</div>
@@ -401,17 +387,6 @@ export default function FlowerCatalog() {
                 />
               </div>
 
-              {(["image_url", "image_url_2", "image_url_3", "image_url_4", "image_url_5"] as const).map(
-                (key, idx) => (
-                  <div key={key}>
-                    <Label>Image URL {idx + 1}</Label>
-                    <Input
-                      value={(editing[key] as string) || ""}
-                      onChange={(e) => setEditing({ ...editing, [key]: e.target.value })}
-                    />
-                  </div>
-                ),
-              )}
 
               <div className="flex items-center gap-3 pt-2">
                 <Switch
