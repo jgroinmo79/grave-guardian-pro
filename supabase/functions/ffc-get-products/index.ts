@@ -11,6 +11,27 @@ const json = (body: unknown, status = 200) =>
   });
 
 const UA = "Mozilla/5.0 (compatible; GraveDetailBot/1.0)";
+const ALLOWED_ORIGIN = "https://flowersforcemeteries.com/";
+
+async function requireAdmin(req: Request): Promise<Response | null> {
+  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.45.0");
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Unauthorized" }, 401);
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  const { data: u, error } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (error || !u.user) return json({ error: "Unauthorized" }, 401);
+  const { data: role } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", u.user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!role) return json({ error: "Admin access required" }, 403);
+  return null;
+}
 
 function extractProductIds(html: string): string[] {
   const matches = html.match(/\/product\/\d+/g) || [];
