@@ -50,12 +50,18 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const denied = await requireAdmin(req);
+    if (denied) return denied;
+
     const body = await req.json().catch(() => ({}));
     const categoryUrl: string | undefined = body.categoryUrl;
     const maxPages: number = Number(body.maxPages ?? 25);
 
     if (!categoryUrl) {
       return json({ error: "categoryUrl required" }, 400);
+    }
+    if (!categoryUrl.startsWith(ALLOWED_ORIGIN)) {
+      return json({ error: "categoryUrl must be on flowersforcemeteries.com" }, 400);
     }
 
     const all = new Set<string>();
