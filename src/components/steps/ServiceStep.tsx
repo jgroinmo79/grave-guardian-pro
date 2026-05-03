@@ -144,8 +144,17 @@ const buildFlowerOnlyPlans = (): PlanCard[] => [
   },
 ];
 
+const VETERAN_TO_BASE: Record<string, MonumentType> = {
+  va_upright: 'single_upright',
+  va_flat: 'single_marker',
+  va_niche: 'single_marker',
+};
+
 const ServiceStep = ({ data, update }: Props) => {
-  const monument = data.monumentType ? MONUMENT_PRICES[data.monumentType as MonumentType] : null;
+  const effectiveType: MonumentType | null = data.isVeteran
+    ? (data.veteranMonumentType ? VETERAN_TO_BASE[data.veteranMonumentType] : null)
+    : (data.monumentType ? (data.monumentType as MonumentType) : null);
+  const monument = effectiveType ? MONUMENT_PRICES[effectiveType] : null;
   const intent = data.intent || 'monument'; // safe default
 
   let plans: PlanCard[] = [];
