@@ -1,6 +1,10 @@
 project_id = "vqgduujezyvoieykzvca"
 
 [functions]
+  [functions.ffc-scraper]
+    verify_jwt = true
+  [functions.ffc-get-products]
+    verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
   [functions.handle-email-suppression]
