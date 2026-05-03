@@ -12,6 +12,23 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const ALLOWED_ORIGIN = "https://flowersforcemeteries.com/";
+
+async function requireAdmin(req: Request, supabase: ReturnType<typeof createClient>): Promise<Response | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Unauthorized" }, 401);
+  const { data: u, error } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (error || !u.user) return json({ error: "Unauthorized" }, 401);
+  const { data: role } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", u.user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!role) return json({ error: "Admin access required" }, 403);
+  return null;
+}
+
 type CategoryInfo = {
   key: string;
   display: string;
