@@ -61,19 +61,40 @@ const ContactStep = ({ data, update }: Props) => {
         {/* Shopper Info */}
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Your Information</h3>
-          <div className="space-y-2">
-            <Label htmlFor="shopper-name">Your Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="shopper-name"
-                placeholder="Your full name"
-                value={data.shopperName}
-                onChange={(e) => update({ shopperName: e.target.value })}
-                className="bg-secondary border-border pl-10"
-              />
-            </div>
-          </div>
+          {(() => {
+            const parts = data.shopperName.trim().split(/\s+/);
+            const firstName = parts.length > 1 ? parts.slice(0, -1).join(" ") : (parts[0] || "");
+            const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
+            const setName = (first: string, last: string) =>
+              update({ shopperName: `${first} ${last}`.trim().replace(/\s+/g, " ") });
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="shopper-first-name">First Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="shopper-first-name"
+                      placeholder="First"
+                      value={firstName}
+                      onChange={(e) => setName(e.target.value, lastName)}
+                      className="bg-secondary border-border pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="shopper-last-name">Last Name</Label>
+                  <Input
+                    id="shopper-last-name"
+                    placeholder="Last"
+                    value={lastName}
+                    onChange={(e) => setName(firstName, e.target.value)}
+                    className="bg-secondary border-border"
+                  />
+                </div>
+              </div>
+            );
+          })()}
           <div className="space-y-2">
             <Label htmlFor="shopper-phone">Phone Number</Label>
             <div className="relative">
