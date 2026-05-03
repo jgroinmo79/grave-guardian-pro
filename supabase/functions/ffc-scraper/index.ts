@@ -12,6 +12,23 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const ALLOWED_ORIGIN = "https://flowersforcemeteries.com/";
+
+async function requireAdmin(req: Request, supabase: ReturnType<typeof createClient>): Promise<Response | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Unauthorized" }, 401);
+  const { data: u, error } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (error || !u.user) return json({ error: "Unauthorized" }, 401);
+  const { data: role } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", u.user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!role) return json({ error: "Admin access required" }, 403);
+  return null;
+}
+
 type CategoryInfo = {
   key: string;
   display: string;
@@ -122,6 +139,9 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    const denied = await requireAdmin(req, supabase);
+    if (denied) return denied;
+
     const body = await req.json();
     const offset: number = Number(body.offset ?? 0);
     const limit: number = Number(body.limit ?? 15);
@@ -129,6 +149,9 @@ Deno.serve(async (req) => {
 
     if (productUrls.length === 0) {
       return json({ error: "productUrls required" }, 400);
+    }
+    if (!productUrls.every((u) => typeof u === "string" && u.startsWith(ALLOWED_ORIGIN))) {
+      return json({ error: "productUrls must be on flowersforcemeteries.com" }, 400);
     }
 
     const batch = productUrls.slice(offset, offset + limit);
