@@ -139,6 +139,9 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    const denied = await requireAdmin(req, supabase);
+    if (denied) return denied;
+
     const body = await req.json();
     const offset: number = Number(body.offset ?? 0);
     const limit: number = Number(body.limit ?? 15);
@@ -146,6 +149,9 @@ Deno.serve(async (req) => {
 
     if (productUrls.length === 0) {
       return json({ error: "productUrls required" }, 400);
+    }
+    if (!productUrls.every((u) => typeof u === "string" && u.startsWith(ALLOWED_ORIGIN))) {
+      return json({ error: "productUrls must be on flowersforcemeteries.com" }, 400);
     }
 
     const batch = productUrls.slice(offset, offset + limit);
