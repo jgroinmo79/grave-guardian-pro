@@ -24,17 +24,38 @@ const ContactStep = ({ data, update }: Props) => {
         {/* Deceased Info */}
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Person Memorialized</h3>
-          <div className="space-y-2">
-            <Label htmlFor="deceased-name">Name on Monument</Label>
-            <Input
-              id="deceased-name"
-              placeholder="e.g. John A. Smith"
-              value={data.deceasedName}
-              onChange={(e) => update({ deceasedName: e.target.value })}
-              className="bg-secondary border-border"
-            />
-            <p className="text-xs text-muted-foreground">The name of the person whose grave this is</p>
-          </div>
+          {(() => {
+            const parts = data.deceasedName.trim().split(/\s+/);
+            const firstName = parts.length > 1 ? parts.slice(0, -1).join(" ") : (parts[0] || "");
+            const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
+            const setName = (first: string, last: string) =>
+              update({ deceasedName: `${first} ${last}`.trim().replace(/\s+/g, " ") });
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="deceased-first-name">First Name</Label>
+                  <Input
+                    id="deceased-first-name"
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setName(e.target.value, lastName)}
+                    className="bg-secondary border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="deceased-last-name">Last Name</Label>
+                  <Input
+                    id="deceased-last-name"
+                    placeholder="Smith"
+                    value={lastName}
+                    onChange={(e) => setName(firstName, e.target.value)}
+                    className="bg-secondary border-border"
+                  />
+                </div>
+              </div>
+            );
+          })()}
+          <p className="text-xs text-muted-foreground">The name of the person whose grave this is</p>
         </div>
 
         {/* Shopper Info */}
