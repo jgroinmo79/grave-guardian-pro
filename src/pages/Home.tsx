@@ -121,7 +121,7 @@ const Home = () => {
               style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}
             >
               <div className="flex justify-center">{card.icon}</div>
-              <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
+              <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
                 {card.title}
               </h3>
               <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
@@ -160,7 +160,7 @@ const Home = () => {
               >
                 {step.num}
               </span>
-              <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
+              <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
                 {step.title}
               </h3>
               <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
@@ -212,7 +212,7 @@ const Home = () => {
           <h2 className="font-cinzel text-3xl font-bold sm:text-5xl" style={{ color: "#E8E4DF" }}>
             Get in Touch
           </h2>
-          <p className="font-garamond leading-relaxed text-xl" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
             Have questions or ready to schedule? Reach out anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
