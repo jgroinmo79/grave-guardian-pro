@@ -17,6 +17,7 @@ interface Props {
 
 const CheckoutStep = ({ data }: Props) => {
   const [loading, setLoading] = useState(false);
+  const [agreedTerms, setAgreedTerms] = useState(false);
 
   const resolvedType = data.monumentType as MonumentType | '';
   const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
@@ -91,8 +92,26 @@ const CheckoutStep = ({ data }: Props) => {
   };
 
   const handleCheckout = async () => {
+    if (!agreedTerms) {
+      toast.error("Please agree to the Terms of Service to continue.");
+      return;
+    }
     setLoading(true);
     try {
+      // Log consent agreement
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        await supabase.from("consent_logs").insert({
+          user_id: authData?.user?.id ?? null,
+          booking_id: null,
+          terms_version: TERMS_VERSION,
+          consent_text: TERMS_CONSENT_TEXT,
+          agreed_at: new Date().toISOString(),
+        });
+      } catch (logErr) {
+        console.error("Failed to log consent:", logErr);
+      }
+
       const { data: result, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           monumentType: data.monumentType,
