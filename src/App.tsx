@@ -33,6 +33,7 @@ import FfcScraper from "./pages/admin/FfcScraper";
 import FlowerCatalog from "./pages/admin/FlowerCatalog";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
+import LegalDisclosures from "./pages/LegalDisclosures";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/home" element={<Home />} />
             <Route path="/services" element={<Services />} />
             <Route path="/about" element={<About />} />
+            <Route path="/legal" element={<LegalDisclosures />} />
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
