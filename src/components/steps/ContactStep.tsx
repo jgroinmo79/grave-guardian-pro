@@ -96,6 +96,17 @@ const ContactStep = ({ data, update }: Props) => {
             );
           })()}
           <div className="space-y-2">
+            <Label htmlFor="shopper-relationship">Relationship to Deceased <span className="text-destructive">*</span></Label>
+            <Input
+              id="shopper-relationship"
+              placeholder="e.g. Son, Daughter, Spouse, Friend"
+              value={data.shopperRelationship}
+              onChange={(e) => update({ shopperRelationship: e.target.value })}
+              className="bg-secondary border-border"
+              required
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="shopper-phone">Phone Number</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

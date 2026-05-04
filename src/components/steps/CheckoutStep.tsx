@@ -2,9 +2,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { CreditCard, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const TERMS_CONSENT_TEXT = "I have read and agree to the Terms of Service, Liability Waiver, and Cancellation Policy. I understand that Grave Detail is not responsible for pre-existing damage, deterioration, or fragility of any monument, and that all services are performed at the owner's discretion. Photo documentation may be taken for quality assurance and portfolio purposes.";
+const TERMS_VERSION = "1.0";
 
 interface Props {
   data: IntakeFormData;
@@ -12,6 +17,7 @@ interface Props {
 
 const CheckoutStep = ({ data }: Props) => {
   const [loading, setLoading] = useState(false);
+  const [agreedTerms, setAgreedTerms] = useState(false);
 
   const resolvedType = data.monumentType as MonumentType | '';
   const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
@@ -86,8 +92,26 @@ const CheckoutStep = ({ data }: Props) => {
   };
 
   const handleCheckout = async () => {
+    if (!agreedTerms) {
+      toast.error("Please agree to the Terms of Service to continue.");
+      return;
+    }
     setLoading(true);
     try {
+      // Log consent agreement
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        await supabase.from("consent_logs").insert({
+          user_id: authData?.user?.id ?? null,
+          booking_id: null,
+          terms_version: TERMS_VERSION,
+          consent_text: TERMS_CONSENT_TEXT,
+          agreed_at: new Date().toISOString(),
+        });
+      } catch (logErr) {
+        console.error("Failed to log consent:", logErr);
+      }
+
       const { data: result, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           monumentType: data.monumentType,
@@ -261,12 +285,27 @@ const CheckoutStep = ({ data }: Props) => {
         )}
 
         <div className="mt-6 space-y-3">
+          <div
+            className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
+              agreedTerms ? "border-primary/50 bg-primary/5" : "border-border bg-secondary/30"
+            }`}
+          >
+            <Checkbox
+              id="terms-consent"
+              checked={agreedTerms}
+              onCheckedChange={(c) => setAgreedTerms(c === true)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="terms-consent" className="text-sm cursor-pointer leading-relaxed">
+              {TERMS_CONSENT_TEXT}
+            </Label>
+          </div>
           <Button
             variant="hero"
             size="lg"
             className="w-full h-12 text-base"
             onClick={handleCheckout}
-            disabled={loading || !data.shopperEmail?.trim()}
+            disabled={loading || !data.shopperEmail?.trim() || !agreedTerms}
           >
             {loading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

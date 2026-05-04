@@ -152,6 +152,7 @@ export interface IntakeFormData {
   // Person info
   deceasedName: string;
   shopperName: string;
+  shopperRelationship: string;
   shopperPhone: string;
   shopperEmail: string;
   // Step 2
@@ -200,6 +201,7 @@ export interface IntakeFormData {
   consentBiological: boolean;
   consentAuthorize: boolean;
   consentPhotos: boolean;
+  consentTerms: boolean;
   // Gift order fields
   isGift: boolean;
   giftRecipientName: string;
@@ -217,6 +219,7 @@ export const initialFormData: IntakeFormData = {
   cemeteryLng: null,
   deceasedName: '',
   shopperName: '',
+  shopperRelationship: '',
   shopperPhone: '',
   shopperEmail: '',
   isVeteran: false,
@@ -252,6 +255,7 @@ export const initialFormData: IntakeFormData = {
   consentBiological: false,
   consentAuthorize: false,
   consentPhotos: false,
+  consentTerms: false,
   isGift: false,
   giftRecipientName: '',
   giftRecipientEmail: '',

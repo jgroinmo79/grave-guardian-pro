@@ -78,7 +78,7 @@ const BookingFlow = () => {
       {
         id: 'contact',
         render: (d, u) => <ContactStep data={d} update={u} />,
-        canProceed: (d) => d.shopperName.trim().length > 0 && d.shopperEmail.trim().length > 0,
+        canProceed: (d) => d.shopperName.trim().length > 0 && d.shopperEmail.trim().length > 0 && d.shopperRelationship.trim().length > 0,
       },
     ];
 
