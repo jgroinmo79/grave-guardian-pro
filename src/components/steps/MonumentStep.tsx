@@ -40,10 +40,7 @@ const VA_MATERIALS: { value: VeteranMaterialType; label: string }[] = [
 ];
 
 const MonumentStep = ({ data, update }: Props) => {
-  const [otherDescription, setOtherDescription] = useState('');
-
   const handleVeteranToggle = (isVet: boolean) => {
-    setOtherDescription('');
     update({
       isVeteran: isVet,
       veteranMonumentType: '',
