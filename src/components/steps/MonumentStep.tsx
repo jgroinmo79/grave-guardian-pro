@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType, MONUMENT_PRICES } from "@/lib/pricing";
+import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType } from "@/lib/pricing";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
