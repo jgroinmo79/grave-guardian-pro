@@ -285,12 +285,27 @@ const CheckoutStep = ({ data }: Props) => {
         )}
 
         <div className="mt-6 space-y-3">
+          <div
+            className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
+              agreedTerms ? "border-primary/50 bg-primary/5" : "border-border bg-secondary/30"
+            }`}
+          >
+            <Checkbox
+              id="terms-consent"
+              checked={agreedTerms}
+              onCheckedChange={(c) => setAgreedTerms(c === true)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="terms-consent" className="text-sm cursor-pointer leading-relaxed">
+              {TERMS_CONSENT_TEXT}
+            </Label>
+          </div>
           <Button
             variant="hero"
             size="lg"
             className="w-full h-12 text-base"
             onClick={handleCheckout}
-            disabled={loading || !data.shopperEmail?.trim()}
+            disabled={loading || !data.shopperEmail?.trim() || !agreedTerms}
           >
             {loading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
