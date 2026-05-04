@@ -2,9 +2,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IntakeFormData, MONUMENT_PRICES, getTravelFee, ADD_ONS, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, MonumentType } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { CreditCard, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const TERMS_CONSENT_TEXT = "I have read and agree to the Terms of Service, Liability Waiver, and Cancellation Policy. I understand that Grave Detail is not responsible for pre-existing damage, deterioration, or fragility of any monument, and that all services are performed at the owner's discretion. Photo documentation may be taken for quality assurance and portfolio purposes.";
+const TERMS_VERSION = "1.0";
 
 interface Props {
   data: IntakeFormData;
