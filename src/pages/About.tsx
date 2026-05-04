@@ -31,7 +31,7 @@ const About = () => (
         <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-8" style={{ color: "#E8E4DF" }}>
           Why This Exists.
         </h2>
-        <p className="font-garamond text-lg leading-relaxed" style={{ color: "#E8E4DF" }}>
+        <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
           Grave Detail was founded on a simple belief — the people we've lost deserve better than fading into neglect. Weathering, biological growth, and time take their toll on every monument. Most families don't know there's a safe, professional way to reverse it. That's where we come in.
           <br /><br />
           Every cleaning is performed personally by the business owner using CCUS-certified preservation methods. No contractors. No rushed jobs. No shortcuts. Just careful, methodical work that honors the stone and the story it carries.
@@ -57,10 +57,10 @@ const About = () => (
             className="rounded-lg p-8 text-center space-y-4"
             style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}
           >
-            <h3 className="font-cinzel text-base tracking-[0.1em] uppercase" style={{ color: "#E8E4DF" }}>
+            <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
               {card.title}
             </h3>
-            <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
               {card.desc}
             </p>
           </motion.div>

@@ -13,8 +13,8 @@ const travelZones = TRAVEL_ZONES.map(z => [z.label.split(" ")[0] + " " + z.label
 
 const SectionHeading = ({ title, subtitle }: { title: string; subtitle: string }) => (
   <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }} className="max-w-4xl mx-auto text-center mb-12">
-    <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>{title}</h2>
-    <p className="font-garamond text-lg" style={{ color: "#6B6B6B" }}>{subtitle}</p>
+    <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl" style={{ color: "#E8E4DF" }}>{title}</h2>
+    <p className="font-garamond text-2xl" style={{ color: "#6B6B6B" }}>{subtitle}</p>
   </motion.div>
 );
 
@@ -97,7 +97,7 @@ const Services = () => {
                 )}
                 <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
                 <p className="font-cinzel text-sm font-bold mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
-                <p className="font-garamond text-sm leading-relaxed mb-3" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
+                <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
                 <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
@@ -108,7 +108,7 @@ const Services = () => {
         </div>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
-          <p className="font-garamond text-sm leading-relaxed italic text-center" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-lg italic text-center" style={{ color: "#6B6B6B" }}>
             All plans include damage documentation, condition reports, and priority scheduling. Visits are spaced evenly throughout the year for year-round preservation.
           </p>
         </motion.div>
@@ -123,9 +123,9 @@ const Services = () => {
               <Link to="/auth" aria-label={`Book ${plan.name}`}
                 className="block rounded-lg p-8 h-full transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer"
                 style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-                <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
+                <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
                 <p className="font-cinzel text-sm font-bold mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
-                <p className="font-garamond text-sm leading-relaxed mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
+                <p className="font-garamond leading-relaxed text-lg mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
                 <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
@@ -136,7 +136,7 @@ const Services = () => {
         </div>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-          <p className="font-garamond text-sm leading-relaxed italic text-center" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond leading-relaxed text-lg italic text-center" style={{ color: "#6B6B6B" }}>
             Choose placement dates from: Easter, Memorial Day, Mother's Day, Father's Day, Christmas, Deceased's Birthday, or Deceased's Anniversary. Cleaning visits are paired with flower placements when possible.
           </p>
         </motion.div>
@@ -151,7 +151,7 @@ const Services = () => {
               <Link to="/auth" aria-label={`Book ${plan.label}`}
                 className="block rounded-lg p-6 text-center h-full transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer"
                 style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
-                <h3 className="font-cinzel text-base tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
+                <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
                 <p className="font-cinzel text-lg font-bold" style={{ color: "#C9976B" }}>${plan.price}</p>
                 <p className="font-garamond text-xs mt-2 mb-3" style={{ color: "#6B6B6B" }}>{plan.placements} placement{plan.placements > 1 ? "s" : ""}/year</p>
                 <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select →</p>
