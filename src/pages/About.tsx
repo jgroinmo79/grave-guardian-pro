@@ -20,7 +20,7 @@ const About = () => (
           About Grave Detail
         </h1>
         <p className="font-garamond text-xl sm:text-2xl italic" style={{ color: "#6B6B6B" }}>
-          One man. One mission. Every stone treated like family.
+          ​
         </p>
       </motion.div>
     </section>
