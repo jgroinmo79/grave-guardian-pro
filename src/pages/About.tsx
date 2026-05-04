@@ -72,10 +72,10 @@ const About = () => (
             className="rounded-lg p-8 text-center space-y-4"
             style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}
           >
-            <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
+            <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
               {card.title}
             </h3>
-            <p className="font-garamond leading-relaxed text-xl" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
               {card.desc}
             </p>
           </motion.div>
@@ -85,7 +85,7 @@ const About = () => (
 
     {/* Credentials strip */}
     <div className="px-6 py-6" style={{ borderTop: "1px solid #6B6B6B", backgroundColor: "#141414" }}>
-      <p className="max-w-5xl mx-auto text-center font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#6B6B6B" }}>
+      <p className="max-w-5xl mx-auto text-center font-cinzel tracking-[0.15em] uppercase text-base" style={{ color: "#6B6B6B" }}>
         CCUS-Certified Methods · Endurance Gravestone &amp; Monument Cleaner · $2,000,000 Liability Coverage · Serving Missouri, Arkansas, Illinois, Kentucky and Tennessee
       </p>
     </div>
