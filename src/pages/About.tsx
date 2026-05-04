@@ -32,9 +32,22 @@ const About = () => (
           Why This Exists.
         </h2>
         <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
-          Grave Detail was founded on a simple belief — the people we've lost deserve better than fading into neglect. Weathering, biological growth, and time take their toll on every monument. Most families don't know there's a safe, professional way to reverse it. That's where we come in.
+          Grave Detail began with a loss. In 2022, following the passing of a very close family member, I found myself making visit after visit to the cemetery — and noticing things most people walk right past. Bird droppings eating into the stone. Water deposits leaving permanent staining. Grass clippings packed against the base, trapping moisture. Air pollution slowly darkening surfaces that were once sharp and clear. The more I looked, the more I saw — and the more I researched the science behind what I was seeing, the clearer it became that these monuments were losing the fight quietly, visit by visit, season by season.
+          <br /><br />
+          Grave Detail was founded on a simple belief — the people we've lost deserve better than fading into neglect. Most families don't know there's a safe, professional way to reverse it. That's where we come in.
           <br /><br />
           Every cleaning is performed personally by the business owner using CCUS-certified preservation methods. No contractors. No rushed jobs. No shortcuts. Just careful, methodical work that honors the stone and the story it carries.
+        </p>
+
+        <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mt-16 mb-8" style={{ color: "#E8E4DF" }}>
+          More Than a Memorial
+        </h2>
+        <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
+          Cemeteries are one of the most undervalued cultural resources we have. They're open-air archives — recording family names, migration patterns, ethnic communities, religious traditions, and the social fabric of towns that may no longer exist in any other form. Genealogists, historians, and researchers depend on legible stones to piece together stories that would otherwise be lost permanently. When a stone becomes unreadable, that chapter closes forever.
+          <br /><br />
+          Every monument is also a record of the person who made it. Monument carvers and folk artists left their mark in the lettering styles, decorative motifs, and carving techniques unique to their hands and their era. A preserved stone isn't just a tribute to the person buried beneath it — it's a surviving example of a craft tradition, often from artists whose names we'll never know but whose work deserves to outlast them.
+          <br /><br />
+          Preservation honors all of it.
         </p>
       </motion.div>
     </section>
