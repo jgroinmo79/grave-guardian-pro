@@ -56,6 +56,44 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_logs: {
+        Row: {
+          agreed_at: string
+          booking_id: string | null
+          consent_text: string | null
+          id: string
+          ip_address: string | null
+          terms_version: string | null
+          user_id: string | null
+        }
+        Insert: {
+          agreed_at?: string
+          booking_id?: string | null
+          consent_text?: string | null
+          id?: string
+          ip_address?: string | null
+          terms_version?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          agreed_at?: string
+          booking_id?: string | null
+          consent_text?: string | null
+          id?: string
+          ip_address?: string | null
+          terms_version?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       damage_reports: {
         Row: {
           created_at: string
