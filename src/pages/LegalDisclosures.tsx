@@ -9,7 +9,7 @@ const fadeUp = {
 
 const Section = ({ heading, children }: { heading: string; children: React.ReactNode }) => (
   <div className="mt-12 first:mt-0">
-    <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-8" style={{ color: "#E8E4DF" }}>
+    <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mb-8" style={{ color: "#E8E4DF" }}>
       {heading}
     </h2>
     <div className="font-garamond text-xl leading-relaxed space-y-6" style={{ color: "#E8E4DF" }}>

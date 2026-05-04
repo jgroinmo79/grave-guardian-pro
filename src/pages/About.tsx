@@ -28,7 +28,7 @@ const About = () => (
     {/* Our Story */}
     <section className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#2C2C2C" }}>
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
-        <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-8" style={{ color: "#E8E4DF" }}>
+        <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mb-8" style={{ color: "#E8E4DF" }}>
           Why This Exists.
         </h2>
         <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
@@ -41,7 +41,7 @@ const About = () => (
           Every cleaning is performed personally by the business owner using CCUS-certified preservation methods. No contractors. No rushed jobs. No shortcuts. Just careful, methodical work that honors the stone and the story it carries.
         </p>
 
-        <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mt-16 mb-8" style={{ color: "#E8E4DF" }}>
+        <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mt-16 mb-8" style={{ color: "#E8E4DF" }}>
           More Than a Memorial
         </h2>
         <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
@@ -75,7 +75,7 @@ const About = () => (
             <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
               {card.title}
             </h3>
-            <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-xl" style={{ color: "#6B6B6B" }}>
               {card.desc}
             </p>
           </motion.div>

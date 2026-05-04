@@ -13,27 +13,27 @@ const PublicFooter = () => (
     <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
       {/* Col 1 — Brand */}
       <div className="space-y-3">
-        <p className="font-cinzel text-lg tracking-[0.2em] font-bold" style={{ color: "#E8E4DF" }}>
+        <p className="font-cinzel tracking-[0.2em] font-bold text-2xl" style={{ color: "#E8E4DF" }}>
           GRAVE DETAIL
         </p>
-        <p className="font-garamond text-base italic" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond italic text-xl" style={{ color: "#6B6B6B" }}>
           Time Takes a Toll. We Take It Back.
         </p>
-        <p className="font-garamond text-sm" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond text-lg" style={{ color: "#6B6B6B" }}>
           Benton, Missouri
         </p>
       </div>
 
       {/* Col 2 — Nav */}
       <div className="space-y-3">
-        <p className="font-cinzel text-xs tracking-[0.2em] uppercase mb-4" style={{ color: "#E8E4DF" }}>
+        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 text-lg" style={{ color: "#E8E4DF" }}>
           Navigation
         </p>
         {NAV_LINKS.map((l) => (
           <Link
             key={l.label}
             to={l.to}
-            className="block font-garamond text-sm transition-colors"
+            className="block font-garamond transition-colors text-lg"
             style={{ color: "#6B6B6B" }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
@@ -45,12 +45,12 @@ const PublicFooter = () => (
 
       {/* Col 3 — Contact */}
       <div className="space-y-3">
-        <p className="font-cinzel text-xs tracking-[0.2em] uppercase mb-4" style={{ color: "#E8E4DF" }}>
+        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 text-lg" style={{ color: "#E8E4DF" }}>
           Contact
         </p>
         <a
           href="tel:+15735455759"
-          className="block font-garamond text-sm transition-colors"
+          className="block font-garamond transition-colors text-lg"
           style={{ color: "#6B6B6B" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
@@ -59,7 +59,7 @@ const PublicFooter = () => (
         </a>
         <a
           href="mailto:info@gravedetail.net"
-          className="block font-garamond text-sm transition-colors"
+          className="block font-garamond transition-colors text-lg"
           style={{ color: "#6B6B6B" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
@@ -70,7 +70,7 @@ const PublicFooter = () => (
           href="https://instagram.com/Grave_Detail"
           target="_blank"
           rel="noopener noreferrer"
-          className="block font-garamond text-sm transition-colors"
+          className="block font-garamond transition-colors text-lg"
           style={{ color: "#6B6B6B" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
           onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}

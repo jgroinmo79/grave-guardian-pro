@@ -209,16 +209,16 @@ const Home = () => {
           transition={{ duration: 0.8 }}
           className="max-w-3xl mx-auto text-center space-y-6"
         >
-          <h2 className="font-cinzel text-3xl sm:text-4xl font-bold" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-3xl font-bold sm:text-5xl" style={{ color: "#E8E4DF" }}>
             Get in Touch
           </h2>
-          <p className="font-garamond text-lg leading-relaxed" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond leading-relaxed text-xl" style={{ color: "#6B6B6B" }}>
             Have questions or ready to schedule? Reach out anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <a
               href="tel:+15735455759"
-              className="font-garamond text-lg transition-colors"
+              className="font-garamond transition-colors text-xl"
               style={{ color: "#C9976B" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#7A5C3E")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#C9976B")}
@@ -228,7 +228,7 @@ const Home = () => {
             <span className="hidden sm:inline font-garamond" style={{ color: "#3a3a3a" }}>·</span>
             <a
               href="mailto:info@gravedetail.net"
-              className="font-garamond text-lg transition-colors"
+              className="font-garamond transition-colors text-xl"
               style={{ color: "#C9976B" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#7A5C3E")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#C9976B")}
