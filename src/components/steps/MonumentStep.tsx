@@ -1,22 +1,23 @@
 import { useState } from "react";
-import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType } from "@/lib/pricing";
+import { IntakeFormData, MonumentType, MaterialType, VeteranMonumentType, VeteranMaterialType, MONUMENT_PRICES } from "@/lib/pricing";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Square, RectangleHorizontal, Landmark, Shapes, Medal } from "lucide-react";
+import { Medal } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
   update: (d: Partial<IntakeFormData>) => void;
 }
 
-type ConsolidatedType = 'upright' | 'flat' | 'large' | 'other';
-
-const CONSOLIDATED_MONUMENTS: { id: ConsolidatedType; label: string; subtitle: string; icon: typeof Square; dbValue: MonumentType }[] = [
-  { id: 'upright', label: 'Upright Headstone', subtitle: 'Standard standing headstone', icon: Square, dbValue: 'single_upright' },
-  { id: 'flat', label: 'Flat / Flush Marker', subtitle: 'Ground-level marker', icon: RectangleHorizontal, dbValue: 'single_marker' },
-  { id: 'large', label: 'Large Monument', subtitle: 'Double stone or large upright monument', icon: Landmark, dbValue: 'double_upright' },
-  { id: 'other', label: 'Other / Unique', subtitle: 'Grave ledger, slant marker, or custom shape', icon: Shapes, dbValue: 'grave_ledger' },
+const MONUMENT_OPTIONS: { value: MonumentType; label: string; price: number }[] = [
+  { value: 'single_marker', label: 'Single Marker', price: 125 },
+  { value: 'double_marker', label: 'Double Marker', price: 150 },
+  { value: 'single_slant', label: 'Single Slant', price: 150 },
+  { value: 'single_upright', label: 'Single Upright', price: 175 },
+  { value: 'double_slant', label: 'Double Slant', price: 200 },
+  { value: 'double_upright', label: 'Double Upright', price: 225 },
+  { value: 'grave_ledger', label: 'Grave Ledger', price: 275 },
 ];
 
 const MATERIALS: { value: MaterialType; label: string }[] = [
