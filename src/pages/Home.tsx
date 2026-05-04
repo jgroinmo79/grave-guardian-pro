@@ -75,7 +75,7 @@ const Home = () => {
           <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>
             Time Takes a Toll. We Take It Back.
           </p>
-          <p className="font-garamond text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto text-secondary-foreground" style={{ color: "#6B6B6B" }}>
             Owner-operated cemetery monument cleaning and preservation serving Missouri, Illinois, Arkansas, Tennessee, and Kentucky.
           </p>
           <Link
@@ -121,10 +121,10 @@ const Home = () => {
               style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}
             >
               <div className="flex justify-center">{card.icon}</div>
-              <h3 className="font-cinzel text-base tracking-[0.1em] uppercase" style={{ color: "#E8E4DF" }}>
+              <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
                 {card.title}
               </h3>
-              <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>
+              <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
                 {card.desc}
               </p>
             </motion.div>
@@ -135,7 +135,7 @@ const Home = () => {
       {/* How It Works */}
       <section id="how-it-works" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <div className="max-w-4xl mx-auto text-center mb-14">
-          <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl" style={{ color: "#E8E4DF" }}>
             How It Works
           </h2>
         </div>
@@ -160,10 +160,10 @@ const Home = () => {
               >
                 {step.num}
               </span>
-              <h3 className="font-cinzel text-base tracking-[0.1em] uppercase" style={{ color: "#E8E4DF" }}>
+              <h3 className="font-cinzel tracking-[0.1em] uppercase text-xl" style={{ color: "#E8E4DF" }}>
                 {step.title}
               </h3>
-              <p className="font-garamond text-sm leading-relaxed" style={{ color: "#6B6B6B" }}>
+              <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
                 {step.desc}
               </p>
             </motion.div>
@@ -174,10 +174,10 @@ const Home = () => {
       {/* Gallery */}
       <section id="gallery" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
         <div className="max-w-4xl mx-auto text-center mb-14">
-          <h2 className="font-cinzel text-3xl sm:text-4xl font-bold mb-4" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl" style={{ color: "#E8E4DF" }}>
             Our Work
           </h2>
-          <p className="font-garamond text-lg" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond text-2xl" style={{ color: "#6B6B6B" }}>
             Before &amp; after — every stone tells a story.
           </p>
         </div>
