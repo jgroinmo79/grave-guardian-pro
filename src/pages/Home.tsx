@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
 import cemeteryBg from "@/assets/cemetery-bg.jpg";
+import logo from "@/assets/logo.png";
 
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
@@ -64,8 +65,12 @@ const Home = () => {
           transition={{ duration: 0.8 }}
           className="max-w-3xl mx-auto relative z-10"
         >
-          <h1 className="font-cinzel text-5xl sm:text-7xl lg:text-8xl font-bold leading-tight mb-6" style={{ color: "#E8E4DF" }}>
-            Grave Detail Cleaning &amp; Preservation
+          <h1 className="mb-6">
+            <img
+              src={logo}
+              alt="Grave Detail Cleaning & Preservation"
+              className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto"
+            />
           </h1>
           <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>
             Time Takes a Toll. We Take It Back.
