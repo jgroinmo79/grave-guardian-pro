@@ -107,7 +107,7 @@ const Home = () => {
             {
               icon: <Shield className="w-8 h-8" style={{ color: "#C9976B" }} />,
               title: "Fully Insured",
-              desc: "Protected by $1,000,000 in general liability coverage.",
+              desc: "Protected by $2,000,000 in general liability coverage.",
             },
           ].map((card) => (
             <motion.div
