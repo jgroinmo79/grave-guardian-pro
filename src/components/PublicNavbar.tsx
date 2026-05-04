@@ -43,7 +43,7 @@ const PublicNavbar = () => {
             <button
               key={l.label}
               onClick={() => handleNavClick(l)}
-              className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer"
+              className="font-cinzel tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer text-sm"
               style={{ color: "#6B6B6B" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
@@ -53,7 +53,7 @@ const PublicNavbar = () => {
           ))}
           <Link
             to="/auth"
-            className="font-cinzel text-xs tracking-[0.15em] uppercase transition-colors"
+            className="font-cinzel tracking-[0.15em] uppercase transition-colors text-sm"
             style={{ color: "#6B6B6B" }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
