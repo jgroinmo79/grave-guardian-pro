@@ -64,9 +64,12 @@ const Home = () => {
           transition={{ duration: 0.8 }}
           className="max-w-3xl mx-auto relative z-10"
         >
-          <h1 className="font-cinzel text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6" style={{ color: "#E8E4DF" }}>
-            Time Takes a Toll.<br />We Take It Back.
+          <h1 className="font-cinzel text-5xl sm:text-7xl lg:text-8xl font-bold leading-tight mb-6" style={{ color: "#E8E4DF" }}>
+            Grave Detail Cleaning &amp; Preservation
           </h1>
+          <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>
+            Time Takes a Toll. We Take It Back.
+          </p>
           <p className="font-garamond text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto" style={{ color: "#6B6B6B" }}>
             Owner-operated cemetery monument cleaning and preservation serving Missouri, Illinois, Arkansas, Tennessee, and Kentucky.
           </p>
