@@ -169,7 +169,7 @@ const Services = () => {
           {travelZones.map(([zone, dist, fee], i) => (
             <div key={zone} className="flex justify-between px-6 py-4 font-garamond text-lg text-secondary-foreground"
               style={{ backgroundColor: i % 2 === 0 ? "#141414" : "#1e1e1e", color: "#E8E4DF" }}>
-              <span className="font-cinzel text-xs tracking-[0.1em] uppercase" style={{ color: "#E8E4DF" }}>{zone}</span>
+              <span className="font-cinzel tracking-[0.1em] uppercase text-lg font-normal" style={{ color: "#E8E4DF" }}>{zone}</span>
               <span style={{ color: "#6B6B6B" }}>{dist}</span>
               <span style={{ color: "#C9976B" }}>{fee}</span>
             </div>

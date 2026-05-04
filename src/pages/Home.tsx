@@ -177,7 +177,7 @@ const Home = () => {
           <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl" style={{ color: "#E8E4DF" }}>
             Our Work
           </h2>
-          <p className="font-garamond text-2xl font-semibold" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond text-2xl font-semibold font-semibold" style={{ color: "#6B6B6B" }}>
             Before &amp; after — every stone tells a story.
           </p>
         </div>
