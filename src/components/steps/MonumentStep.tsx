@@ -40,28 +40,9 @@ const VA_MATERIALS: { value: VeteranMaterialType; label: string }[] = [
 ];
 
 const MonumentStep = ({ data, update }: Props) => {
-  // Determine which consolidated type is currently selected based on DB value
-  const getConsolidatedFromDb = (dbVal: MonumentType | ''): ConsolidatedType | '' => {
-    if (!dbVal) return '';
-    const match = CONSOLIDATED_MONUMENTS.find(c => c.dbValue === dbVal);
-    if (match) return match.id;
-    if (['double_slant', 'double_upright', 'double_marker'].includes(dbVal)) return 'large';
-    if (['grave_ledger', 'single_slant'].includes(dbVal)) return 'other';
-    return '';
-  };
-
-  const [selectedGroup, setSelectedGroup] = useState<ConsolidatedType | ''>(getConsolidatedFromDb(data.monumentType));
   const [otherDescription, setOtherDescription] = useState('');
 
-  const handleGroupSelect = (group: ConsolidatedType) => {
-    setSelectedGroup(group);
-    const consolidated = CONSOLIDATED_MONUMENTS.find(c => c.id === group)!;
-    update({ monumentType: consolidated.dbValue });
-    if (group !== 'other') setOtherDescription('');
-  };
-
   const handleVeteranToggle = (isVet: boolean) => {
-    setSelectedGroup('');
     setOtherDescription('');
     update({
       isVeteran: isVet,
