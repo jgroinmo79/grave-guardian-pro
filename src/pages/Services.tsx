@@ -54,7 +54,7 @@ const Services = () => {
           {/* Price list */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }}
             className="rounded-lg p-8" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-            <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-4" style={{ color: "#E8E4DF" }}>Pricing by Monument</h3>
+            <h3 className="font-cinzel tracking-[0.1em] uppercase mb-4 text-xl font-semibold" style={{ color: "#E8E4DF" }}>Pricing by Monument</h3>
             <div className="space-y-2">
               {monumentList.map(([name, price]) => (
                 <div key={name} className="flex justify-between font-garamond text-lg text-secondary-foreground" style={{ color: "#E8E4DF" }}>
@@ -68,7 +68,7 @@ const Services = () => {
           {/* What's included */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.15 }}
             className="rounded-lg p-8" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-            <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-4" style={{ color: "#E8E4DF" }}>What's Included</h3>
+            <h3 className="font-cinzel tracking-[0.1em] uppercase mb-4 text-xl font-semibold" style={{ color: "#E8E4DF" }}>What's Included</h3>
             <ul className="space-y-3">
               {SERVICE_FEATURES.map((feat) => (
                 <li key={feat} className="font-garamond text-lg text-secondary-foreground flex items-start gap-2" style={{ color: "#E8E4DF" }}>
@@ -95,13 +95,13 @@ const Services = () => {
                     Most Popular
                   </span>
                 )}
-                <h3 className="font-cinzel text-lg tracking-[0.1em] uppercase mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
-                <p className="font-cinzel text-sm font-bold mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
+                <h3 className="font-cinzel tracking-[0.1em] uppercase mb-1 text-xl font-semibold" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
+                <p className="font-cinzel text-xl font-semibold text-primary mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
                 <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
                 <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
-                <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select Plan →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select Plan →</p>
               </Link>
             </motion.div>
           ))}
@@ -124,12 +124,12 @@ const Services = () => {
                 className="block rounded-lg p-8 h-full transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer"
                 style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
                 <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
-                <p className="font-cinzel text-sm font-bold mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
+                <p className="font-cinzel text-xl font-semibold text-primary mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
                 <p className="font-garamond leading-relaxed text-lg mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
                 <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
-                <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select Plan →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select Plan →</p>
               </Link>
             </motion.div>
           ))}
@@ -154,7 +154,7 @@ const Services = () => {
                 <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
                 <p className="font-cinzel text-lg font-bold" style={{ color: "#C9976B" }}>${plan.price}</p>
                 <p className="font-garamond text-xs mt-2 mb-3" style={{ color: "#6B6B6B" }}>{plan.placements} placement{plan.placements > 1 ? "s" : ""}/year</p>
-                <p className="font-cinzel text-xs tracking-[0.15em] uppercase" style={{ color: "#C9976B" }}>Select →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select →</p>
               </Link>
             </motion.div>
           ))}
