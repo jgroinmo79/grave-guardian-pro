@@ -139,45 +139,29 @@ const MonumentStep = ({ data, update }: Props) => {
         {/* Non-veteran flow */}
         {!data.isVeteran && (
           <>
-            {/* Consolidated Monument Type Grid */}
+            {/* Monument Type Grid */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">Monument Type</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {CONSOLIDATED_MONUMENTS.map((m) => {
-                  const selected = selectedGroup === m.id;
-                  const Icon = m.icon;
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {MONUMENT_OPTIONS.map((m) => {
+                  const selected = data.monumentType === m.value;
                   return (
                     <button
-                      key={m.id}
-                      onClick={() => handleGroupSelect(m.id)}
-                      className={`p-4 rounded-lg border text-left transition-all ${
+                      key={m.value}
+                      onClick={() => update({ monumentType: m.value })}
+                      className={`p-4 rounded-lg border text-left transition-all flex items-center justify-between ${
                         selected
                           ? "border-primary bg-primary/10 shadow-patina"
                           : "border-border bg-secondary/50 hover:border-muted-foreground/40"
                       }`}
                     >
-                      <Icon className={`w-6 h-6 mb-2 ${selected ? "text-primary" : "text-muted-foreground"}`} />
                       <p className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>{m.label}</p>
-                      <p className="text-xs text-muted-foreground">{m.subtitle}</p>
+                      <p className={`text-sm ${selected ? "text-primary" : "text-muted-foreground"}`}>${m.price}</p>
                     </button>
                   );
                 })}
               </div>
             </div>
-
-            {/* Other / Unique description */}
-            {selectedGroup === 'other' && (
-              <div className="space-y-2">
-                <Label htmlFor="other-desc" className="text-sm font-medium">Briefly describe your monument</Label>
-                <Input
-                  id="other-desc"
-                  placeholder="e.g. Bronze plaque on granite base"
-                  value={otherDescription}
-                  onChange={(e) => setOtherDescription(e.target.value)}
-                  className="bg-secondary border-border"
-                />
-              </div>
-            )}
 
             {/* Material */}
             <div className="space-y-3">
