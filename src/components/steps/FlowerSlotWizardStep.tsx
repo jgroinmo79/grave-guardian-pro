@@ -43,7 +43,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 
-const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
+const FlowerSlotWizardStep = ({ data, update, totalSlots, onComplete }: Props) => {
   // The slot keys list lives in form data so navigation in/out preserves state.
   // Each "slot key" is the human-readable label of the chosen date/occasion.
   const slotKeys = data.flowerSlotKeys.slice(0, totalSlots);
