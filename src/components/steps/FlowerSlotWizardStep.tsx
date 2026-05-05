@@ -198,6 +198,13 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots, onComplete }: Props) =
       {/* === STAGE 4A: pick date/occasion === */}
       {!slotKey && (
         <div className="max-w-2xl mx-auto space-y-6">
+          {cursor > 0 && (
+            <div className="flex justify-start">
+              <Button variant="ghost" size="sm" onClick={goPrev}>
+                <ChevronLeft className="w-4 h-4 mr-1" /> Previous placement
+              </Button>
+            </div>
+          )}
           <section>
             <p className="text-xs uppercase tracking-widest text-primary font-semibold mb-3 text-center">
               Standard Holidays
