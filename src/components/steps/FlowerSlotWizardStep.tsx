@@ -31,6 +31,7 @@ interface Props {
   data: IntakeFormData;
   update: (d: Partial<IntakeFormData>) => void;
   totalSlots: number;
+  onComplete?: () => void;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -42,7 +43,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 
-const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
+const FlowerSlotWizardStep = ({ data, update, totalSlots, onComplete }: Props) => {
   // The slot keys list lives in form data so navigation in/out preserves state.
   // Each "slot key" is the human-readable label of the chosen date/occasion.
   const slotKeys = data.flowerSlotKeys.slice(0, totalSlots);
@@ -134,6 +135,14 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots }: Props) => {
     update({
       selectedArrangements: { ...data.selectedArrangements, [slotKey]: arrangementId },
     });
+    // Auto-advance: next slot, or complete the step
+    setTimeout(() => {
+      if (cursor < totalSlots - 1) {
+        setCursor(cursor + 1);
+      } else {
+        onComplete?.();
+      }
+    }, 200);
   };
 
   const goNext = () => {
