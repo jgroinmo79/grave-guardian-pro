@@ -31,6 +31,7 @@ interface Props {
   data: IntakeFormData;
   update: (d: Partial<IntakeFormData>) => void;
   totalSlots: number;
+  onComplete?: () => void;
 }
 
 const TYPE_LABELS: Record<string, string> = {
