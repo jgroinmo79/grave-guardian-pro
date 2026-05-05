@@ -135,6 +135,14 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots, onComplete }: Props) =
     update({
       selectedArrangements: { ...data.selectedArrangements, [slotKey]: arrangementId },
     });
+    // Auto-advance: next slot, or complete the step
+    setTimeout(() => {
+      if (cursor < totalSlots - 1) {
+        setCursor(cursor + 1);
+      } else {
+        onComplete?.();
+      }
+    }, 200);
   };
 
   const goNext = () => {
