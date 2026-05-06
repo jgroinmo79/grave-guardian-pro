@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MONUMENT_PRICES, ADD_ONS, MAINTENANCE_PLANS, FLOWER_PLANS, FLOWER_ONLY_PLANS } from "@/lib/pricing";
 import PhotoUpload from "@/components/admin/PhotoUpload";
 import ServiceLogForm from "@/components/admin/ServiceLogForm";
-import { computeSubscriptionVisits, holidayToDate } from "@/lib/subscription-schedule";
+import { computeSubscriptionVisits } from "@/lib/subscription-schedule";
 import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
 
