@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { Loader2, ArrowLeft, Save, Share2, Copy, Check, Gift } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Share2, Copy, Check, Gift, AlertTriangle, Flower2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MONUMENT_PRICES, ADD_ONS, MAINTENANCE_PLANS, FLOWER_PLANS, FLOWER_ONLY_PLANS } from "@/lib/pricing";
 import PhotoUpload from "@/components/admin/PhotoUpload";
 import ServiceLogForm from "@/components/admin/ServiceLogForm";
+import { computeSubscriptionVisits, holidayToDate } from "@/lib/subscription-schedule";
+import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
