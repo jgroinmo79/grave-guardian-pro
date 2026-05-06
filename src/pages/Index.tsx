@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import IntakeFlow from "@/components/IntakeFlow";
 import GiftBookingFlow from "@/components/booking/GiftBookingFlow";
 import { Shield, Star, Clock, ChevronRight, LogOut, User, Settings, Gift } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-bronze.png";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
