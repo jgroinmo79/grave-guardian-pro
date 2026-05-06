@@ -1,17 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle, RotateCcw } from "lucide-react";
+import { Loader2, CalendarDays, List, Map as MapIcon, LayoutGrid, XCircle, RotateCcw, Flower2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarView } from "@/components/admin/CalendarView";
 import { CemeteryRouteView } from "@/components/admin/CemeteryRouteView";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { computeSubscriptionVisits } from "@/lib/subscription-schedule";
 
 const AdminSchedule = () => {
   const { toast } = useToast();
@@ -68,6 +69,95 @@ const AdminSchedule = () => {
       return data;
     },
   });
+
+  // Active annual plan subscriptions — used to surface flower placement visits
+  const { data: subscriptions } = useQuery({
+    queryKey: ["admin-schedule-subscriptions"],
+    queryFn: async () => {
+      const { data: subs, error } = await supabase
+        .from("subscriptions")
+        .select(`
+          id, plan, status, important_dates, start_date, user_id, monument_id,
+          monuments (cemetery_name, monument_type, material, section, lot_number)
+        `)
+        .eq("status", "active");
+      if (error) throw error;
+      if (!subs?.length) return [];
+      const userIds = [...new Set(subs.map((s) => s.user_id).filter(Boolean))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, email")
+        .in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      return subs.map((s: any) => ({
+        ...s,
+        customerName:
+          profileMap.get(s.user_id)?.full_name ||
+          profileMap.get(s.user_id)?.email ||
+          "Customer",
+      }));
+    },
+  });
+
+  // Derive flower placement visits (cleaning_flowers type) from active subscriptions
+  const flowerVisits = useMemo(() => {
+    if (!subscriptions?.length) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const years = [today.getFullYear(), today.getFullYear() + 1];
+    const visits: Array<{
+      id: string;
+      subscriptionId: string;
+      date: string;
+      customerName: string;
+      cemeteryName: string;
+      monumentType: string | null;
+      monumentMaterial: string | null;
+      section: string | null;
+      lotNumber: string | null;
+      plan: string;
+      holidayNotes: string | null;
+    }> = [];
+    for (const sub of subscriptions) {
+      const m = sub.monuments as any;
+      const importantDates = sub.important_dates as string | null;
+      for (const year of years) {
+        const computed = computeSubscriptionVisits(
+          {
+            id: sub.id,
+            plan: sub.plan,
+            status: sub.status,
+            important_dates: importantDates,
+            start_date: sub.start_date,
+            customerName: sub.customerName,
+            cemeteryName: m?.cemetery_name ?? "Unknown",
+          },
+          year
+        );
+        for (const v of computed) {
+          if (v.type !== "cleaning_flowers") continue;
+          const [y, mo, d] = v.date.split("-").map(Number);
+          if (new Date(y, mo - 1, d) < today) continue;
+          if (visits.find((x) => x.id === v.id)) continue;
+          visits.push({
+            id: v.id,
+            subscriptionId: sub.id,
+            date: v.date,
+            customerName: sub.customerName,
+            cemeteryName: m?.cemetery_name ?? "Unknown",
+            monumentType: m?.monument_type ?? null,
+            monumentMaterial: m?.material ?? null,
+            section: m?.section ?? null,
+            lotNumber: m?.lot_number ?? null,
+            plan: sub.plan,
+            holidayNotes: importantDates,
+          });
+        }
+      }
+    }
+    visits.sort((a, b) => a.date.localeCompare(b.date));
+    return visits;
+  }, [subscriptions]);
 
   const scheduleOrder = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
@@ -202,7 +292,7 @@ const AdminSchedule = () => {
             <List className="w-3.5 h-3.5" /> List
           </TabsTrigger>
           <TabsTrigger value="route" className="gap-1.5 text-xs">
-            <Map className="w-3.5 h-3.5" /> Route
+            <MapIcon className="w-3.5 h-3.5" /> Route
           </TabsTrigger>
         </TabsList>
 
@@ -252,6 +342,63 @@ const AdminSchedule = () => {
                         </span>
                         <DatePickerButton orderId={o.id} currentDate={o.scheduled_date} />
                         <span className="text-sm font-semibold">${Number(o.total_price).toFixed(0)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Flower Placements (from active annual plan subscriptions) */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <Flower2 className="w-5 h-5 text-primary" />
+              Upcoming Flower Placements
+            </h2>
+            {!flowerVisits.length ? (
+              <div className="rounded-xl border border-border bg-card p-6 text-center">
+                <p className="text-sm text-muted-foreground">No upcoming flower placements.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {flowerVisits.map((v) => {
+                  const [y, mo, d] = v.date.split("-").map(Number);
+                  const placedDate = new Date(y, mo - 1, d);
+                  return (
+                    <div
+                      key={v.id}
+                      className="rounded-xl border border-primary/30 bg-card p-4 flex flex-wrap items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-semibold text-sm flex items-center gap-2">
+                          <Flower2 className="w-4 h-4 text-primary" />
+                          {v.customerName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {v.cemeteryName}
+                          {v.section ? ` · Sec ${v.section}` : ""}
+                          {v.lotNumber ? `, Lot ${v.lotNumber}` : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {v.monumentType?.replace(/_/g, " ") ?? "monument"}
+                          {v.monumentMaterial ? ` · ${v.monumentMaterial}` : ""}
+                          {" · "}plan: {v.plan}
+                        </p>
+                        {v.holidayNotes && (
+                          <p className="text-xs text-muted-foreground italic">
+                            Holidays: {v.holidayNotes.split(",").map((s) => s.split("|")[0].trim()).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                          flower placement
+                        </span>
+                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3" />
+                          {format(placedDate, "MMM d, yyyy")}
+                        </span>
                       </div>
                     </div>
                   );
