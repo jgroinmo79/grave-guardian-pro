@@ -13,6 +13,42 @@ import SupportForm from "@/components/portal/SupportForm";
 import HistoryTab from "@/components/portal/HistoryTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const RECEIPT_BUNDLE_LABELS: Record<string, string> = {
+  tribute: "1 Cleaning + 1 Flower Placement / Year",
+  remembrance: "2 Cleanings + 2 Flower Placements / Year",
+  devotion: "3 Cleanings + 3 Flower Placements / Year",
+  eternal: "4 Cleanings + 4 Flower Placements / Year",
+  flower_1: "1 Flower Placement",
+  flower_2: "2 Flower Placements",
+  flower_3: "3 Flower Placements",
+  flower_4: "4 Flower Placements",
+  keeper: "2 Cleanings / Year",
+  sentinel: "3 Cleanings / Year",
+  legacy: "4 Cleanings / Year",
+};
+
+const RECEIPT_ADDON_LABELS: Record<string, string> = {
+  damage_report: "Damage Documentation Report",
+  inscription_repainting: "Inscription Repainting",
+  weeding: "Weeding & Plot Edging",
+  flag_placement: "Flag Placement",
+  bronze_cleaning: "Bronze Marker Specialized Cleaning",
+  crack_repair: "Stone Crack / Chip Repair",
+  video_documentation: "Video Documentation",
+};
+
+function getReceiptAddOns(order: any): Array<{ label: string; amount: number }> {
+  if (!Array.isArray(order.add_ons)) return [];
+  return order.add_ons.map((a: any) => {
+    if (typeof a === "string") return { label: RECEIPT_ADDON_LABELS[a] || a, amount: 0 };
+    const id = a?.id ?? a?.key ?? "";
+    return {
+      label: a?.label || RECEIPT_ADDON_LABELS[id] || id || "Add-on",
+      amount: Number(a?.price ?? a?.amount ?? 0),
+    };
+  });
+}
+
 function downloadReceiptPdf(order: any, monument: any, profile: any) {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const left = 50;
@@ -60,6 +96,11 @@ function downloadReceiptPdf(order: any, monument: any, profile: any) {
     doc.setFont("helvetica", "normal");
     y += 14;
     doc.text(monument.cemetery_name, left, y);
+    const typeLine = [
+      monument.monument_type ? String(monument.monument_type).replace(/_/g, " ") : null,
+      monument.material ? String(monument.material).replace(/_/g, " ") : null,
+    ].filter(Boolean).join(" · ");
+    if (typeLine) { y += 12; doc.text(typeLine, left, y); }
     const loc = [monument.section ? `Sec ${monument.section}` : null, monument.lot_number ? `Lot ${monument.lot_number}` : null].filter(Boolean).join(", ");
     if (loc) { y += 12; doc.text(loc, left, y); }
   }
@@ -72,16 +113,26 @@ function downloadReceiptPdf(order: any, monument: any, profile: any) {
   doc.line(left, y, 520, y);
 
   const lines: Array<[string, number]> = [];
-  if (Number(order.base_price ?? 0) > 0) lines.push(["Service", Number(order.base_price)]);
-  if (Number(order.bundle_price ?? 0) > 0) lines.push(["Care Plan", Number(order.bundle_price)]);
-  if (Number(order.add_ons_total ?? 0) > 0) lines.push(["Add-ons", Number(order.add_ons_total)]);
+  if (Number(order.base_price ?? 0) > 0) {
+    lines.push(["Monument Cleaning", Number(order.base_price)]);
+  }
+  if (Number(order.bundle_price ?? 0) > 0) {
+    const planLabel = RECEIPT_BUNDLE_LABELS[order.bundle_id] || "Care Plan";
+    lines.push([planLabel, Number(order.bundle_price)]);
+  }
+  const addOns = getReceiptAddOns(order);
+  for (const a of addOns) {
+    lines.push([`Add-on: ${a.label}`, a.amount]);
+  }
   if (Number(order.travel_fee ?? 0) > 0) lines.push(["Travel Fee", Number(order.travel_fee)]);
 
   doc.setFont("helvetica", "normal");
   for (const [label, amt] of lines) {
     y += 18;
-    doc.text(label, left, y);
+    const wrapped = doc.splitTextToSize(label, 380);
+    doc.text(wrapped, left, y);
     doc.text(`$${amt.toFixed(2)}`, 480, y, { align: "right" });
+    if (wrapped.length > 1) y += (wrapped.length - 1) * 12;
   }
 
   y += 12;
@@ -401,30 +452,43 @@ const Portal = () => {
                         </div>
 
                         {monument && (
-                          <div className="text-xs text-muted-foreground">
-                            <span className="font-medium text-foreground">{monument.cemetery_name}</span>
-                            {monument.section ? ` · Sec ${monument.section}` : ""}
-                            {monument.lot_number ? `, Lot ${monument.lot_number}` : ""}
+                          <div className="rounded-lg bg-secondary/40 px-3 py-2 space-y-0.5">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Monument</p>
+                            <p className="text-xs font-medium text-foreground">{monument.cemetery_name}</p>
+                            <p className="text-[11px] text-muted-foreground capitalize">
+                              {String(monument.monument_type ?? "").replace(/_/g, " ")}
+                              {monument.material ? ` · ${String(monument.material).replace(/_/g, " ")}` : ""}
+                            </p>
+                            {(monument.section || monument.lot_number) && (
+                              <p className="text-[11px] text-muted-foreground">
+                                {monument.section ? `Sec ${monument.section}` : ""}
+                                {monument.section && monument.lot_number ? ", " : ""}
+                                {monument.lot_number ? `Lot ${monument.lot_number}` : ""}
+                              </p>
+                            )}
                           </div>
                         )}
 
                         <div className="space-y-1.5 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Service</span>
-                            <span>${Number(o.base_price ?? 0).toFixed(2)}</span>
-                          </div>
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Line items</p>
+                          {Number(o.base_price ?? 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Monument Cleaning</span>
+                              <span>${Number(o.base_price).toFixed(2)}</span>
+                            </div>
+                          )}
                           {Number(o.bundle_price ?? 0) > 0 && (
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Care Plan</span>
+                              <span className="text-muted-foreground">{RECEIPT_BUNDLE_LABELS[o.bundle_id] || "Care Plan"}</span>
                               <span>${Number(o.bundle_price).toFixed(2)}</span>
                             </div>
                           )}
-                          {Number(o.add_ons_total ?? 0) > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Add-ons</span>
-                              <span>${Number(o.add_ons_total).toFixed(2)}</span>
+                          {getReceiptAddOns(o).map((a, i) => (
+                            <div key={i} className="flex justify-between">
+                              <span className="text-muted-foreground">Add-on: {a.label}</span>
+                              <span>{a.amount > 0 ? `$${a.amount.toFixed(2)}` : ""}</span>
                             </div>
-                          )}
+                          ))}
                           {Number(o.travel_fee ?? 0) > 0 && (
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">Travel Fee</span>
