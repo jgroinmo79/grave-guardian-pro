@@ -96,6 +96,11 @@ function downloadReceiptPdf(order: any, monument: any, profile: any) {
     doc.setFont("helvetica", "normal");
     y += 14;
     doc.text(monument.cemetery_name, left, y);
+    const typeLine = [
+      monument.monument_type ? String(monument.monument_type).replace(/_/g, " ") : null,
+      monument.material ? String(monument.material).replace(/_/g, " ") : null,
+    ].filter(Boolean).join(" · ");
+    if (typeLine) { y += 12; doc.text(typeLine, left, y); }
     const loc = [monument.section ? `Sec ${monument.section}` : null, monument.lot_number ? `Lot ${monument.lot_number}` : null].filter(Boolean).join(", ");
     if (loc) { y += 12; doc.text(loc, left, y); }
   }
@@ -108,16 +113,26 @@ function downloadReceiptPdf(order: any, monument: any, profile: any) {
   doc.line(left, y, 520, y);
 
   const lines: Array<[string, number]> = [];
-  if (Number(order.base_price ?? 0) > 0) lines.push(["Service", Number(order.base_price)]);
-  if (Number(order.bundle_price ?? 0) > 0) lines.push(["Care Plan", Number(order.bundle_price)]);
-  if (Number(order.add_ons_total ?? 0) > 0) lines.push(["Add-ons", Number(order.add_ons_total)]);
+  if (Number(order.base_price ?? 0) > 0) {
+    lines.push(["Monument Cleaning", Number(order.base_price)]);
+  }
+  if (Number(order.bundle_price ?? 0) > 0) {
+    const planLabel = RECEIPT_BUNDLE_LABELS[order.bundle_id] || "Care Plan";
+    lines.push([planLabel, Number(order.bundle_price)]);
+  }
+  const addOns = getReceiptAddOns(order);
+  for (const a of addOns) {
+    lines.push([`Add-on: ${a.label}`, a.amount]);
+  }
   if (Number(order.travel_fee ?? 0) > 0) lines.push(["Travel Fee", Number(order.travel_fee)]);
 
   doc.setFont("helvetica", "normal");
   for (const [label, amt] of lines) {
     y += 18;
-    doc.text(label, left, y);
+    const wrapped = doc.splitTextToSize(label, 380);
+    doc.text(wrapped, left, y);
     doc.text(`$${amt.toFixed(2)}`, 480, y, { align: "right" });
+    if (wrapped.length > 1) y += (wrapped.length - 1) * 12;
   }
 
   y += 12;
