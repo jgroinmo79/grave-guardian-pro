@@ -44,9 +44,9 @@ const MAINTENANCE_PLAN_PRICES: Record<string, Record<string, number>> = {
 };
 
 const MAINTENANCE_PLANS: Record<string, string> = {
-  keeper: 'The Keeper (2 Visits/yr)',
-  sentinel: 'The Sentinel (3 Visits/yr)',
-  legacy: 'The Legacy (4 Visits/yr)',
+  keeper: '2 Cleanings / Year',
+  sentinel: '3 Cleanings / Year',
+  legacy: '4 Cleanings / Year',
 };
 
 const FLOWER_PLAN_PRICES: Record<string, Record<string, number>> = {
@@ -60,10 +60,10 @@ const FLOWER_PLAN_PRICES: Record<string, Record<string, number>> = {
 };
 
 const FLOWER_PLANS_LABELS: Record<string, string> = {
-  tribute: 'The Tribute (1C + 1F/yr)',
-  remembrance: 'The Remembrance (2C + 2F/yr)',
-  devotion: 'The Devotion (3C + 3F/yr)',
-  eternal: 'The Eternal (4C + 4F/yr)',
+  tribute: '1 Cleaning + 1 Flower Placement / Year',
+  remembrance: '2 Cleanings + 2 Flower Placements / Year',
+  devotion: '3 Cleanings + 3 Flower Placements / Year',
+  eternal: '4 Cleanings + 4 Flower Placements / Year',
 };
 
 const FLOWER_ONLY_PLANS: Record<string, { label: string; price: number }> = {
