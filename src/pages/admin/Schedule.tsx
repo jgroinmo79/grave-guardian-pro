@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle, RotateCcw, Flower2 } from "lucide-react";
+import { Loader2, CalendarDays, List, Map as MapIcon, LayoutGrid, XCircle, RotateCcw, Flower2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
