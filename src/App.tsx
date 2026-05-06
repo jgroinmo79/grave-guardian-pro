@@ -37,6 +37,7 @@ import LegalDisclosures from "./pages/LegalDisclosures";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
+import ReceiptPreview from "./pages/ReceiptPreview";
 import ScrollToTop from "./components/ScrollToTop";
 import PageViewTracker from "./components/PageViewTracker";
 import cemeteryBg from "./assets/cemetery-bg.jpg";
@@ -98,6 +99,7 @@ const App = () => (
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/receipt-preview" element={<ReceiptPreview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
