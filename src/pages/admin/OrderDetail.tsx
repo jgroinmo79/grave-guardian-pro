@@ -54,6 +54,85 @@ const AdminOrderDetail = () => {
     enabled: !!id,
   });
 
+  // Companion subscription (if this booking includes an annual plan with flower placements)
+  const monumentIdForSub = (order?.monuments as any)?.id;
+  const { data: subscription } = useQuery({
+    queryKey: ["admin-order-subscription", monumentIdForSub],
+    enabled: !!monumentIdForSub,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("id, plan, status, important_dates, start_date, user_id, monument_id")
+        .eq("monument_id", monumentIdForSub!)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Build paired visit schedule: each flower placement is anchored, and the cleaning
+  // visit on that same date is implicitly bundled (cleaning_flowers visits handle this).
+  const pairedSchedule = (() => {
+    if (!subscription || !order) return null;
+    const customerName =
+      (order.profiles as any)?.full_name ||
+      (order.profiles as any)?.email ||
+      (order as any).shopper_name ||
+      "Customer";
+    const cemeteryName = (order.monuments as any)?.cemetery_name ?? "Unknown";
+    const startYear = new Date(subscription.start_date + "T00:00:00").getFullYear();
+    const visits = [
+      ...computeSubscriptionVisits(
+        {
+          id: subscription.id,
+          plan: subscription.plan,
+          status: subscription.status,
+          important_dates: subscription.important_dates,
+          start_date: subscription.start_date,
+          customerName,
+          cemeteryName,
+        },
+        startYear
+      ),
+      ...computeSubscriptionVisits(
+        {
+          id: subscription.id,
+          plan: subscription.plan,
+          status: subscription.status,
+          important_dates: subscription.important_dates,
+          start_date: subscription.start_date,
+          customerName,
+          cemeteryName,
+        },
+        startYear + 1
+      ),
+    ].sort((a, b) => a.date.localeCompare(b.date));
+    return visits;
+  })();
+
+  // Detect clustering: any two flower placements within 60 days of each other
+  const clusterWarning = (() => {
+    if (!pairedSchedule) return null;
+    const flowerDates = pairedSchedule
+      .filter((v) => v.type === "cleaning_flowers")
+      .map((v) => {
+        const [y, m, d] = v.date.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      });
+    if (flowerDates.length < 2) return null;
+    const pairs: { a: Date; b: Date; days: number }[] = [];
+    for (let i = 0; i < flowerDates.length - 1; i++) {
+      const days = Math.round(
+        (flowerDates[i + 1].getTime() - flowerDates[i].getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (days < 60) pairs.push({ a: flowerDates[i], b: flowerDates[i + 1], days });
+    }
+    return pairs.length ? pairs : null;
+  })();
+
   // Order fields
   const [status, setStatus] = useState<OrderStatus>("pending");
   
