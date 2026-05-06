@@ -1,17 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle, RotateCcw } from "lucide-react";
+import { Loader2, CalendarDays, List, Map, LayoutGrid, XCircle, RotateCcw, Flower2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarView } from "@/components/admin/CalendarView";
 import { CemeteryRouteView } from "@/components/admin/CemeteryRouteView";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { computeSubscriptionVisits } from "@/lib/subscription-schedule";
 
 const AdminSchedule = () => {
   const { toast } = useToast();
