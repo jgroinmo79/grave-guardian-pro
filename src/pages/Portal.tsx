@@ -186,7 +186,7 @@ const Portal = () => {
             { icon: MapPin, label: "Monuments", value: monuments?.length ?? 0 },
             { icon: Clock, label: "Orders", value: orders?.length ?? 0 },
             { icon: Shield, label: "Plans", value: activePlans },
-            { icon: FileText, label: "Invoices", value: invoices?.length ?? 0 },
+            { icon: FileText, label: "Receipts", value: orders?.filter((o: any) => o.stripe_payment_status === "paid").length ?? 0 },
             { icon: MessageSquare, label: "Requests", value: "—" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl border border-border bg-card p-3 text-center space-y-1">
