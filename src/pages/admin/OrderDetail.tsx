@@ -467,6 +467,58 @@ const AdminOrderDetail = () => {
         )}
       </section>
 
+      {/* PAIRED VISIT SCHEDULE — flower placements anchor cleanings on the same day */}
+      {pairedSchedule && pairedSchedule.length > 0 && (
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              Visit Schedule
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              Plan: {subscription?.plan} · Each flower placement is paired with a cleaning on the same trip.
+            </span>
+          </div>
+
+          {clusterWarning && clusterWarning.length > 0 && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 flex gap-2 items-start">
+              <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+              <div className="text-xs text-destructive space-y-1">
+                <p className="font-semibold">Clustering warning — cleanings may be unevenly distributed.</p>
+                {clusterWarning.map((p, i) => (
+                  <p key={i}>
+                    {format(p.a, "MMM d, yyyy")} → {format(p.b, "MMM d, yyyy")} (only {p.days} days apart)
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="divide-y divide-border/40">
+            {pairedSchedule.map((v) => {
+              const [y, m, d] = v.date.split("-").map(Number);
+              const date = new Date(y, m - 1, d);
+              const isFlower = v.type === "cleaning_flowers";
+              return (
+                <div key={v.id} className="py-2 flex items-center justify-between gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    {isFlower ? (
+                      <Flower2 className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <span>{format(date, "EEE, MMM d, yyyy")}</span>
+                  </div>
+                  <span className={isFlower ? "text-xs font-medium text-primary" : "text-xs text-muted-foreground"}>
+                    {isFlower ? "Cleaning + Flower Placement (paired)" : "Cleaning"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* MONUMENT DETAILS */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
         <h2 className="font-display font-semibold text-lg">Monument Details</h2>
