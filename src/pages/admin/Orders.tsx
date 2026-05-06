@@ -56,11 +56,12 @@ const AdminOrders = () => {
         .from("orders")
         .select(`
           id, offer, status, total_price, travel_fee, base_price,
-          add_ons_total, bundle_price, is_veteran, is_gift,
+          add_ons, add_ons_total, bundle_id, bundle_price, is_veteran, is_gift,
           gift_recipient_name, gift_message,
           consent_biological, consent_authorize, consent_photos,
           notes, scheduled_date, created_at, updated_at,
-          stripe_payment_status, shopper_name, deceased_name,
+          stripe_payment_status, shopper_name, shopper_email, shopper_phone,
+          deceased_name,
           monuments (
             id, cemetery_name, monument_type, material, estimated_miles,
             section, lot_number, approximate_height,
