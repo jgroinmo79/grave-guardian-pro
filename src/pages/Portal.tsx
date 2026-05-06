@@ -271,55 +271,90 @@ const Portal = () => {
             )}
           </TabsContent>
 
-          {/* Invoices */}
+          {/* Receipts */}
           <TabsContent value="invoices" className="space-y-4">
-            {!invoices?.length ? (
-              <div className="rounded-xl border border-border bg-card p-8 text-center">
-                <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">No invoices yet.</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {invoices.map((inv: any) => (
-                  <div key={inv.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <p className="font-semibold text-sm">#{inv.invoice_number}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(inv.created_at).toLocaleDateString()}
-                          {inv.due_date && ` · Due ${new Date(inv.due_date).toLocaleDateString()}`}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${invoiceStatusColors[inv.status] ?? ""}`}>
-                          {inv.status}
-                        </span>
-                        <p className="font-display font-bold">${Number(inv.total).toFixed(2)}</p>
-                      </div>
-                    </div>
-                    {/* Payment action */}
-                    {inv.status !== "paid" && inv.status !== "draft" && (
-                      <div className="pt-1">
-                        {inv.stripe_payment_link ? (
-                          <a href={inv.stripe_payment_link} target="_blank" rel="noopener noreferrer">
-                            <Button size="sm" variant="hero" className="text-xs h-7 gap-1">
-                              <CreditCard className="w-3 h-3" /> Pay Now
-                            </Button>
-                          </a>
-                        ) : (
-                          <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
-                            💳 To pay, please contact us or mail a check to the address on your invoice.
+            {(() => {
+              const paidOrders = (orders ?? []).filter(
+                (o: any) => o.stripe_payment_status === "paid" || o.status === "completed" || o.status === "confirmed" || o.status === "scheduled" || o.status === "in_progress"
+              );
+              if (!paidOrders.length) {
+                return (
+                  <div className="rounded-xl border border-border bg-card p-8 text-center">
+                    <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-muted-foreground text-sm">No receipts yet.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Receipts appear here after a successful payment.</p>
+                  </div>
+                );
+              }
+              return (
+                <div className="grid gap-3">
+                  {paidOrders.map((o: any) => {
+                    const monument = monuments?.find((m) => m.id === o.monument_id);
+                    const subtotal = Number(o.base_price ?? 0) + Number(o.bundle_price ?? 0) + Number(o.add_ons_total ?? 0);
+                    return (
+                      <div key={o.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-border">
+                          <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Receipt</p>
+                            <p className="font-semibold text-sm font-mono">#{o.id.slice(0, 8).toUpperCase()}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">PAID</span>
+                            <p className="font-display font-bold text-lg mt-1">${Number(o.total_price).toFixed(2)}</p>
+                          </div>
+                        </div>
+
+                        {monument && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-medium text-foreground">{monument.cemetery_name}</span>
+                            {monument.section ? ` · Sec ${monument.section}` : ""}
+                            {monument.lot_number ? `, Lot ${monument.lot_number}` : ""}
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Service</span>
+                            <span>${Number(o.base_price ?? 0).toFixed(2)}</span>
+                          </div>
+                          {Number(o.bundle_price ?? 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Care Plan</span>
+                              <span>${Number(o.bundle_price).toFixed(2)}</span>
+                            </div>
+                          )}
+                          {Number(o.add_ons_total ?? 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Add-ons</span>
+                              <span>${Number(o.add_ons_total).toFixed(2)}</span>
+                            </div>
+                          )}
+                          {Number(o.travel_fee ?? 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Travel Fee</span>
+                              <span>${Number(o.travel_fee).toFixed(2)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between pt-1.5 border-t border-border font-semibold text-foreground">
+                            <span>Total Paid</span>
+                            <span>${Number(o.total_price).toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        {o.stripe_payment_intent_id && (
+                          <p className="text-[10px] text-muted-foreground font-mono pt-1">
+                            Payment ID: {o.stripe_payment_intent_id.slice(0, 20)}…
                           </p>
                         )}
                       </div>
-                    )}
-                    {inv.paid_at && (
-                      <p className="text-[10px] text-primary">Paid {new Date(inv.paid_at).toLocaleDateString()}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* Order History */}
