@@ -47,12 +47,12 @@ export const SERVICE_FEATURES = [
 ];
 
 export const MAINTENANCE_PLANS = {
-  keeper: { label: 'The Keeper', visits: 2, description: '2 cleaning visits per year' },
-  sentinel: { label: 'The Sentinel', visits: 3, description: '3 cleaning visits per year' },
-  legacy: { label: 'The Legacy', visits: 4, description: '4 cleaning visits per year' },
+  keeper: { label: '2 Cleanings / Year', visits: 2, description: '2 cleaning visits per year' },
+  sentinel: { label: '3 Cleanings / Year', visits: 3, description: '3 cleaning visits per year' },
+  legacy: { label: '4 Cleanings / Year', visits: 4, description: '4 cleaning visits per year' },
 };
 
-// Pricing formula: B × {1.9, 2.75, 3.5} for {keeper(2), sentinel(3), legacy(4)} cleanings/yr
+// Pricing formula: B × {1.9, 2.75, 3.5} for 2/3/4 cleanings per year
 export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
   single_marker: { keeper: 238, sentinel: 344, legacy: 438 },
   double_marker: { keeper: 285, sentinel: 413, legacy: 525 },
@@ -64,10 +64,10 @@ export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number
 };
 
 export const FLOWER_PLANS = {
-  tribute: { label: 'The Tribute', cleanings: 1, flowers: 1, description: '1 cleaning + 1 flower placement per year' },
-  remembrance: { label: 'The Remembrance', cleanings: 2, flowers: 2, description: '2 cleanings + 2 flower placements per year' },
-  devotion: { label: 'The Devotion', cleanings: 3, flowers: 3, description: '3 cleanings + 3 flower placements per year' },
-  eternal: { label: 'The Eternal', cleanings: 4, flowers: 4, description: '4 cleanings + 4 flower placements per year' },
+  tribute: { label: '1 Cleaning + 1 Flower Placement / Year', cleanings: 1, flowers: 1, description: '1 cleaning + 1 flower placement per year' },
+  remembrance: { label: '2 Cleanings + 2 Flower Placements / Year', cleanings: 2, flowers: 2, description: '2 cleanings + 2 flower placements per year' },
+  devotion: { label: '3 Cleanings + 3 Flower Placements / Year', cleanings: 3, flowers: 3, description: '3 cleanings + 3 flower placements per year' },
+  eternal: { label: '4 Cleanings + 4 Flower Placements / Year', cleanings: 4, flowers: 4, description: '4 cleanings + 4 flower placements per year' },
 };
 
 // Combo pricing: cleaningPlanPrice(B, n) + flowerFlatPrice(n) where n in {1,2,3,4}
