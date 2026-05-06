@@ -292,7 +292,7 @@ const AdminSchedule = () => {
             <List className="w-3.5 h-3.5" /> List
           </TabsTrigger>
           <TabsTrigger value="route" className="gap-1.5 text-xs">
-            <Map className="w-3.5 h-3.5" /> Route
+            <MapIcon className="w-3.5 h-3.5" /> Route
           </TabsTrigger>
         </TabsList>
 
