@@ -132,15 +132,26 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots, onComplete }: Props) =
 
   const pickArrangement = (arrangementId: string) => {
     if (!slotKey) return;
-    update({
-      selectedArrangements: { ...data.selectedArrangements, [slotKey]: arrangementId },
-    });
-    // Auto-advance: next slot, or complete the step
+    const newArrangements = { ...data.selectedArrangements, [slotKey]: arrangementId };
+    update({ selectedArrangements: newArrangements });
+    // Auto-advance: if all slots are now complete, move to next step.
+    // Otherwise jump cursor to the next still-incomplete slot.
     setTimeout(() => {
-      if (cursor < totalSlots - 1) {
-        setCursor(cursor + 1);
-      } else {
+      const allComplete =
+        slotKeys.length === totalSlots &&
+        slotKeys.every((k) => k && newArrangements[k]);
+      if (allComplete) {
         onComplete?.();
+        return;
+      }
+      // Find next incomplete slot starting after current cursor, wrapping around
+      for (let offset = 1; offset <= totalSlots; offset++) {
+        const i = (cursor + offset) % totalSlots;
+        const k = slotKeys[i];
+        if (!k || !newArrangements[k]) {
+          setCursor(i);
+          return;
+        }
       }
     }, 200);
   };
