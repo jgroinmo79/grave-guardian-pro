@@ -165,41 +165,6 @@ const AdminOrders = () => {
 
                   <div className="text-right space-y-1">
                     <p className="text-xl font-display font-bold">${Number(order.total_price).toFixed(2)}</p>
-            return (
-              <div key={order.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 8)}</p>
-                      {(order as any).is_gift && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent">
-                          <Gift className="w-3 h-3" /> Gift
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-semibold">{m?.cemetery_name ?? "Unknown"}</p>
-                    {(order as any).deceased_name && (
-                      <p className="text-xs text-muted-foreground">
-                        Memorial: {(order as any).deceased_name}
-                      </p>
-                    )}
-                    {(order as any).shopper_name && (
-                      <p className="text-xs text-muted-foreground">
-                        {(order as any).is_gift ? 'Gift from' : 'Ordered by'}: {(order as any).shopper_name}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {m?.monument_type?.replace(/_/g, " ")} · {m?.material} · {m?.estimated_miles ?? 0} mi
-                    </p>
-                    {m?.section && (
-                      <p className="text-xs text-muted-foreground">
-                        Section {m.section}{m?.lot_number ? `, Lot ${m.lot_number}` : ""}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="text-right space-y-1">
-                    <p className="text-xl font-display font-bold">${Number(order.total_price).toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">Offer {order.offer}</p>
                     {order.stripe_payment_status && (
                       <p className="text-xs text-muted-foreground">
