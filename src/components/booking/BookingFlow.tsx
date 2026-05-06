@@ -210,6 +210,7 @@ const BookingFlow = () => {
   }, [stepIndex, data.shopperEmail, data.shopperName, data.shopperPhone, data.cemeteryName, steps]);
 
   const totalSteps = steps.length;
+  totalStepsRef.current = totalSteps;
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
 
