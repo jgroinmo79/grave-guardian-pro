@@ -70,6 +70,95 @@ const AdminSchedule = () => {
     },
   });
 
+  // Active annual plan subscriptions — used to surface flower placement visits
+  const { data: subscriptions } = useQuery({
+    queryKey: ["admin-schedule-subscriptions"],
+    queryFn: async () => {
+      const { data: subs, error } = await supabase
+        .from("subscriptions")
+        .select(`
+          id, plan, status, important_dates, start_date, user_id, monument_id,
+          monuments (cemetery_name, monument_type, material, section, lot_number)
+        `)
+        .eq("status", "active");
+      if (error) throw error;
+      if (!subs?.length) return [];
+      const userIds = [...new Set(subs.map((s) => s.user_id).filter(Boolean))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, email")
+        .in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      return subs.map((s: any) => ({
+        ...s,
+        customerName:
+          profileMap.get(s.user_id)?.full_name ||
+          profileMap.get(s.user_id)?.email ||
+          "Customer",
+      }));
+    },
+  });
+
+  // Derive flower placement visits (cleaning_flowers type) from active subscriptions
+  const flowerVisits = useMemo(() => {
+    if (!subscriptions?.length) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const years = [today.getFullYear(), today.getFullYear() + 1];
+    const visits: Array<{
+      id: string;
+      subscriptionId: string;
+      date: string;
+      customerName: string;
+      cemeteryName: string;
+      monumentType: string | null;
+      monumentMaterial: string | null;
+      section: string | null;
+      lotNumber: string | null;
+      plan: string;
+      holidayNotes: string | null;
+    }> = [];
+    for (const sub of subscriptions) {
+      const m = sub.monuments as any;
+      const importantDates = sub.important_dates as string | null;
+      for (const year of years) {
+        const computed = computeSubscriptionVisits(
+          {
+            id: sub.id,
+            plan: sub.plan,
+            status: sub.status,
+            important_dates: importantDates,
+            start_date: sub.start_date,
+            customerName: sub.customerName,
+            cemeteryName: m?.cemetery_name ?? "Unknown",
+          },
+          year
+        );
+        for (const v of computed) {
+          if (v.type !== "cleaning_flowers") continue;
+          const [y, mo, d] = v.date.split("-").map(Number);
+          if (new Date(y, mo - 1, d) < today) continue;
+          if (visits.find((x) => x.id === v.id)) continue;
+          visits.push({
+            id: v.id,
+            subscriptionId: sub.id,
+            date: v.date,
+            customerName: sub.customerName,
+            cemeteryName: m?.cemetery_name ?? "Unknown",
+            monumentType: m?.monument_type ?? null,
+            monumentMaterial: m?.material ?? null,
+            section: m?.section ?? null,
+            lotNumber: m?.lot_number ?? null,
+            plan: sub.plan,
+            holidayNotes: importantDates,
+          });
+        }
+      }
+    }
+    visits.sort((a, b) => a.date.localeCompare(b.date));
+    return visits;
+  }, [subscriptions]);
+
   const scheduleOrder = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
       const newDate = format(date, "yyyy-MM-dd");
