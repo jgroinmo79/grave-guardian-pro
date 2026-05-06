@@ -113,25 +113,135 @@ const AdminOrderDetail = () => {
     return visits;
   })();
 
-  // Detect clustering: any two flower placements within 60 days of each other
-  const clusterWarning = (() => {
-    if (!pairedSchedule) return null;
-    const flowerDates = pairedSchedule
-      .filter((v) => v.type === "cleaning_flowers")
-      .map((v) => {
-        const [y, m, d] = v.date.split("-").map(Number);
-        return new Date(y, m - 1, d);
+  // --- Schedule Optimizer state (persisted to localStorage; no schema changes) ---
+  type OptimizerSlot = {
+    key: string;
+    placementDate: string | null; // yyyy-MM-dd, null if no flower
+    cleaningDate: string;         // yyyy-MM-dd
+    paired: boolean;              // true => single trip "Clean + Place"
+  };
+  const [optimizerSlots, setOptimizerSlots] = useState<OptimizerSlot[]>([]);
+  const [scheduleApproved, setScheduleApproved] = useState(false);
+  const [approvedAt, setApprovedAt] = useState<string | null>(null);
+
+  const optimizerStorageKey = id ? `schedule-optimizer:${id}` : null;
+
+  // Build initial optimizer slots from computed visit schedule
+  useEffect(() => {
+    if (!optimizerStorageKey) return;
+
+    // Try to load saved state first
+    const saved = localStorage.getItem(optimizerStorageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.slots)) {
+          setOptimizerSlots(parsed.slots);
+          setScheduleApproved(!!parsed.approved);
+          setApprovedAt(parsed.approvedAt ?? null);
+          return;
+        }
+      } catch {}
+    }
+
+    if (!pairedSchedule || pairedSchedule.length === 0) {
+      setOptimizerSlots([]);
+      return;
+    }
+
+    const slots: OptimizerSlot[] = pairedSchedule.map((v) => ({
+      key: v.id,
+      placementDate: v.type === "cleaning_flowers" ? v.date : null,
+      cleaningDate: v.date,
+      paired: v.type === "cleaning_flowers",
+    }));
+    setOptimizerSlots(slots);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optimizerStorageKey, pairedSchedule?.length]);
+
+  const persistOptimizer = (slots: OptimizerSlot[], approved: boolean, approvedAtIso: string | null) => {
+    if (!optimizerStorageKey) return;
+    localStorage.setItem(
+      optimizerStorageKey,
+      JSON.stringify({ slots, approved, approvedAt: approvedAtIso })
+    );
+  };
+
+  const updateSlot = (key: string, patch: Partial<OptimizerSlot>) => {
+    if (scheduleApproved) return;
+    setOptimizerSlots((prev) => {
+      const next = prev.map((s) => {
+        if (s.key !== key) return s;
+        const merged = { ...s, ...patch };
+        // If user changes cleaning date away from placement date, treat as unpaired
+        if (merged.placementDate && merged.cleaningDate !== merged.placementDate) {
+          merged.paired = false;
+        }
+        // If user pairs back, snap cleaning to placement date
+        if (patch.paired === true && merged.placementDate) {
+          merged.cleaningDate = merged.placementDate;
+        }
+        return merged;
       });
-    if (flowerDates.length < 2) return null;
+      persistOptimizer(next, false, null);
+      return next;
+    });
+  };
+
+  // Detect clustering: any two placement dates within 60 days
+  const clusterWarning = (() => {
+    if (!optimizerSlots.length) return null;
+    const dates = optimizerSlots
+      .filter((s) => !!s.placementDate)
+      .map((s) => {
+        const [y, m, d] = s.placementDate!.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      })
+      .sort((a, b) => a.getTime() - b.getTime());
+    if (dates.length < 2) return null;
     const pairs: { a: Date; b: Date; days: number }[] = [];
-    for (let i = 0; i < flowerDates.length - 1; i++) {
-      const days = Math.round(
-        (flowerDates[i + 1].getTime() - flowerDates[i].getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (days < 60) pairs.push({ a: flowerDates[i], b: flowerDates[i + 1], days });
+    for (let i = 0; i < dates.length - 1; i++) {
+      const days = Math.round((dates[i + 1].getTime() - dates[i].getTime()) / 86400000);
+      if (days < 60) pairs.push({ a: dates[i], b: dates[i + 1], days });
     }
     return pairs.length ? pairs : null;
   })();
+
+  const approveSchedule = useMutation({
+    mutationFn: async () => {
+      // Earliest visit becomes the order's scheduled_date so it appears on the main calendar
+      const allDates = optimizerSlots
+        .flatMap((s) => [s.cleaningDate, s.placementDate].filter(Boolean) as string[])
+        .sort();
+      if (allDates.length > 0) {
+        const { error } = await supabase
+          .from("orders")
+          .update({ scheduled_date: allDates[0], status: "scheduled" })
+          .eq("id", id!);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      const nowIso = new Date().toISOString();
+      setScheduleApproved(true);
+      setApprovedAt(nowIso);
+      persistOptimizer(optimizerSlots, true, nowIso);
+      queryClient.invalidateQueries({ queryKey: ["admin-order-detail", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-scheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
+      toast({ title: "Schedule approved", description: "Visits pushed to the main calendar." });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const unlockSchedule = () => {
+    setScheduleApproved(false);
+    setApprovedAt(null);
+    persistOptimizer(optimizerSlots, false, null);
+  };
 
   // Order fields
   const [status, setStatus] = useState<OrderStatus>("pending");
