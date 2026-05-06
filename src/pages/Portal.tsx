@@ -13,6 +13,98 @@ import SupportForm from "@/components/portal/SupportForm";
 import HistoryTab from "@/components/portal/HistoryTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+function downloadReceiptPdf(order: any, monument: any, profile: any) {
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const left = 50;
+  let y = 60;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text("Grave Detail", left, y);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  y += 16;
+  doc.text("Cleaning & Preservation", left, y);
+  y += 12;
+  doc.text("Benton, Missouri  ·  (573) 545-5759  ·  info@gravedetail.net", left, y);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  y += 36;
+  doc.text("RECEIPT", left, y);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  y += 18;
+  doc.text(`Receipt #: ${order.id.slice(0, 8).toUpperCase()}`, left, y);
+  y += 14;
+  doc.text(`Date: ${new Date(order.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`, left, y);
+  y += 14;
+  doc.text(`Status: PAID`, left, y);
+
+  if (profile) {
+    y += 24;
+    doc.setFont("helvetica", "bold");
+    doc.text("Billed To", left, y);
+    doc.setFont("helvetica", "normal");
+    y += 14;
+    doc.text(profile.full_name || profile.email || "Customer", left, y);
+    if (profile.email) { y += 12; doc.text(profile.email, left, y); }
+    if (profile.phone) { y += 12; doc.text(profile.phone, left, y); }
+  }
+
+  if (monument) {
+    y += 24;
+    doc.setFont("helvetica", "bold");
+    doc.text("Monument", left, y);
+    doc.setFont("helvetica", "normal");
+    y += 14;
+    doc.text(monument.cemetery_name, left, y);
+    const loc = [monument.section ? `Sec ${monument.section}` : null, monument.lot_number ? `Lot ${monument.lot_number}` : null].filter(Boolean).join(", ");
+    if (loc) { y += 12; doc.text(loc, left, y); }
+  }
+
+  y += 30;
+  doc.setFont("helvetica", "bold");
+  doc.text("Description", left, y);
+  doc.text("Amount", 480, y, { align: "right" });
+  y += 6;
+  doc.line(left, y, 520, y);
+
+  const lines: Array<[string, number]> = [];
+  if (Number(order.base_price ?? 0) > 0) lines.push(["Service", Number(order.base_price)]);
+  if (Number(order.bundle_price ?? 0) > 0) lines.push(["Care Plan", Number(order.bundle_price)]);
+  if (Number(order.add_ons_total ?? 0) > 0) lines.push(["Add-ons", Number(order.add_ons_total)]);
+  if (Number(order.travel_fee ?? 0) > 0) lines.push(["Travel Fee", Number(order.travel_fee)]);
+
+  doc.setFont("helvetica", "normal");
+  for (const [label, amt] of lines) {
+    y += 18;
+    doc.text(label, left, y);
+    doc.text(`$${amt.toFixed(2)}`, 480, y, { align: "right" });
+  }
+
+  y += 12;
+  doc.line(left, y, 520, y);
+  y += 18;
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Paid", left, y);
+  doc.text(`$${Number(order.total_price).toFixed(2)}`, 480, y, { align: "right" });
+
+  if (order.stripe_payment_intent_id) {
+    y += 30;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(`Payment ID: ${order.stripe_payment_intent_id}`, left, y);
+  }
+
+  y += 40;
+  doc.setFontSize(9);
+  doc.text("Thank you for trusting Grave Detail with the care of what matters most.", left, y);
+
+  doc.save(`receipt-${order.id.slice(0, 8).toUpperCase()}.pdf`);
+}
+
 const Portal = () => {
   const { user, signOut } = useAuth();
   const [selectedMonumentId, setSelectedMonumentId] = useState<string | null>(null);
