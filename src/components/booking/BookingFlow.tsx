@@ -41,6 +41,16 @@ const BookingFlow = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<IntakeFormData>(initialFormData);
   const leadIdRef = useRef<string | null>(null);
+  const totalStepsRef = useRef(0);
+
+  const advanceStep = () => {
+    setStepIndex((prev) => {
+      const next = Math.min((totalStepsRef.current || prev + 2) - 1, prev + 1);
+      window.history.pushState({ step: next }, "");
+      window.scrollTo({ top: 0, behavior: "instant" });
+      return next;
+    });
+  };
 
   const update = (partial: Partial<IntakeFormData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -123,7 +133,7 @@ const BookingFlow = () => {
     if (needsFlowerDates && flowerPickLimit > 0) {
       base.push({
         id: 'flower-slots',
-        render: (d, u) => <FlowerSlotWizardStep data={d} update={u} totalSlots={flowerPickLimit} onComplete={() => goToStep(Math.min(totalSteps - 1, safeIndex + 1))} />,
+        render: (d, u) => <FlowerSlotWizardStep data={d} update={u} totalSlots={flowerPickLimit} onComplete={advanceStep} />,
         canProceed: (d) => {
           const slots = d.flowerSlotKeys.slice(0, flowerPickLimit);
           if (slots.length !== flowerPickLimit) return false;
@@ -200,6 +210,7 @@ const BookingFlow = () => {
   }, [stepIndex, data.shopperEmail, data.shopperName, data.shopperPhone, data.cemeteryName, steps]);
 
   const totalSteps = steps.length;
+  totalStepsRef.current = totalSteps;
   const currentStep = steps[Math.min(stepIndex, totalSteps - 1)];
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
 
