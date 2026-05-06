@@ -54,7 +54,7 @@ const LegalDisclosures = () => (
           </p>
           <SubHeading>Scheduling &amp; Access</SubHeading>
           <p>
-            You are responsible for ensuring that the cemetery or site is accessible on the scheduled date and that no permits or permissions are required beyond those you have already obtained. Grave Detail is not responsible for delays caused by cemetery closures, weather, or restricted access.
+            You are responsible for ensuring that the cemetery or site is accessible on the scheduled date. Grave Detail is not responsible for delays caused by cemetery closures, weather, or restricted access.
           </p>
           <SubHeading>Photo Documentation</SubHeading>
           <p>
@@ -85,7 +85,7 @@ const LegalDisclosures = () => (
           </p>
           <SubHeading>Insurance</SubHeading>
           <p>
-            Grave Detail carries $1,000,000 in general liability insurance. This coverage exists for legitimate claims arising from our negligence, not for pre-existing monument conditions.
+            Grave Detail carries $2,000,000 in general liability insurance. This coverage exists for legitimate claims arising from our negligence, not for pre-existing monument conditions.
           </p>
           <SubHeading>Your Acknowledgment</SubHeading>
           <p>
