@@ -1055,7 +1055,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
-      care_plan: "guardian" | "keeper" | "sentinel" | "legacy"
+      care_plan:
+        | "guardian"
+        | "keeper"
+        | "sentinel"
+        | "legacy"
+        | "tribute"
+        | "remembrance"
+        | "devotion"
+        | "eternal"
       material_type: "granite" | "marble" | "bronze" | "mixed"
       monument_type:
         | "single_marker"
@@ -1208,7 +1216,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
-      care_plan: ["guardian", "keeper", "sentinel", "legacy"],
+      care_plan: [
+        "guardian",
+        "keeper",
+        "sentinel",
+        "legacy",
+        "tribute",
+        "remembrance",
+        "devotion",
+        "eternal",
+      ],
       material_type: ["granite", "marble", "bronze", "mixed"],
       monument_type: [
         "single_marker",
