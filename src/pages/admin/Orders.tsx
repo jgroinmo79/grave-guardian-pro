@@ -11,6 +11,40 @@ type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 const ORDER_STATUSES: OrderStatus[] = ["pending", "confirmed", "scheduled", "in_progress", "completed", "cancelled"];
 
+const PLAN_INFO: Record<string, { label: string; cleanings: number; flowers: number }> = {
+  // Maintenance (cleaning only)
+  keeper: { label: "The Keeper", cleanings: 2, flowers: 0 },
+  sentinel: { label: "The Sentinel", cleanings: 3, flowers: 0 },
+  legacy: { label: "The Legacy", cleanings: 4, flowers: 0 },
+  // Cleaning + Flower combined
+  tribute: { label: "The Tribute", cleanings: 1, flowers: 1 },
+  remembrance: { label: "The Remembrance", cleanings: 2, flowers: 2 },
+  devotion: { label: "The Devotion", cleanings: 3, flowers: 3 },
+  eternal: { label: "The Eternal", cleanings: 4, flowers: 4 },
+  // Flower-only
+  flower_1: { label: "Flower Placements", cleanings: 0, flowers: 1 },
+  flower_2: { label: "Flower Placements", cleanings: 0, flowers: 2 },
+  flower_3: { label: "Flower Placements", cleanings: 0, flowers: 3 },
+  flower_4: { label: "Flower Placements", cleanings: 0, flowers: 4 },
+};
+
+function summarizeServices(bundleId: string | null, addOns: any[]): { plan: string; summary: string } {
+  const info = bundleId ? PLAN_INFO[bundleId] : null;
+  const parts: string[] = [];
+  if (info) {
+    if (info.cleanings > 0) parts.push(`${info.cleanings} Cleaning${info.cleanings !== 1 ? "s" : ""}`);
+    if (info.flowers > 0) parts.push(`${info.flowers} Placement${info.flowers !== 1 ? "s" : ""}`);
+  } else {
+    parts.push("1 Cleaning");
+  }
+  const addonCount = Array.isArray(addOns) ? addOns.length : 0;
+  if (addonCount > 0) parts.push(`${addonCount} Add-on${addonCount !== 1 ? "s" : ""}`);
+  return {
+    plan: info?.label ?? "Single Service",
+    summary: parts.join(" + "),
+  };
+}
+
 const AdminOrders = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -22,11 +56,12 @@ const AdminOrders = () => {
         .from("orders")
         .select(`
           id, offer, status, total_price, travel_fee, base_price,
-          add_ons_total, bundle_price, is_veteran, is_gift,
+          add_ons, add_ons_total, bundle_id, bundle_price, is_veteran, is_gift,
           gift_recipient_name, gift_message,
           consent_biological, consent_authorize, consent_photos,
           notes, scheduled_date, created_at, updated_at,
-          stripe_payment_status, shopper_name, deceased_name,
+          stripe_payment_status, shopper_name, shopper_email, shopper_phone,
+          deceased_name,
           monuments (
             id, cemetery_name, monument_type, material, estimated_miles,
             section, lot_number, approximate_height,
@@ -86,27 +121,32 @@ const AdminOrders = () => {
         <div className="space-y-4">
           {orders.map((order) => {
             const m = order.monuments as any;
+            const o = order as any;
+            const { plan, summary } = summarizeServices(o.bundle_id, o.add_ons);
             return (
               <div key={order.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <p className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 8)}</p>
-                      {(order as any).is_gift && (
+                      {o.is_gift && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent">
                           <Gift className="w-3 h-3" /> Gift
                         </span>
                       )}
                     </div>
-                    <p className="font-semibold">{m?.cemetery_name ?? "Unknown"}</p>
-                    {(order as any).deceased_name && (
+                    {o.shopper_name && (
+                      <p className="font-semibold">{o.shopper_name}</p>
+                    )}
+                    {(o.shopper_email || o.shopper_phone) && (
                       <p className="text-xs text-muted-foreground">
-                        Memorial: {(order as any).deceased_name}
+                        {[o.shopper_email, o.shopper_phone].filter(Boolean).join(" · ")}
                       </p>
                     )}
-                    {(order as any).shopper_name && (
+                    <p className="text-sm">{m?.cemetery_name ?? "Unknown cemetery"}</p>
+                    {o.deceased_name && (
                       <p className="text-xs text-muted-foreground">
-                        {(order as any).is_gift ? 'Gift from' : 'Ordered by'}: {(order as any).shopper_name}
+                        Memorial: {o.deceased_name}
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
@@ -117,6 +157,10 @@ const AdminOrders = () => {
                         Section {m.section}{m?.lot_number ? `, Lot ${m.lot_number}` : ""}
                       </p>
                     )}
+                    <div className="pt-2 mt-1 border-t border-border/40">
+                      <p className="text-sm font-semibold text-primary">{plan}</p>
+                      <p className="text-xs text-muted-foreground">{summary}</p>
+                    </div>
                   </div>
 
                   <div className="text-right space-y-1">
