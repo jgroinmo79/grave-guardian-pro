@@ -123,7 +123,7 @@ const BookingFlow = () => {
     if (needsFlowerDates && flowerPickLimit > 0) {
       base.push({
         id: 'flower-slots',
-        render: (d, u) => <FlowerSlotWizardStep data={d} update={u} totalSlots={flowerPickLimit} onComplete={() => goToStep(Math.min(totalSteps - 1, safeIndex + 1))} />,
+        render: (d, u) => <FlowerSlotWizardStep data={d} update={u} totalSlots={flowerPickLimit} onComplete={advanceStep} />,
         canProceed: (d) => {
           const slots = d.flowerSlotKeys.slice(0, flowerPickLimit);
           if (slots.length !== flowerPickLimit) return false;
