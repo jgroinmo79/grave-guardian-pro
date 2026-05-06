@@ -350,6 +350,63 @@ const AdminSchedule = () => {
             )}
           </div>
 
+          {/* Flower Placements (from active annual plan subscriptions) */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <Flower2 className="w-5 h-5 text-primary" />
+              Upcoming Flower Placements
+            </h2>
+            {!flowerVisits.length ? (
+              <div className="rounded-xl border border-border bg-card p-6 text-center">
+                <p className="text-sm text-muted-foreground">No upcoming flower placements.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {flowerVisits.map((v) => {
+                  const [y, mo, d] = v.date.split("-").map(Number);
+                  const placedDate = new Date(y, mo - 1, d);
+                  return (
+                    <div
+                      key={v.id}
+                      className="rounded-xl border border-primary/30 bg-card p-4 flex flex-wrap items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-semibold text-sm flex items-center gap-2">
+                          <Flower2 className="w-4 h-4 text-primary" />
+                          {v.customerName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {v.cemeteryName}
+                          {v.section ? ` · Sec ${v.section}` : ""}
+                          {v.lotNumber ? `, Lot ${v.lotNumber}` : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {v.monumentType?.replace(/_/g, " ") ?? "monument"}
+                          {v.monumentMaterial ? ` · ${v.monumentMaterial}` : ""}
+                          {" · "}plan: {v.plan}
+                        </p>
+                        {v.holidayNotes && (
+                          <p className="text-xs text-muted-foreground italic">
+                            Holidays: {v.holidayNotes.split(",").map((s) => s.split("|")[0].trim()).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                          flower placement
+                        </span>
+                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3" />
+                          {format(placedDate, "MMM d, yyyy")}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Pending / Unscheduled */}
           <div className="space-y-4">
             <h2 className="text-lg font-display font-semibold">Pending (Unscheduled)</h2>
