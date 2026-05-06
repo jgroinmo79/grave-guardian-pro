@@ -13,14 +13,14 @@ const ORDER_STATUSES: OrderStatus[] = ["pending", "confirmed", "scheduled", "in_
 
 const PLAN_INFO: Record<string, { label: string; cleanings: number; flowers: number }> = {
   // Maintenance (cleaning only)
-  keeper: { label: "The Keeper", cleanings: 2, flowers: 0 },
-  sentinel: { label: "The Sentinel", cleanings: 3, flowers: 0 },
-  legacy: { label: "The Legacy", cleanings: 4, flowers: 0 },
+  keeper: { label: "2 Cleanings / Year", cleanings: 2, flowers: 0 },
+  sentinel: { label: "3 Cleanings / Year", cleanings: 3, flowers: 0 },
+  legacy: { label: "4 Cleanings / Year", cleanings: 4, flowers: 0 },
   // Cleaning + Flower combined
-  tribute: { label: "The Tribute", cleanings: 1, flowers: 1 },
-  remembrance: { label: "The Remembrance", cleanings: 2, flowers: 2 },
-  devotion: { label: "The Devotion", cleanings: 3, flowers: 3 },
-  eternal: { label: "The Eternal", cleanings: 4, flowers: 4 },
+  tribute: { label: "1 Cleaning + 1 Flower Placement / Year", cleanings: 1, flowers: 1 },
+  remembrance: { label: "2 Cleanings + 2 Flower Placements / Year", cleanings: 2, flowers: 2 },
+  devotion: { label: "3 Cleanings + 3 Flower Placements / Year", cleanings: 3, flowers: 3 },
+  eternal: { label: "4 Cleanings + 4 Flower Placements / Year", cleanings: 4, flowers: 4 },
   // Flower-only
   flower_1: { label: "Flower Placements", cleanings: 0, flowers: 1 },
   flower_2: { label: "Flower Placements", cleanings: 0, flowers: 2 },

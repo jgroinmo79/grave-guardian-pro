@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Camera, ClipboardList, Wrench, MessageSquare, Download } from "lucide-react";
 
 const BUNDLE_LABELS: Record<string, string> = {
-  tribute: "The Tribute",
-  remembrance: "The Remembrance",
-  devotion: "The Devotion",
-  eternal: "The Eternal",
+  tribute: "1 Cleaning + 1 Flower Placement / Year",
+  remembrance: "2 Cleanings + 2 Flower Placements / Year",
+  devotion: "3 Cleanings + 3 Flower Placements / Year",
+  eternal: "4 Cleanings + 4 Flower Placements / Year",
   flower_1: "1 Flower Placement",
   flower_2: "2 Flower Placements",
   flower_3: "3 Flower Placements",
@@ -15,13 +15,13 @@ const BUNDLE_LABELS: Record<string, string> = {
 };
 
 const PLAN_LABELS: Record<string, string> = {
-  keeper: "The Keeper",
-  sentinel: "The Sentinel",
-  legacy: "The Legacy",
-  tribute: "The Tribute",
-  remembrance: "The Remembrance",
-  devotion: "The Devotion",
-  eternal: "The Eternal",
+  keeper: "2 Cleanings / Year",
+  sentinel: "3 Cleanings / Year",
+  legacy: "4 Cleanings / Year",
+  tribute: "1 Cleaning + 1 Flower Placement / Year",
+  remembrance: "2 Cleanings + 2 Flower Placements / Year",
+  devotion: "3 Cleanings + 3 Flower Placements / Year",
+  eternal: "4 Cleanings + 4 Flower Placements / Year",
 };
 
 const ADD_ON_LABELS: Record<string, string> = {
