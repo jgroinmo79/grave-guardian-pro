@@ -41,6 +41,16 @@ const BookingFlow = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<IntakeFormData>(initialFormData);
   const leadIdRef = useRef<string | null>(null);
+  const totalStepsRef = useRef(0);
+
+  const advanceStep = () => {
+    setStepIndex((prev) => {
+      const next = Math.min((totalStepsRef.current || prev + 2) - 1, prev + 1);
+      window.history.pushState({ step: next }, "");
+      window.scrollTo({ top: 0, behavior: "instant" });
+      return next;
+    });
+  };
 
   const update = (partial: Partial<IntakeFormData>) => {
     setData((prev) => ({ ...prev, ...partial }));
