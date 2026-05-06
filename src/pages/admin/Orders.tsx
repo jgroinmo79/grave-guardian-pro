@@ -11,6 +11,40 @@ type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 const ORDER_STATUSES: OrderStatus[] = ["pending", "confirmed", "scheduled", "in_progress", "completed", "cancelled"];
 
+const PLAN_INFO: Record<string, { label: string; cleanings: number; flowers: number }> = {
+  // Maintenance (cleaning only)
+  keeper: { label: "The Keeper", cleanings: 2, flowers: 0 },
+  sentinel: { label: "The Sentinel", cleanings: 3, flowers: 0 },
+  legacy: { label: "The Legacy", cleanings: 4, flowers: 0 },
+  // Cleaning + Flower combined
+  tribute: { label: "The Tribute", cleanings: 1, flowers: 1 },
+  remembrance: { label: "The Remembrance", cleanings: 2, flowers: 2 },
+  devotion: { label: "The Devotion", cleanings: 3, flowers: 3 },
+  eternal: { label: "The Eternal", cleanings: 4, flowers: 4 },
+  // Flower-only
+  flower_1: { label: "Flower Placements", cleanings: 0, flowers: 1 },
+  flower_2: { label: "Flower Placements", cleanings: 0, flowers: 2 },
+  flower_3: { label: "Flower Placements", cleanings: 0, flowers: 3 },
+  flower_4: { label: "Flower Placements", cleanings: 0, flowers: 4 },
+};
+
+function summarizeServices(bundleId: string | null, addOns: any[]): { plan: string; summary: string } {
+  const info = bundleId ? PLAN_INFO[bundleId] : null;
+  const parts: string[] = [];
+  if (info) {
+    if (info.cleanings > 0) parts.push(`${info.cleanings} Cleaning${info.cleanings !== 1 ? "s" : ""}`);
+    if (info.flowers > 0) parts.push(`${info.flowers} Placement${info.flowers !== 1 ? "s" : ""}`);
+  } else {
+    parts.push("1 Cleaning");
+  }
+  const addonCount = Array.isArray(addOns) ? addOns.length : 0;
+  if (addonCount > 0) parts.push(`${addonCount} Add-on${addonCount !== 1 ? "s" : ""}`);
+  return {
+    plan: info?.label ?? "Single Service",
+    summary: parts.join(" + "),
+  };
+}
+
 const AdminOrders = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
