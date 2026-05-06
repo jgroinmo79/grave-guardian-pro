@@ -202,7 +202,7 @@ const Portal = () => {
           <TabsList className="bg-secondary w-full grid grid-cols-5">
             <TabsTrigger value="graves" className="text-xs">Graves</TabsTrigger>
             <TabsTrigger value="plans" className="text-xs">Plans</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs">Invoices</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs">Receipts</TabsTrigger>
             <TabsTrigger value="history" className="text-xs">History</TabsTrigger>
             <TabsTrigger value="support" className="text-xs">Support</TabsTrigger>
           </TabsList>
