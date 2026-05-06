@@ -113,25 +113,135 @@ const AdminOrderDetail = () => {
     return visits;
   })();
 
-  // Detect clustering: any two flower placements within 60 days of each other
-  const clusterWarning = (() => {
-    if (!pairedSchedule) return null;
-    const flowerDates = pairedSchedule
-      .filter((v) => v.type === "cleaning_flowers")
-      .map((v) => {
-        const [y, m, d] = v.date.split("-").map(Number);
-        return new Date(y, m - 1, d);
+  // --- Schedule Optimizer state (persisted to localStorage; no schema changes) ---
+  type OptimizerSlot = {
+    key: string;
+    placementDate: string | null; // yyyy-MM-dd, null if no flower
+    cleaningDate: string;         // yyyy-MM-dd
+    paired: boolean;              // true => single trip "Clean + Place"
+  };
+  const [optimizerSlots, setOptimizerSlots] = useState<OptimizerSlot[]>([]);
+  const [scheduleApproved, setScheduleApproved] = useState(false);
+  const [approvedAt, setApprovedAt] = useState<string | null>(null);
+
+  const optimizerStorageKey = id ? `schedule-optimizer:${id}` : null;
+
+  // Build initial optimizer slots from computed visit schedule
+  useEffect(() => {
+    if (!optimizerStorageKey) return;
+
+    // Try to load saved state first
+    const saved = localStorage.getItem(optimizerStorageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.slots)) {
+          setOptimizerSlots(parsed.slots);
+          setScheduleApproved(!!parsed.approved);
+          setApprovedAt(parsed.approvedAt ?? null);
+          return;
+        }
+      } catch {}
+    }
+
+    if (!pairedSchedule || pairedSchedule.length === 0) {
+      setOptimizerSlots([]);
+      return;
+    }
+
+    const slots: OptimizerSlot[] = pairedSchedule.map((v) => ({
+      key: v.id,
+      placementDate: v.type === "cleaning_flowers" ? v.date : null,
+      cleaningDate: v.date,
+      paired: v.type === "cleaning_flowers",
+    }));
+    setOptimizerSlots(slots);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optimizerStorageKey, pairedSchedule?.length]);
+
+  const persistOptimizer = (slots: OptimizerSlot[], approved: boolean, approvedAtIso: string | null) => {
+    if (!optimizerStorageKey) return;
+    localStorage.setItem(
+      optimizerStorageKey,
+      JSON.stringify({ slots, approved, approvedAt: approvedAtIso })
+    );
+  };
+
+  const updateSlot = (key: string, patch: Partial<OptimizerSlot>) => {
+    if (scheduleApproved) return;
+    setOptimizerSlots((prev) => {
+      const next = prev.map((s) => {
+        if (s.key !== key) return s;
+        const merged = { ...s, ...patch };
+        // If user changes cleaning date away from placement date, treat as unpaired
+        if (merged.placementDate && merged.cleaningDate !== merged.placementDate) {
+          merged.paired = false;
+        }
+        // If user pairs back, snap cleaning to placement date
+        if (patch.paired === true && merged.placementDate) {
+          merged.cleaningDate = merged.placementDate;
+        }
+        return merged;
       });
-    if (flowerDates.length < 2) return null;
+      persistOptimizer(next, false, null);
+      return next;
+    });
+  };
+
+  // Detect clustering: any two placement dates within 60 days
+  const clusterWarning = (() => {
+    if (!optimizerSlots.length) return null;
+    const dates = optimizerSlots
+      .filter((s) => !!s.placementDate)
+      .map((s) => {
+        const [y, m, d] = s.placementDate!.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      })
+      .sort((a, b) => a.getTime() - b.getTime());
+    if (dates.length < 2) return null;
     const pairs: { a: Date; b: Date; days: number }[] = [];
-    for (let i = 0; i < flowerDates.length - 1; i++) {
-      const days = Math.round(
-        (flowerDates[i + 1].getTime() - flowerDates[i].getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (days < 60) pairs.push({ a: flowerDates[i], b: flowerDates[i + 1], days });
+    for (let i = 0; i < dates.length - 1; i++) {
+      const days = Math.round((dates[i + 1].getTime() - dates[i].getTime()) / 86400000);
+      if (days < 60) pairs.push({ a: dates[i], b: dates[i + 1], days });
     }
     return pairs.length ? pairs : null;
   })();
+
+  const approveSchedule = useMutation({
+    mutationFn: async () => {
+      // Earliest visit becomes the order's scheduled_date so it appears on the main calendar
+      const allDates = optimizerSlots
+        .flatMap((s) => [s.cleaningDate, s.placementDate].filter(Boolean) as string[])
+        .sort();
+      if (allDates.length > 0) {
+        const { error } = await supabase
+          .from("orders")
+          .update({ scheduled_date: allDates[0], status: "scheduled" })
+          .eq("id", id!);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      const nowIso = new Date().toISOString();
+      setScheduleApproved(true);
+      setApprovedAt(nowIso);
+      persistOptimizer(optimizerSlots, true, nowIso);
+      queryClient.invalidateQueries({ queryKey: ["admin-order-detail", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-scheduled-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
+      toast({ title: "Schedule approved", description: "Visits pushed to the main calendar." });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const unlockSchedule = () => {
+    setScheduleApproved(false);
+    setApprovedAt(null);
+    persistOptimizer(optimizerSlots, false, null);
+  };
 
   // Order fields
   const [status, setStatus] = useState<OrderStatus>("pending");
@@ -467,51 +577,122 @@ const AdminOrderDetail = () => {
         )}
       </section>
 
-      {/* PAIRED VISIT SCHEDULE — flower placements anchor cleanings on the same day */}
-      {pairedSchedule && pairedSchedule.length > 0 && (
+      {/* SCHEDULE OPTIMIZER — pair flower placements with cleanings, allow manual reassignment */}
+      {optimizerSlots.length > 0 && (
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              Visit Schedule
-            </h2>
-            <span className="text-xs text-muted-foreground">
-              Plan: {subscription?.plan} · Each flower placement is paired with a cleaning on the same trip.
-            </span>
+            <div>
+              <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                Schedule Optimizer
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Plan: {subscription?.plan ?? "—"} · Each placement is anchored; the cleaning on that day is bundled as one trip.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {scheduleApproved ? (
+                <>
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-600 font-medium">
+                    <Check className="w-3 h-3" /> Approved{approvedAt ? ` · ${format(new Date(approvedAt), "MMM d")}` : ""}
+                  </span>
+                  <Button variant="outline" size="sm" className="text-xs" onClick={unlockSchedule}>
+                    Unlock & Edit
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => approveSchedule.mutate()}
+                  disabled={approveSchedule.isPending}
+                >
+                  {approveSchedule.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
+                  Approve Schedule
+                </Button>
+              )}
+            </div>
           </div>
 
           {clusterWarning && clusterWarning.length > 0 && (
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 flex gap-2 items-start">
               <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
               <div className="text-xs text-destructive space-y-1">
-                <p className="font-semibold">Clustering warning — cleanings may be unevenly distributed.</p>
+                <p className="font-semibold">Clustering warning — placements grouped within 60 days. Cleanings may be unevenly distributed.</p>
                 {clusterWarning.map((p, i) => (
                   <p key={i}>
-                    {format(p.a, "MMM d, yyyy")} → {format(p.b, "MMM d, yyyy")} (only {p.days} days apart)
+                    {format(p.a, "MMM d, yyyy")} → {format(p.b, "MMM d, yyyy")} ({p.days} days apart)
                   </p>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="divide-y divide-border/40">
-            {pairedSchedule.map((v) => {
-              const [y, m, d] = v.date.split("-").map(Number);
-              const date = new Date(y, m - 1, d);
-              const isFlower = v.type === "cleaning_flowers";
+          <div className="space-y-2">
+            {optimizerSlots.map((s) => {
+              const hasFlower = !!s.placementDate;
+              const trip = s.paired && hasFlower ? "Clean + Place" : hasFlower ? "Placement + Cleaning (separate trip)" : "Cleaning";
               return (
-                <div key={v.id} className="py-2 flex items-center justify-between gap-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    {isFlower ? (
-                      <Flower2 className="w-4 h-4 text-primary" />
-                    ) : (
-                      <Sparkles className="w-4 h-4 text-muted-foreground" />
+                <div
+                  key={s.key}
+                  className="rounded-lg border border-border/60 bg-background/40 p-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+                      {s.paired && hasFlower ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                          <Flower2 className="w-3 h-3" /> Clean + Place
+                        </span>
+                      ) : hasFlower ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/20 text-accent">
+                          <Flower2 className="w-3 h-3" /> Placement
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          <Sparkles className="w-3 h-3" /> Cleaning
+                        </span>
+                      )}
+                      <span className="text-muted-foreground font-normal">{trip}</span>
+                    </span>
+                    {hasFlower && !scheduleApproved && (
+                      <label className="text-xs flex items-center gap-1.5 text-muted-foreground cursor-pointer">
+                        <Checkbox
+                          checked={s.paired}
+                          onCheckedChange={(c) => updateSlot(s.key, { paired: !!c })}
+                        />
+                        Pair as single trip
+                      </label>
                     )}
-                    <span>{format(date, "EEE, MMM d, yyyy")}</span>
                   </div>
-                  <span className={isFlower ? "text-xs font-medium text-primary" : "text-xs text-muted-foreground"}>
-                    {isFlower ? "Cleaning + Flower Placement (paired)" : "Cleaning"}
-                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {hasFlower && (
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Placement Date (anchor)</Label>
+                        <Input
+                          type="date"
+                          value={s.placementDate ?? ""}
+                          disabled={scheduleApproved}
+                          onChange={(e) => updateSlot(s.key, { placementDate: e.target.value || null })}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Cleaning Date</Label>
+                      <Input
+                        type="date"
+                        value={s.cleaningDate}
+                        disabled={scheduleApproved}
+                        onChange={(e) => updateSlot(s.key, { cleaningDate: e.target.value })}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               );
             })}
