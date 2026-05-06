@@ -379,7 +379,6 @@ serve(async (req) => {
       customer_email: customerId ? undefined : email,
       line_items: lineItems,
       mode: "payment",
-      automatic_tax: { enabled: true },
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment-canceled`,
       metadata: {
