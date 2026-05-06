@@ -194,99 +194,170 @@ serve(async (req) => {
       throw new Error("Please sign in to complete your order");
     }
 
-    // 1. Create monument record with lat/lng
-    const { data: monumentRecord, error: monumentError } = await supabaseAdmin
-      .from("monuments")
-      .insert({
-        user_id: effectiveUserId,
-        cemetery_name: cemeteryName || "Unknown",
-        section: section || null,
-        lot_number: lotNumber || null,
-        monument_type: monumentType,
-        material: material || "granite",
-        approximate_height: approximateHeight || null,
-        estimated_miles: estimatedMiles || 0,
-        known_damage: knownDamage || false,
-        condition_moss_algae: conditions?.mossAlgae || false,
-        condition_not_cleaned: conditions?.notCleanedRecently || false,
-        condition_faded_inscription: conditions?.fadedInscription || false,
-        condition_chipping: conditions?.chipping || false,
-        condition_leaning: conditions?.leaning || false,
-        cemetery_lat: cemeteryLat || null,
-        cemetery_lng: cemeteryLng || null,
-      })
-      .select("id")
-      .single();
+    const bundleId = selectedMaintenancePlan || selectedFlowerPlan || selectedFlowerOnly || null;
 
-    if (monumentError) {
-      console.error("[create-checkout] Monument insert error:", monumentError);
-      throw new Error("Failed to save monument data");
-    }
-
-    // 2. Create pending order with person info
-    const { data: orderRecord, error: orderError } = await supabaseAdmin
+    // --- Dedup: reuse a recent pending order for the same user/plan/total ---
+    // Prevents duplicate booking records when checkout is invoked multiple times
+    // (e.g. user clicks pay twice, navigates back, or retries).
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { data: existingOrders } = await supabaseAdmin
       .from("orders")
-      .insert({
-        user_id: effectiveUserId,
-        monument_id: monumentRecord.id,
-        offer: offer as "A" | "B",
-        base_price: basePrice,
-        travel_fee: travelFee,
-        add_ons: addOns,
-        add_ons_total: addOnTotal,
-        bundle_id: selectedMaintenancePlan || selectedFlowerPlan || selectedFlowerOnly || null,
-        bundle_price: planPrice,
-        total_price: subtotal,
-        is_veteran: isVeteran || false,
-        consent_biological: consentBiological || false,
-        consent_authorize: consentAuthorize || false,
-        consent_photos: consentPhotos || false,
-        status: "pending",
-        deceased_name: deceasedName || null,
-        shopper_name: shopperName || null,
-        shopper_phone: shopperPhone || null,
-        shopper_email: shopperEmail || email || null,
-        scheduled_date: preferredDate || null,
-        is_gift: isGift || false,
-        gift_recipient_name: isGift ? (giftRecipientName || null) : null,
-        gift_recipient_email: isGift ? (giftRecipientEmail || null) : null,
-        gift_recipient_phone: isGift ? (giftRecipientPhone || null) : null,
-        gift_message: isGift ? (giftMessage || null) : null,
-      })
-      .select("id")
-      .single();
+      .select("id, monument_id, stripe_payment_status")
+      .eq("user_id", effectiveUserId)
+      .eq("status", "pending")
+      .eq("offer", offer)
+      .eq("total_price", subtotal)
+      .gte("created_at", thirtyMinAgo)
+      .order("created_at", { ascending: false })
+      .limit(5);
 
-    if (orderError) {
-      console.error("[create-checkout] Order insert error:", orderError);
-      throw new Error("Failed to save order data");
+    const reusable = (existingOrders || []).find(
+      (o) => !o.stripe_payment_status || o.stripe_payment_status !== "paid"
+    );
+
+    const monumentPayload = {
+      user_id: effectiveUserId,
+      cemetery_name: cemeteryName || "Unknown",
+      section: section || null,
+      lot_number: lotNumber || null,
+      monument_type: monumentType,
+      material: material || "granite",
+      approximate_height: approximateHeight || null,
+      estimated_miles: estimatedMiles || 0,
+      known_damage: knownDamage || false,
+      condition_moss_algae: conditions?.mossAlgae || false,
+      condition_not_cleaned: conditions?.notCleanedRecently || false,
+      condition_faded_inscription: conditions?.fadedInscription || false,
+      condition_chipping: conditions?.chipping || false,
+      condition_leaning: conditions?.leaning || false,
+      cemetery_lat: cemeteryLat || null,
+      cemetery_lng: cemeteryLng || null,
+    };
+
+    const orderPayload = {
+      user_id: effectiveUserId,
+      offer: offer as "A" | "B",
+      base_price: basePrice,
+      travel_fee: travelFee,
+      add_ons: addOns,
+      add_ons_total: addOnTotal,
+      bundle_id: bundleId,
+      bundle_price: planPrice,
+      total_price: subtotal,
+      is_veteran: isVeteran || false,
+      consent_biological: consentBiological || false,
+      consent_authorize: consentAuthorize || false,
+      consent_photos: consentPhotos || false,
+      status: "pending" as const,
+      deceased_name: deceasedName || null,
+      shopper_name: shopperName || null,
+      shopper_phone: shopperPhone || null,
+      shopper_email: shopperEmail || email || null,
+      scheduled_date: preferredDate || null,
+      is_gift: isGift || false,
+      gift_recipient_name: isGift ? (giftRecipientName || null) : null,
+      gift_recipient_email: isGift ? (giftRecipientEmail || null) : null,
+      gift_recipient_phone: isGift ? (giftRecipientPhone || null) : null,
+      gift_message: isGift ? (giftMessage || null) : null,
+    };
+
+    let monumentId: string;
+    let orderId: string;
+
+    if (reusable) {
+      // Update existing monument + order in place — single record per booking
+      orderId = reusable.id;
+      monumentId = reusable.monument_id;
+
+      const { error: monUpdateErr } = await supabaseAdmin
+        .from("monuments")
+        .update(monumentPayload)
+        .eq("id", monumentId);
+      if (monUpdateErr) console.error("[create-checkout] Monument reuse update error:", monUpdateErr);
+
+      const { error: orderUpdateErr } = await supabaseAdmin
+        .from("orders")
+        .update(orderPayload)
+        .eq("id", orderId);
+      if (orderUpdateErr) {
+        console.error("[create-checkout] Order reuse update error:", orderUpdateErr);
+        throw new Error("Failed to update existing order");
+      }
+      console.log(`[create-checkout] Reused pending order ${orderId} (dedup)`);
+    } else {
+      const { data: monumentRecord, error: monumentError } = await supabaseAdmin
+        .from("monuments")
+        .insert(monumentPayload)
+        .select("id")
+        .single();
+
+      if (monumentError) {
+        console.error("[create-checkout] Monument insert error:", monumentError);
+        throw new Error("Failed to save monument data");
+      }
+      monumentId = monumentRecord.id;
+
+      // Single pending order per booking — visits/services live in bundle_id + add_ons fields
+      const { data: orderRecord, error: orderError } = await supabaseAdmin
+        .from("orders")
+        .insert({ ...orderPayload, monument_id: monumentId })
+        .select("id")
+        .single();
+
+      if (orderError) {
+        console.error("[create-checkout] Order insert error:", orderError);
+        throw new Error("Failed to save order data");
+      }
+      orderId = orderRecord.id;
     }
 
-    // 3. Create subscription if annual plan selected
+    const monumentRecord = { id: monumentId };
+    const orderRecord = { id: orderId };
+
+    // 3. Create subscription if annual plan selected — single record per booking
     if (selectedMaintenancePlan || selectedFlowerPlan) {
       const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
         const custom = (holidayCustomDates as Record<string, string>)[h];
         return custom ? `${h}|${custom}` : h;
       }).join(",");
 
-      const { error: subError } = await supabaseAdmin
+      const subPayload = {
+        user_id: effectiveUserId,
+        monument_id: monumentRecord.id,
+        plan: selectedMaintenancePlan || selectedFlowerPlan,
+        price: planPrice,
+        period: "annual",
+        status: "active" as const,
+        important_dates: importantDatesStr || null,
+        start_date: new Date().toISOString().split("T")[0],
+      };
+
+      // Check for existing subscription for this monument + plan to avoid duplicates
+      const { data: existingSub } = await supabaseAdmin
         .from("subscriptions")
-        .insert({
-          user_id: effectiveUserId,
-          monument_id: monumentRecord.id,
-          plan: selectedMaintenancePlan || selectedFlowerPlan,
-          price: planPrice,
-          period: "annual",
-          status: "active",
-          important_dates: importantDatesStr || null,
-          start_date: new Date().toISOString().split("T")[0],
-        });
-      if (subError) {
-        console.error("[create-checkout] Subscription insert error:", subError);
+        .select("id")
+        .eq("monument_id", monumentRecord.id)
+        .eq("plan", subPayload.plan)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSub) {
+        const { error: subUpdateErr } = await supabaseAdmin
+          .from("subscriptions")
+          .update(subPayload)
+          .eq("id", existingSub.id);
+        if (subUpdateErr) console.error("[create-checkout] Subscription update error:", subUpdateErr);
+      } else {
+        const { error: subError } = await supabaseAdmin
+          .from("subscriptions")
+          .insert(subPayload);
+        if (subError) console.error("[create-checkout] Subscription insert error:", subError);
       }
     }
 
-    // 4. Save client-uploaded photos as photo_records
-    if (photos && photos.length > 0) {
+    // 4. Save client-uploaded photos as photo_records (skip if reusing — already saved)
+    if (photos && photos.length > 0 && !reusable) {
       const photoRows = photos.map((url: string) => ({
         monument_id: monumentRecord.id,
         order_id: orderRecord.id,
