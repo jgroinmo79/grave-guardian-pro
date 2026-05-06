@@ -121,6 +121,50 @@ const AdminOrders = () => {
         <div className="space-y-4">
           {orders.map((order) => {
             const m = order.monuments as any;
+            const o = order as any;
+            const { plan, summary } = summarizeServices(o.bundle_id, o.add_ons);
+            return (
+              <div key={order.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-xs text-muted-foreground">#{order.id.slice(0, 8)}</p>
+                      {o.is_gift && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent">
+                          <Gift className="w-3 h-3" /> Gift
+                        </span>
+                      )}
+                    </div>
+                    {o.shopper_name && (
+                      <p className="font-semibold">{o.shopper_name}</p>
+                    )}
+                    {(o.shopper_email || o.shopper_phone) && (
+                      <p className="text-xs text-muted-foreground">
+                        {[o.shopper_email, o.shopper_phone].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                    <p className="text-sm">{m?.cemetery_name ?? "Unknown cemetery"}</p>
+                    {o.deceased_name && (
+                      <p className="text-xs text-muted-foreground">
+                        Memorial: {o.deceased_name}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {m?.monument_type?.replace(/_/g, " ")} · {m?.material} · {m?.estimated_miles ?? 0} mi
+                    </p>
+                    {m?.section && (
+                      <p className="text-xs text-muted-foreground">
+                        Section {m.section}{m?.lot_number ? `, Lot ${m.lot_number}` : ""}
+                      </p>
+                    )}
+                    <div className="pt-2 mt-1 border-t border-border/40">
+                      <p className="text-sm font-semibold text-primary">{plan}</p>
+                      <p className="text-xs text-muted-foreground">{summary}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right space-y-1">
+                    <p className="text-xl font-display font-bold">${Number(order.total_price).toFixed(2)}</p>
             return (
               <div key={order.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
