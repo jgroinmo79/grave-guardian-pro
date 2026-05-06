@@ -155,7 +155,13 @@ const CheckoutStep = ({ data }: Props) => {
 
       if (error) throw error;
       if (result?.url) {
-        window.location.href = result.url;
+        // Open in a new tab — Stripe Checkout refuses to render inside iframes
+        // (e.g. the Lovable preview), which causes the blank skeleton screen.
+        const win = window.open(result.url, "_blank");
+        if (!win) {
+          // Popup blocked — fall back to top-level navigation
+          window.top ? (window.top.location.href = result.url) : (window.location.href = result.url);
+        }
       } else {
         throw new Error("No checkout URL returned");
       }
