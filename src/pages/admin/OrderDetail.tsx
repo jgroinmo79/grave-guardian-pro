@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { Loader2, ArrowLeft, Save, Share2, Copy, Check, Gift } from "lucide-react";
+import { Loader2, ArrowLeft, Save, Share2, Copy, Check, Gift, AlertTriangle, Flower2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MONUMENT_PRICES, ADD_ONS, MAINTENANCE_PLANS, FLOWER_PLANS, FLOWER_ONLY_PLANS } from "@/lib/pricing";
 import PhotoUpload from "@/components/admin/PhotoUpload";
 import ServiceLogForm from "@/components/admin/ServiceLogForm";
+import { computeSubscriptionVisits } from "@/lib/subscription-schedule";
+import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -51,6 +53,85 @@ const AdminOrderDetail = () => {
     },
     enabled: !!id,
   });
+
+  // Companion subscription (if this booking includes an annual plan with flower placements)
+  const monumentIdForSub = (order?.monuments as any)?.id;
+  const { data: subscription } = useQuery({
+    queryKey: ["admin-order-subscription", monumentIdForSub],
+    enabled: !!monumentIdForSub,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("id, plan, status, important_dates, start_date, user_id, monument_id")
+        .eq("monument_id", monumentIdForSub!)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Build paired visit schedule: each flower placement is anchored, and the cleaning
+  // visit on that same date is implicitly bundled (cleaning_flowers visits handle this).
+  const pairedSchedule = (() => {
+    if (!subscription || !order) return null;
+    const customerName =
+      (order.profiles as any)?.full_name ||
+      (order.profiles as any)?.email ||
+      (order as any).shopper_name ||
+      "Customer";
+    const cemeteryName = (order.monuments as any)?.cemetery_name ?? "Unknown";
+    const startYear = new Date(subscription.start_date + "T00:00:00").getFullYear();
+    const visits = [
+      ...computeSubscriptionVisits(
+        {
+          id: subscription.id,
+          plan: subscription.plan,
+          status: subscription.status,
+          important_dates: subscription.important_dates,
+          start_date: subscription.start_date,
+          customerName,
+          cemeteryName,
+        },
+        startYear
+      ),
+      ...computeSubscriptionVisits(
+        {
+          id: subscription.id,
+          plan: subscription.plan,
+          status: subscription.status,
+          important_dates: subscription.important_dates,
+          start_date: subscription.start_date,
+          customerName,
+          cemeteryName,
+        },
+        startYear + 1
+      ),
+    ].sort((a, b) => a.date.localeCompare(b.date));
+    return visits;
+  })();
+
+  // Detect clustering: any two flower placements within 60 days of each other
+  const clusterWarning = (() => {
+    if (!pairedSchedule) return null;
+    const flowerDates = pairedSchedule
+      .filter((v) => v.type === "cleaning_flowers")
+      .map((v) => {
+        const [y, m, d] = v.date.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      });
+    if (flowerDates.length < 2) return null;
+    const pairs: { a: Date; b: Date; days: number }[] = [];
+    for (let i = 0; i < flowerDates.length - 1; i++) {
+      const days = Math.round(
+        (flowerDates[i + 1].getTime() - flowerDates[i].getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (days < 60) pairs.push({ a: flowerDates[i], b: flowerDates[i + 1], days });
+    }
+    return pairs.length ? pairs : null;
+  })();
 
   // Order fields
   const [status, setStatus] = useState<OrderStatus>("pending");
@@ -385,6 +466,58 @@ const AdminOrderDetail = () => {
           </p>
         )}
       </section>
+
+      {/* PAIRED VISIT SCHEDULE — flower placements anchor cleanings on the same day */}
+      {pairedSchedule && pairedSchedule.length > 0 && (
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              Visit Schedule
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              Plan: {subscription?.plan} · Each flower placement is paired with a cleaning on the same trip.
+            </span>
+          </div>
+
+          {clusterWarning && clusterWarning.length > 0 && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 flex gap-2 items-start">
+              <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+              <div className="text-xs text-destructive space-y-1">
+                <p className="font-semibold">Clustering warning — cleanings may be unevenly distributed.</p>
+                {clusterWarning.map((p, i) => (
+                  <p key={i}>
+                    {format(p.a, "MMM d, yyyy")} → {format(p.b, "MMM d, yyyy")} (only {p.days} days apart)
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="divide-y divide-border/40">
+            {pairedSchedule.map((v) => {
+              const [y, m, d] = v.date.split("-").map(Number);
+              const date = new Date(y, m - 1, d);
+              const isFlower = v.type === "cleaning_flowers";
+              return (
+                <div key={v.id} className="py-2 flex items-center justify-between gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    {isFlower ? (
+                      <Flower2 className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <span>{format(date, "EEE, MMM d, yyyy")}</span>
+                  </div>
+                  <span className={isFlower ? "text-xs font-medium text-primary" : "text-xs text-muted-foreground"}>
+                    {isFlower ? "Cleaning + Flower Placement (paired)" : "Cleaning"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* MONUMENT DETAILS */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
