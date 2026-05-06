@@ -314,32 +314,50 @@ serve(async (req) => {
     const monumentRecord = { id: monumentId };
     const orderRecord = { id: orderId };
 
-    // 3. Create subscription if annual plan selected
+    // 3. Create subscription if annual plan selected — single record per booking
     if (selectedMaintenancePlan || selectedFlowerPlan) {
       const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
         const custom = (holidayCustomDates as Record<string, string>)[h];
         return custom ? `${h}|${custom}` : h;
       }).join(",");
 
-      const { error: subError } = await supabaseAdmin
+      const subPayload = {
+        user_id: effectiveUserId,
+        monument_id: monumentRecord.id,
+        plan: selectedMaintenancePlan || selectedFlowerPlan,
+        price: planPrice,
+        period: "annual",
+        status: "active" as const,
+        important_dates: importantDatesStr || null,
+        start_date: new Date().toISOString().split("T")[0],
+      };
+
+      // Check for existing subscription for this monument + plan to avoid duplicates
+      const { data: existingSub } = await supabaseAdmin
         .from("subscriptions")
-        .insert({
-          user_id: effectiveUserId,
-          monument_id: monumentRecord.id,
-          plan: selectedMaintenancePlan || selectedFlowerPlan,
-          price: planPrice,
-          period: "annual",
-          status: "active",
-          important_dates: importantDatesStr || null,
-          start_date: new Date().toISOString().split("T")[0],
-        });
-      if (subError) {
-        console.error("[create-checkout] Subscription insert error:", subError);
+        .select("id")
+        .eq("monument_id", monumentRecord.id)
+        .eq("plan", subPayload.plan)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSub) {
+        const { error: subUpdateErr } = await supabaseAdmin
+          .from("subscriptions")
+          .update(subPayload)
+          .eq("id", existingSub.id);
+        if (subUpdateErr) console.error("[create-checkout] Subscription update error:", subUpdateErr);
+      } else {
+        const { error: subError } = await supabaseAdmin
+          .from("subscriptions")
+          .insert(subPayload);
+        if (subError) console.error("[create-checkout] Subscription insert error:", subError);
       }
     }
 
-    // 4. Save client-uploaded photos as photo_records
-    if (photos && photos.length > 0) {
+    // 4. Save client-uploaded photos as photo_records (skip if reusing — already saved)
+    if (photos && photos.length > 0 && !reusable) {
       const photoRows = photos.map((url: string) => ({
         monument_id: monumentRecord.id,
         order_id: orderRecord.id,
