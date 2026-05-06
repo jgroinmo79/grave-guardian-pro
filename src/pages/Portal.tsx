@@ -13,6 +13,42 @@ import SupportForm from "@/components/portal/SupportForm";
 import HistoryTab from "@/components/portal/HistoryTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const RECEIPT_BUNDLE_LABELS: Record<string, string> = {
+  tribute: "1 Cleaning + 1 Flower Placement / Year",
+  remembrance: "2 Cleanings + 2 Flower Placements / Year",
+  devotion: "3 Cleanings + 3 Flower Placements / Year",
+  eternal: "4 Cleanings + 4 Flower Placements / Year",
+  flower_1: "1 Flower Placement",
+  flower_2: "2 Flower Placements",
+  flower_3: "3 Flower Placements",
+  flower_4: "4 Flower Placements",
+  keeper: "2 Cleanings / Year",
+  sentinel: "3 Cleanings / Year",
+  legacy: "4 Cleanings / Year",
+};
+
+const RECEIPT_ADDON_LABELS: Record<string, string> = {
+  damage_report: "Damage Documentation Report",
+  inscription_repainting: "Inscription Repainting",
+  weeding: "Weeding & Plot Edging",
+  flag_placement: "Flag Placement",
+  bronze_cleaning: "Bronze Marker Specialized Cleaning",
+  crack_repair: "Stone Crack / Chip Repair",
+  video_documentation: "Video Documentation",
+};
+
+function getReceiptAddOns(order: any): Array<{ label: string; amount: number }> {
+  if (!Array.isArray(order.add_ons)) return [];
+  return order.add_ons.map((a: any) => {
+    if (typeof a === "string") return { label: RECEIPT_ADDON_LABELS[a] || a, amount: 0 };
+    const id = a?.id ?? a?.key ?? "";
+    return {
+      label: a?.label || RECEIPT_ADDON_LABELS[id] || id || "Add-on",
+      amount: Number(a?.price ?? a?.amount ?? 0),
+    };
+  });
+}
+
 function downloadReceiptPdf(order: any, monument: any, profile: any) {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const left = 50;
