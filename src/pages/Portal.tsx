@@ -452,30 +452,43 @@ const Portal = () => {
                         </div>
 
                         {monument && (
-                          <div className="text-xs text-muted-foreground">
-                            <span className="font-medium text-foreground">{monument.cemetery_name}</span>
-                            {monument.section ? ` · Sec ${monument.section}` : ""}
-                            {monument.lot_number ? `, Lot ${monument.lot_number}` : ""}
+                          <div className="rounded-lg bg-secondary/40 px-3 py-2 space-y-0.5">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Monument</p>
+                            <p className="text-xs font-medium text-foreground">{monument.cemetery_name}</p>
+                            <p className="text-[11px] text-muted-foreground capitalize">
+                              {String(monument.monument_type ?? "").replace(/_/g, " ")}
+                              {monument.material ? ` · ${String(monument.material).replace(/_/g, " ")}` : ""}
+                            </p>
+                            {(monument.section || monument.lot_number) && (
+                              <p className="text-[11px] text-muted-foreground">
+                                {monument.section ? `Sec ${monument.section}` : ""}
+                                {monument.section && monument.lot_number ? ", " : ""}
+                                {monument.lot_number ? `Lot ${monument.lot_number}` : ""}
+                              </p>
+                            )}
                           </div>
                         )}
 
                         <div className="space-y-1.5 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Service</span>
-                            <span>${Number(o.base_price ?? 0).toFixed(2)}</span>
-                          </div>
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Line items</p>
+                          {Number(o.base_price ?? 0) > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Monument Cleaning</span>
+                              <span>${Number(o.base_price).toFixed(2)}</span>
+                            </div>
+                          )}
                           {Number(o.bundle_price ?? 0) > 0 && (
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Care Plan</span>
+                              <span className="text-muted-foreground">{RECEIPT_BUNDLE_LABELS[o.bundle_id] || "Care Plan"}</span>
                               <span>${Number(o.bundle_price).toFixed(2)}</span>
                             </div>
                           )}
-                          {Number(o.add_ons_total ?? 0) > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Add-ons</span>
-                              <span>${Number(o.add_ons_total).toFixed(2)}</span>
+                          {getReceiptAddOns(o).map((a, i) => (
+                            <div key={i} className="flex justify-between">
+                              <span className="text-muted-foreground">Add-on: {a.label}</span>
+                              <span>{a.amount > 0 ? `$${a.amount.toFixed(2)}` : ""}</span>
                             </div>
-                          )}
+                          ))}
                           {Number(o.travel_fee ?? 0) > 0 && (
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">Travel Fee</span>
