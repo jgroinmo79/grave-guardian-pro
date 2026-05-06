@@ -350,6 +350,17 @@ const Portal = () => {
                             Payment ID: {o.stripe_payment_intent_id.slice(0, 20)}…
                           </p>
                         )}
+
+                        <div className="pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-7 gap-1"
+                            onClick={() => downloadReceiptPdf(o, monument, profile)}
+                          >
+                            <Download className="w-3 h-3" /> Download PDF
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
