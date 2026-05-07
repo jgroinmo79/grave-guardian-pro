@@ -29,6 +29,27 @@ export function holidayToDate(holiday: string, year: number, customDateStr?: str
       return computeEaster(year);
     case "Christmas":
       return new Date(year, 11, 25);
+    case "Veterans Day":
+      return new Date(year, 10, 11);
+    case "Halloween":
+      return new Date(year, 9, 31);
+    case "Independence Day":
+    case "Fourth of July":
+      return new Date(year, 6, 4);
+    case "Valentine's Day":
+      return new Date(year, 1, 14);
+    case "New Year's Day":
+      return new Date(year, 0, 1);
+    case "Thanksgiving": {
+      // 4th Thursday of November
+      const nov1 = new Date(year, 10, 1);
+      const firstThu = nov1.getDay() <= 4 ? 5 - nov1.getDay() : 12 - nov1.getDay();
+      return new Date(year, 10, firstThu + 21);
+    }
+    case "Date of passing":
+    case "Birthday of deceased":
+    case "Anniversary":
+    case "Other":
     case "Deceased's Birthday":
     case "Deceased's Anniversary": {
       if (!customDateStr) return null;
