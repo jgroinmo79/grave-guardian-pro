@@ -118,6 +118,24 @@ const BookingFlow = () => {
         render: (d, u) => <ServiceStep data={d} update={u} />,
         canProceed: (d) => d.selectedOffer !== '' || d.selectedMaintenancePlan !== '' || d.selectedFlowerPlan !== '' || d.selectedFlowerOnly !== '',
       },
+    );
+
+    // Optional flower add-on step for cleaning flows (one-time or annual maintenance).
+    // Skipped entirely for flower-only intent and the legacy combined "flower plan".
+    const hasCleaningSelection =
+      !isFlowerOnly &&
+      !data.selectedFlowerPlan &&
+      (data.selectedOffer === 'cleaning' || !!data.selectedMaintenancePlan);
+    if (hasCleaningSelection) {
+      base.push({
+        id: 'cleaning-flower-addon',
+        render: (d, u) => <CleaningFlowerAddonStep data={d} update={u} />,
+        // Always skippable — empty array is a valid "no thanks" answer.
+        canProceed: () => true,
+      });
+    }
+
+    base.push(
       {
         id: 'intent',
         render: (d, u) => <IntentStep data={d} update={u} />,
