@@ -59,7 +59,10 @@ const CheckoutStep = ({ data }: Props) => {
 
   // Check if we have flower placements to display
   const hasFlowerPlacements = (flowerPlan || flowerOnly) && data.selectedHolidays.length > 0;
-  const arrangementIds = Object.values(data.selectedArrangements).filter(Boolean);
+  const arrangementIds = Array.from(new Set([
+    ...Object.values(data.selectedArrangements).filter(Boolean),
+    ...cleaningFlowerAddons.map((a) => a.arrangementId).filter(Boolean),
+  ]));
 
   // Fetch arrangement names for display
   const { data: arrangements = [] } = useQuery({
