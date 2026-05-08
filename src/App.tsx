@@ -97,6 +97,7 @@ const App = () => (
               <Route path="memorials" element={<AdminMemorials />} />
               <Route path="ffc-scraper" element={<FfcScraper />} />
               <Route path="flower-catalog" element={<FlowerCatalog />} />
+              <Route path="addons" element={<AdminAddons />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />
