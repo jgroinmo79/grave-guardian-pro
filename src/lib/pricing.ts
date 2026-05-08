@@ -89,10 +89,10 @@ export const FLOWER_PLAN_PRICES: Record<MonumentType, Record<string, number>> = 
 };
 
 export const FLOWER_ONLY_PLANS = [
-  { id: 'flower_1', label: '1 Flower Placement', placements: 1, price: 100 },
-  { id: 'flower_2', label: '2 Flower Placements', placements: 2, price: 175 },
-  { id: 'flower_3', label: '3 Flower Placements', placements: 3, price: 250 },
-  { id: 'flower_4', label: '4 Flower Placements', placements: 4, price: 325 },
+  { id: 'flower_1', label: '1 Flower Placement', placements: 1, price: 125 },
+  { id: 'flower_2', label: '2 Flower Placements', placements: 2, price: 200 },
+  { id: 'flower_3', label: '3 Flower Placements', placements: 3, price: 275 },
+  { id: 'flower_4', label: '4 Flower Placements', placements: 4, price: 350 },
 ];
 
 // ===== New plan-spec pricing helpers (used by the redesigned ServiceStep) =====
@@ -105,7 +105,7 @@ export type IntentChoice = '' | 'monument' | 'flowers' | 'both';
 export const CLEANING_MULTIPLIERS = [1.0, 1.9, 2.75, 3.5] as const;
 
 // Flat flower placement totals (1, 2, 3, 4 placements)
-export const FLOWER_FLAT_TOTALS = [100, 175, 250, 325] as const;
+export const FLOWER_FLAT_TOTALS = [125, 200, 275, 350] as const;
 
 export type ComboPlanId = 'combo_1' | 'combo_2' | 'combo_3' | 'combo_4';
 export type CleaningPlanId = 'cleaning_1' | 'cleaning_2' | 'cleaning_3' | 'cleaning_4';
