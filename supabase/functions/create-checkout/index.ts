@@ -62,11 +62,36 @@ const VETERAN_TYPE_MAP: Record<string, string> = {
   va_niche: "single_marker",
 };
 
-function getTravelFee(miles: number, hasAnnualPlan = false): number {
-  // Annual maintenance plan (keeper/sentinel/legacy) waives Zone 2 (25–75 mi) travel fee.
-  if (hasAnnualPlan && miles > 25 && miles <= 75) return 0;
-  const zone = TRAVEL_ZONES.find((z) => miles <= z.maxMiles);
-  return zone?.fee ?? TRAVEL_ZONES[TRAVEL_ZONES.length - 1].fee;
+async function getTravelFee(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  miles: number,
+  hasAnnualPlan = false,
+): Promise<number> {
+  let zones: { maxMiles: number; fee: number }[] = FALLBACK_TRAVEL_ZONES;
+  let rule = FALLBACK_FREE_TRAVEL;
+  try {
+    const [zonesRes, settingsRes] = await Promise.all([
+      supabaseAdmin.from("travel_zones").select("max_miles, fee").order("sort_order", { ascending: true }),
+      supabaseAdmin.from("pricing_settings").select("*").eq("id", 1).maybeSingle(),
+    ]);
+    if (zonesRes.data && zonesRes.data.length > 0) {
+      zones = zonesRes.data.map((z: any) => ({ maxMiles: Number(z.max_miles), fee: Number(z.fee) }));
+    }
+    if (settingsRes.data) {
+      rule = {
+        enabled: !!settingsRes.data.annual_plan_free_travel_enabled,
+        minMiles: Number(settingsRes.data.annual_plan_free_travel_min_miles),
+        maxMiles: Number(settingsRes.data.annual_plan_free_travel_max_miles),
+      };
+    }
+  } catch (e) {
+    console.warn("[create-checkout] zones/settings load failed, using fallback", e);
+  }
+
+  if (hasAnnualPlan && rule.enabled && miles > rule.minMiles && miles <= rule.maxMiles) return 0;
+  const sorted = [...zones].sort((a, b) => a.maxMiles - b.maxMiles);
+  const zone = sorted.find((z) => miles <= z.maxMiles);
+  return zone?.fee ?? sorted[sorted.length - 1].fee;
 }
 
 serve(async (req) => {
