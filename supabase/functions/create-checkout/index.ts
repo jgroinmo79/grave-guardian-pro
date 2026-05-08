@@ -174,7 +174,13 @@ serve(async (req) => {
 
     // DB enum offer_type only accepts "A" | "B" — coerce any other intent values
     const offer: "A" | "B" = selectedOffer === "B" ? "B" : "A";
-    const basePrice = isVeteran ? Math.round(monument.price * 0.9) : monument.price;
+    // Annual plans (maintenance or flower plan) are all-inclusive — the plan
+    // price replaces the standalone cleaning line item entirely. Match the
+    // in-app review screen logic in CheckoutStep.tsx.
+    const hasAnnualPlan = !!selectedMaintenancePlan || !!selectedFlowerPlan;
+    const showCleaningLine = !hasAnnualPlan;
+    const rawBasePrice = showCleaningLine ? monument.price : 0;
+    const basePrice = isVeteran ? Math.round(rawBasePrice * 0.9) : rawBasePrice;
     const travelFee = await getTravelFee(supabaseAdmin, estimatedMiles || 0, !!selectedMaintenancePlan);
 
     let addOnTotal = 0;
