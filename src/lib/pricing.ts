@@ -271,4 +271,5 @@ export const initialFormData: IntakeFormData = {
   giftRecipientEmail: '',
   giftRecipientPhone: '',
   giftMessage: '',
+  cleaningFlowerAddons: [],
 };
