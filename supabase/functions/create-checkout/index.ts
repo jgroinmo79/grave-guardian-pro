@@ -202,7 +202,37 @@ serve(async (req) => {
       planLabel = FLOWER_ONLY_PLANS[selectedFlowerOnly].label;
     }
 
-    const subtotal = basePrice + travelFee + addOnTotal + planPrice;
+    // ---- Cleaning flower add-ons (GD-ADD-FLOWER) ----
+    // Allowed only for the cleaning flow (one-time or annual maintenance).
+    // Standalone flower-only and the legacy "flower plan" path don't accept
+    // these per-visit add-ons.
+    const FLOWER_ADDON_PRICE = 50;
+    const PLAN_VISIT_COUNT: Record<string, number> = {
+      keeper: 2,
+      sentinel: 3,
+      legacy: 4,
+    };
+    const allowedAddonVisits = selectedFlowerOnly || selectedFlowerPlan
+      ? 0
+      : selectedMaintenancePlan
+        ? (PLAN_VISIT_COUNT[selectedMaintenancePlan] ?? 0)
+        : 1;
+    const seenVisits = new Set<number>();
+    const cleaningFlowerAddons: { visitNumber: number; arrangementId: string }[] = [];
+    if (Array.isArray(rawCleaningFlowerAddons)) {
+      for (const entry of rawCleaningFlowerAddons) {
+        const vn = Number(entry?.visitNumber);
+        const aid = String(entry?.arrangementId ?? "").trim();
+        if (!aid) continue;
+        if (!Number.isInteger(vn) || vn < 1 || vn > allowedAddonVisits) continue;
+        if (seenVisits.has(vn)) continue;
+        seenVisits.add(vn);
+        cleaningFlowerAddons.push({ visitNumber: vn, arrangementId: aid });
+      }
+    }
+    const cleaningFlowerAddonTotal = cleaningFlowerAddons.length * FLOWER_ADDON_PRICE;
+
+    const subtotal = basePrice + travelFee + addOnTotal + planPrice + cleaningFlowerAddonTotal;
 
     const effectiveUserId = userId;
     if (!effectiveUserId) {
