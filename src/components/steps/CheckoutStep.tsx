@@ -169,6 +169,7 @@ const CheckoutStep = ({ data }: Props) => {
           giftRecipientEmail: data.giftRecipientEmail || null,
           giftRecipientPhone: data.giftRecipientPhone || null,
           giftMessage: data.giftMessage || null,
+          cleaningFlowerAddons: cleaningFlowerAddons,
         },
       });
 
