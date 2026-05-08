@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Loader2, ArrowLeft, Mail } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-bronze.png";
 
 type AuthMode = "login" | "signup" | "forgot" | "magic-link";
 
