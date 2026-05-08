@@ -360,6 +360,7 @@ serve(async (req) => {
     const orderRecord = { id: orderId };
 
     // 3. Create subscription if annual plan selected — single record per booking
+    let subscriptionId: string | null = null;
     if (selectedMaintenancePlan || selectedFlowerPlan) {
       const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
         const custom = (holidayCustomDates as Record<string, string>)[h];
@@ -388,18 +389,88 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingSub) {
+        subscriptionId = (existingSub as any).id;
         const { error: subUpdateErr } = await supabaseAdmin
           .from("subscriptions")
           .update(subPayload)
-          .eq("id", existingSub.id);
+          .eq("id", subscriptionId);
         if (subUpdateErr) console.error("[create-checkout] Subscription update error:", subUpdateErr);
       } else {
-        const { error: subError } = await supabaseAdmin
+        const { data: newSub, error: subError } = await supabaseAdmin
           .from("subscriptions")
-          .insert(subPayload);
+          .insert(subPayload)
+          .select("id")
+          .single();
         if (subError) console.error("[create-checkout] Subscription insert error:", subError);
+        else subscriptionId = (newSub as any).id;
       }
     }
+
+    // 3b. Persist visit-level flower add-ons.
+    // scheduled_visits rows are auto-created by DB triggers when an order or
+    // subscription is inserted/updated. Look them up and attach GD-ADD-FLOWER
+    // visit_addons rows. Re-checkouts replace existing flower add-ons for the
+    // same visits so the customer's latest selection wins.
+    if (cleaningFlowerAddons.length > 0) {
+      const { data: addonRow, error: addonErr } = await supabaseAdmin
+        .from("addons")
+        .select("id, base_price")
+        .eq("code", "GD-ADD-FLOWER")
+        .maybeSingle();
+
+      if (addonErr || !addonRow) {
+        console.error("[create-checkout] GD-ADD-FLOWER lookup failed", addonErr);
+      } else {
+        // Resolve the scheduled_visits rows we need to attach to.
+        let visitsQuery = supabaseAdmin
+          .from("scheduled_visits")
+          .select("id, visit_number, order_id, subscription_id");
+        if (subscriptionId) {
+          visitsQuery = visitsQuery.eq("subscription_id", subscriptionId);
+        } else {
+          visitsQuery = visitsQuery.eq("order_id", orderRecord.id);
+        }
+        const { data: visits, error: visitsErr } = await visitsQuery;
+        if (visitsErr) {
+          console.error("[create-checkout] scheduled_visits lookup failed", visitsErr);
+        } else if (visits && visits.length > 0) {
+          const byNumber = new Map<number, string>();
+          for (const v of visits as any[]) {
+            byNumber.set(Number(v.visit_number), v.id as string);
+          }
+          const visitIds = Array.from(byNumber.values());
+
+          // Wipe existing flower add-ons for these visits, then re-insert.
+          const { error: delErr } = await supabaseAdmin
+            .from("visit_addons")
+            .delete()
+            .in("visit_id", visitIds)
+            .eq("addon_id", (addonRow as any).id);
+          if (delErr) console.error("[create-checkout] visit_addons cleanup failed", delErr);
+
+          const rowsToInsert = cleaningFlowerAddons
+            .map((a) => {
+              const visitId = byNumber.get(a.visitNumber);
+              if (!visitId) return null;
+              return {
+                visit_id: visitId,
+                addon_id: (addonRow as any).id,
+                applied_price: FLOWER_ADDON_PRICE,
+                selected_options: { arrangement_id: a.arrangementId },
+              };
+            })
+            .filter(Boolean) as any[];
+
+          if (rowsToInsert.length > 0) {
+            const { error: insErr } = await supabaseAdmin
+              .from("visit_addons")
+              .insert(rowsToInsert);
+            if (insErr) console.error("[create-checkout] visit_addons insert failed", insErr);
+          }
+        }
+      }
+    }
+
 
     // 4. Save client-uploaded photos as photo_records (skip if reusing — already saved)
     if (photos && photos.length > 0 && !reusable) {
