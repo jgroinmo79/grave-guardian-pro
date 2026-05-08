@@ -48,7 +48,7 @@ const IntentLandingStep = ({ data, update }: Props) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
         {OPTIONS.map((opt) => {
           const Icon = opt.icon;
           const selected = data.intent === opt.id;
