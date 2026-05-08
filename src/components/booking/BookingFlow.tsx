@@ -183,7 +183,7 @@ const BookingFlow = () => {
     });
 
     return base;
-  }, [intent, isFlowerOnly, needsFlowerDates, flowerPickLimit]);
+  }, [intent, isFlowerOnly, needsFlowerDates, flowerPickLimit, data.selectedOffer, data.selectedMaintenancePlan, data.selectedFlowerPlan]);
 
   // Track abandoned lead on step changes
   useEffect(() => {
