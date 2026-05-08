@@ -20,9 +20,7 @@ const MONUMENT_PRICES: Record<string, { price: number; label: string }> = {
 
 const TRAVEL_ZONES = [
   { maxMiles: 25, fee: 0 },
-  { maxMiles: 50, fee: 40 },
-  { maxMiles: 75, fee: 70 },
-  { maxMiles: 100, fee: 100 },
+  { maxMiles: 75, fee: 65 },
   { maxMiles: 150, fee: 150 },
 ];
 
@@ -62,7 +60,9 @@ const VETERAN_TYPE_MAP: Record<string, string> = {
   va_niche: "single_marker",
 };
 
-function getTravelFee(miles: number): number {
+function getTravelFee(miles: number, hasAnnualPlan = false): number {
+  // Annual maintenance plan (keeper/sentinel/legacy) waives Zone 2 (25–75 mi) travel fee.
+  if (hasAnnualPlan && miles > 25 && miles <= 75) return 0;
   const zone = TRAVEL_ZONES.find((z) => miles <= z.maxMiles);
   return zone?.fee ?? TRAVEL_ZONES[TRAVEL_ZONES.length - 1].fee;
 }
@@ -148,7 +148,7 @@ serve(async (req) => {
     // DB enum offer_type only accepts "A" | "B" — coerce any other intent values
     const offer: "A" | "B" = selectedOffer === "B" ? "B" : "A";
     const basePrice = isVeteran ? Math.round(monument.price * 0.9) : monument.price;
-    const travelFee = getTravelFee(estimatedMiles || 0);
+    const travelFee = getTravelFee(estimatedMiles || 0, !!selectedMaintenancePlan);
 
     let addOnTotal = 0;
     for (const addonId of addOns) {
