@@ -468,6 +468,36 @@ serve(async (req) => {
       });
     }
 
+    // --- Server-side total assertion ---
+    // Stripe line-item total MUST match the in-app calculated subtotal.
+    // If they diverge, fail loudly before creating the Stripe session so a
+    // customer never sees a mismatched amount.
+    const lineItemsTotalCents = lineItems.reduce(
+      (sum, li) => sum + (li.price_data?.unit_amount ?? 0) * (li.quantity ?? 1),
+      0,
+    );
+    const expectedTotalCents = subtotal * 100;
+    if (lineItemsTotalCents !== expectedTotalCents) {
+      console.error("[create-checkout] TOTAL MISMATCH", {
+        lineItemsTotalCents,
+        expectedTotalCents,
+        subtotal,
+        basePrice,
+        travelFee,
+        addOnTotal,
+        planPrice,
+        hasAnnualPlan,
+        isVeteran,
+        lineItems: lineItems.map((li) => ({
+          name: li.price_data?.product_data?.name,
+          unit_amount: li.price_data?.unit_amount,
+          quantity: li.quantity,
+        })),
+      });
+      throw new Error(
+        `Checkout total mismatch: stripe=$${lineItemsTotalCents / 100} vs expected=$${subtotal}`,
+      );
+    }
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
