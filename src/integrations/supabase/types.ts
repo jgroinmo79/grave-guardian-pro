@@ -781,6 +781,66 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_visits: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          order_id: string | null
+          source: string
+          status: string
+          subscription_id: string | null
+          tech_notes: string | null
+          updated_at: string
+          user_id: string
+          visit_date: string
+          visit_number: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          source: string
+          status?: string
+          subscription_id?: string | null
+          tech_notes?: string | null
+          updated_at?: string
+          user_id: string
+          visit_date: string
+          visit_number?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          source?: string
+          status?: string
+          subscription_id?: string | null
+          tech_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          visit_date?: string
+          visit_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_visits_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_visits_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_logs: {
         Row: {
           created_at: string
@@ -1111,6 +1171,14 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      regenerate_subscription_visits: {
+        Args: { _sub_id: string }
+        Returns: undefined
+      }
+      subscription_plan_visit_count: {
+        Args: { _plan: string }
+        Returns: number
       }
     }
     Enums: {
