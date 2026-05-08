@@ -560,7 +560,19 @@ serve(async (req) => {
       });
     }
 
-    if (isVeteran) {
+    // Per-visit flower placement add-ons ($50 each, GD-ADD-FLOWER).
+    for (const a of cleaningFlowerAddons) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: `Flower Placement — Visit ${a.visitNumber}` },
+          unit_amount: FLOWER_ADDON_PRICE * 100,
+        },
+        quantity: 1,
+      });
+    }
+
+
       lineItems.push({
         price_data: {
           currency: "usd",
