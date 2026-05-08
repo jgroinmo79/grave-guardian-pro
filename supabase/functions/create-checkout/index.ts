@@ -235,7 +235,8 @@ serve(async (req) => {
     }
     const cleaningFlowerAddonTotal = cleaningFlowerAddons.length * FLOWER_ADDON_PRICE;
 
-    const subtotal = basePrice + travelFee + addOnTotal + planPrice + cleaningFlowerAddonTotal;
+    const grossSubtotal = basePrice + travelFee + addOnTotal + planPrice + cleaningFlowerAddonTotal;
+    const subtotal = isVeteran ? Math.round(grossSubtotal * 0.9) : grossSubtotal;
 
     const effectiveUserId = userId;
     if (!effectiveUserId) {
