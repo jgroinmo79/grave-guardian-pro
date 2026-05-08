@@ -162,6 +162,8 @@ serve(async (req) => {
       giftMessage,
       // Veteran fields
       veteranMonumentType,
+      // Per-visit flower add-ons (intent === 'monument' flow)
+      cleaningFlowerAddons: rawCleaningFlowerAddons = [],
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
