@@ -12,6 +12,7 @@ interface OrderDetails {
   base_price: number;
   travel_fee: number;
   add_ons_total: number | null;
+  bundle_id: string | null;
   bundle_price: number | null;
   is_veteran: boolean | null;
   is_gift: boolean | null;
