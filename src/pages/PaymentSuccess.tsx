@@ -12,6 +12,7 @@ interface OrderDetails {
   base_price: number;
   travel_fee: number;
   add_ons_total: number | null;
+  bundle_id: string | null;
   bundle_price: number | null;
   is_veteran: boolean | null;
   is_gift: boolean | null;
@@ -52,7 +53,7 @@ const PaymentSuccess = () => {
         .from("orders")
         .select(`
           id, offer, status, total_price, base_price, travel_fee,
-          add_ons_total, bundle_price, is_veteran, is_gift,
+          add_ons_total, bundle_id, bundle_price, is_veteran, is_gift,
           gift_recipient_name, gift_message, shopper_name, deceased_name,
           stripe_payment_status, created_at,
           monuments (
@@ -148,11 +149,22 @@ const PaymentSuccess = () => {
                   <span className="text-muted-foreground">Base Price (Offer {order.offer})</span>
                   <span>${Number(order.base_price).toFixed(2)}</span>
                 </div>
-                {Number(order.travel_fee) > 0 && (
+                {Number(order.travel_fee) > 0 ? (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Travel Fee</span>
+                    <span className="text-muted-foreground">
+                      Travel Fee{order.monuments?.estimated_miles ? ` (${Math.round(order.monuments.estimated_miles)} mi)` : ""}
+                    </span>
                     <span>${Number(order.travel_fee).toFixed(2)}</span>
                   </div>
+                ) : (
+                  ["keeper", "sentinel", "legacy"].includes(order.bundle_id ?? "") &&
+                  (order.monuments?.estimated_miles ?? 0) > 25 &&
+                  (order.monuments?.estimated_miles ?? 0) <= 75 && (
+                    <div className="flex justify-between text-primary">
+                      <span>Travel Fee — Waived (Annual Plan, Zone 2)</span>
+                      <span className="line-through opacity-70">$65.00</span>
+                    </div>
+                  )
                 )}
                 {Number(order.add_ons_total) > 0 && (
                   <div className="flex justify-between">

@@ -370,8 +370,22 @@ serve(async (req) => {
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: "Travel Fee" },
+          product_data: { name: `Travel Fee (${(estimatedMiles || 0).toFixed(0)} mi round trip)` },
           unit_amount: travelFee * 100,
+        },
+        quantity: 1,
+      });
+    } else if (
+      !!selectedMaintenancePlan &&
+      (estimatedMiles || 0) > 25 &&
+      (estimatedMiles || 0) <= 75
+    ) {
+      // Show waived travel as a $0 line so it appears on the Stripe receipt.
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Travel Fee — Waived (Annual Plan, Zone 2)" },
+          unit_amount: 0,
         },
         quantity: 1,
       });
