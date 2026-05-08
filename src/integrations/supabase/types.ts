@@ -715,6 +715,30 @@ export type Database = {
           },
         ]
       }
+      pricing_settings: {
+        Row: {
+          annual_plan_free_travel_enabled: boolean
+          annual_plan_free_travel_max_miles: number
+          annual_plan_free_travel_min_miles: number
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          annual_plan_free_travel_enabled?: boolean
+          annual_plan_free_travel_max_miles?: number
+          annual_plan_free_travel_min_miles?: number
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          annual_plan_free_travel_enabled?: boolean
+          annual_plan_free_travel_max_miles?: number
+          annual_plan_free_travel_min_miles?: number
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -941,6 +965,42 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      travel_zones: {
+        Row: {
+          created_at: string
+          fee: number
+          fee_label: string
+          id: string
+          label: string
+          max_miles: number
+          sort_order: number
+          updated_at: string
+          zone_number: number
+        }
+        Insert: {
+          created_at?: string
+          fee?: number
+          fee_label?: string
+          id?: string
+          label: string
+          max_miles: number
+          sort_order?: number
+          updated_at?: string
+          zone_number: number
+        }
+        Update: {
+          created_at?: string
+          fee?: number
+          fee_label?: string
+          id?: string
+          label?: string
+          max_miles?: number
+          sort_order?: number
+          updated_at?: string
+          zone_number?: number
         }
         Relationships: []
       }
