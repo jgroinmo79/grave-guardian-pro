@@ -388,16 +388,18 @@ serve(async (req) => {
     }
 
     // --- Build Stripe line items ---
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      {
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+
+    if (showCleaningLine) {
+      lineItems.push({
         price_data: {
           currency: "usd",
           product_data: { name: `${monument.label} — Cleaning` },
           unit_amount: basePrice * 100,
         },
         quantity: 1,
-      },
-    ];
+      });
+    }
 
     // Use exact (un-rounded) round-trip miles in the Stripe line item names so
     // the customer can see precisely what distance the fee was calculated from.
