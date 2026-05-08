@@ -139,6 +139,7 @@ export const CUSTOM_DATE_OCCASIONS = [
 
 export const ADD_ONS = [
   { id: 'damage_report', label: 'Damage Documentation Report', price: 65, description: 'Formal shareable document with GPS-timestamped damage photos' },
+  { id: 'holiday_date_lock', label: 'Holiday Date Lock', price: 35, description: 'Guarantee placement is completed before a specific holiday (Memorial Day, Mother\'s Day, Father\'s Day, Christmas)' },
   { id: 'inscription_repainting', label: 'Inscription Repainting', price: 75, priceMax: 150, description: 'Per inscription — $75 to $150' },
   { id: 'weeding', label: 'Weeding & Plot Edging', price: 75, description: 'Standalone weeding and edging — $75+' },
   { id: 'flag_placement', label: 'Flag Placement', price: 35, description: 'American flag installation' },
