@@ -250,6 +250,15 @@ const CheckoutStep = ({ data }: Props) => {
             </div>
           )}
 
+          {!!data.selectedMaintenancePlan && data.estimatedMiles > 25 && data.estimatedMiles <= 75 && (
+            <div className="flex justify-between items-center text-sm rounded-md border border-primary/40 bg-primary/10 px-3 py-2">
+              <span className="text-primary font-semibold">
+                ✓ Free travel with annual plan (Zone 2)
+              </span>
+              <span className="text-primary font-semibold line-through opacity-70">$65</span>
+            </div>
+          )}
+
           {selectedAddOns.map((a) => (
             <div key={a.id} className="flex justify-between text-sm">
               <span>{a.label}</span>
