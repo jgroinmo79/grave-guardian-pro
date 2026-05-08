@@ -48,6 +48,7 @@ const items = [
   { title: "Memorials", url: "/admin/memorials", icon: Landmark },
   { title: "Email Signups", url: "/admin/signups", icon: Mail },
   { title: "Flower Catalog", url: "/admin/flower-catalog", icon: Flower2 },
+  { title: "Add-Ons", url: "/admin/addons", icon: Package },
 ];
 
 export function AdminSidebar() {
