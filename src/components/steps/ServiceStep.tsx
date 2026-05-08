@@ -2,10 +2,9 @@ import {
   IntakeFormData,
   MonumentType,
   MONUMENT_PRICES,
+  MAINTENANCE_PLAN_PRICES,
   SERVICE_FEATURES,
-  cleaningPlanPrice,
   flowerFlatPrice,
-  comboPlanPrice,
 } from "@/lib/pricing";
 import { Check, Sparkles, Flower2, Star } from "lucide-react";
 
