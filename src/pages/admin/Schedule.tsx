@@ -179,6 +179,8 @@ const AdminSchedule = () => {
       toast({ title: "Order scheduled" });
       // Background-refresh calendar view
       queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-calendar-visits"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-schedule-plan-visits"] });
       queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
     },
   });
