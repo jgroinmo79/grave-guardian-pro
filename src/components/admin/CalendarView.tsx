@@ -141,7 +141,7 @@ export function CalendarView({ onSelectOrder }: { onSelectOrder?: (id: string) =
     };
 
     // Regular orders
-    const FLOWER_BUNDLE_IDS = ["tribute", "remembrance", "devotion", "eternal", "flower_1", "flower_2", "flower_3", "flower_4"];
+    const FLOWER_BUNDLE_IDS = ["flower_1", "flower_2", "flower_3", "flower_4"];
     orders?.forEach((o) => {
       if (!o.scheduled_date) return;
       const isFlowerBundle = o.bundle_id ? FLOWER_BUNDLE_IDS.includes(o.bundle_id) : false;

@@ -2,10 +2,9 @@ import {
   IntakeFormData,
   MonumentType,
   MONUMENT_PRICES,
+  MAINTENANCE_PLAN_PRICES,
   SERVICE_FEATURES,
-  cleaningPlanPrice,
   flowerFlatPrice,
-  comboPlanPrice,
 } from "@/lib/pricing";
 import { Check, Sparkles, Flower2, Star } from "lucide-react";
 
@@ -36,78 +35,45 @@ const baseReset: Partial<IntakeFormData> = {
   selectedArrangements: {},
 };
 
-const buildCleaningOnlyPlans = (B: number): PlanCard[] => [
-  {
-    key: 'cleaning_1',
-    title: '1 Cleaning',
-    description: 'A single, thorough monument cleaning visit.',
-    price: cleaningPlanPrice(B, 1),
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning' }),
-    isSelected: (d) => d.selectedOffer === 'cleaning' && !d.selectedMaintenancePlan && !d.selectedFlowerPlan && !d.selectedFlowerOnly,
-  },
-  {
-    key: 'keeper',
-    title: '2 Cleanings',
-    description: 'Two cleaning visits across the year — spring and fall.',
-    price: cleaningPlanPrice(B, 2),
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedMaintenancePlan: 'keeper' }),
-    isSelected: (d) => d.selectedMaintenancePlan === 'keeper',
-  },
-  {
-    key: 'sentinel',
-    title: '3 Cleanings',
-    description: 'Three cleaning visits — spaced through the year.',
-    price: cleaningPlanPrice(B, 3),
-    bestValue: true,
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedMaintenancePlan: 'sentinel' }),
-    isSelected: (d) => d.selectedMaintenancePlan === 'sentinel',
-  },
-  {
-    key: 'legacy',
-    title: '4 Cleanings',
-    description: 'Four cleaning visits — full year of premium care.',
-    price: cleaningPlanPrice(B, 4),
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedMaintenancePlan: 'legacy' }),
-    isSelected: (d) => d.selectedMaintenancePlan === 'legacy',
-  },
-];
-
-const buildComboPlans = (B: number): PlanCard[] => [
-  {
-    key: 'tribute',
-    title: '1 Cleaning + 1 Placement',
-    description: 'A single cleaning paired with one flower placement.',
-    price: comboPlanPrice(B, 1),
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedFlowerPlan: 'tribute' }),
-    isSelected: (d) => d.selectedFlowerPlan === 'tribute',
-  },
-  {
-    key: 'remembrance',
-    title: '2 Cleanings + 2 Placements',
-    description: 'Two cleanings and two flower placements through the year.',
-    price: comboPlanPrice(B, 2),
-    bestValue: true,
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedFlowerPlan: 'remembrance' }),
-    isSelected: (d) => d.selectedFlowerPlan === 'remembrance',
-  },
-  {
-    key: 'devotion',
-    title: '3 Cleanings + 3 Placements',
-    description: 'Three cleanings and three flower placements — premium care.',
-    price: comboPlanPrice(B, 3),
-    bestValue: true,
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedFlowerPlan: 'devotion' }),
-    isSelected: (d) => d.selectedFlowerPlan === 'devotion',
-  },
-  {
-    key: 'eternal',
-    title: '4 Cleanings + 4 Placements',
-    description: 'Full annual coverage — four of each, the highest tier.',
-    price: comboPlanPrice(B, 4),
-    apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedFlowerPlan: 'eternal' }),
-    isSelected: (d) => d.selectedFlowerPlan === 'eternal',
-  },
-];
+const buildCleaningOnlyPlans = (monumentType: MonumentType): PlanCard[] => {
+  const prices = MAINTENANCE_PLAN_PRICES[monumentType];
+  const base = MONUMENT_PRICES[monumentType].price;
+  return [
+    {
+      key: 'cleaning_1',
+      title: '1 Cleaning',
+      description: 'A single, thorough monument cleaning visit.',
+      price: base,
+      apply: () => ({ ...baseReset, selectedOffer: 'cleaning' }),
+      isSelected: (d) => d.selectedOffer === 'cleaning' && !d.selectedMaintenancePlan && !d.selectedFlowerPlan && !d.selectedFlowerOnly,
+    },
+    {
+      key: 'keeper',
+      title: '2 Cleanings / Year',
+      description: 'Two cleaning visits across the year — spring and fall.',
+      price: prices.keeper,
+      apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedMaintenancePlan: 'keeper' }),
+      isSelected: (d) => d.selectedMaintenancePlan === 'keeper',
+    },
+    {
+      key: 'sentinel',
+      title: '3 Cleanings / Year',
+      description: 'Three cleaning visits — spaced through the year.',
+      price: prices.sentinel,
+      bestValue: true,
+      apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedMaintenancePlan: 'sentinel' }),
+      isSelected: (d) => d.selectedMaintenancePlan === 'sentinel',
+    },
+    {
+      key: 'legacy',
+      title: '4 Cleanings / Year',
+      description: 'Four cleaning visits — full year of premium care.',
+      price: prices.legacy,
+      apply: () => ({ ...baseReset, selectedOffer: 'cleaning', selectedMaintenancePlan: 'legacy' }),
+      isSelected: (d) => d.selectedMaintenancePlan === 'legacy',
+    },
+  ];
+};
 
 const buildFlowerOnlyPlans = (): PlanCard[] => [
   {
@@ -173,15 +139,10 @@ const ServiceStep = ({ data, update }: Props) => {
         Please go back and select a monument type first.
       </div>
     );
-  } else if (intent === 'both') {
-    plans = buildComboPlans(monument.price);
-    heading = 'Choose Your Care + Flower Plan';
-    subheading = `Pricing based on your ${monument.label} ($${monument.price} base).`;
-    Icon = Flower2;
   } else {
-    plans = buildCleaningOnlyPlans(monument.price);
+    plans = buildCleaningOnlyPlans(effectiveType!);
     heading = 'Choose Your Monument Care Plan';
-    subheading = `Pricing based on your ${monument.label} ($${monument.price} base).`;
+    subheading = `Pricing based on your ${monument.label}.`;
     Icon = Sparkles;
   }
 

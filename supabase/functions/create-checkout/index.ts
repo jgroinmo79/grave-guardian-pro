@@ -34,36 +34,19 @@ const ADD_ONS: Record<string, { label: string; price: number }> = {
 };
 
 const MAINTENANCE_PLAN_PRICES: Record<string, Record<string, number>> = {
-  single_marker: { keeper: 238, sentinel: 344, legacy: 438 },
-  double_marker: { keeper: 285, sentinel: 413, legacy: 525 },
-  single_slant: { keeper: 285, sentinel: 413, legacy: 525 },
-  single_upright: { keeper: 333, sentinel: 481, legacy: 613 },
-  double_slant: { keeper: 380, sentinel: 550, legacy: 700 },
-  double_upright: { keeper: 428, sentinel: 619, legacy: 788 },
-  grave_ledger: { keeper: 523, sentinel: 756, legacy: 963 },
+  single_marker: { keeper: 229, sentinel: 325, legacy: 399 },
+  single_slant: { keeper: 315, sentinel: 445, legacy: 555 },
+  double_marker: { keeper: 329, sentinel: 469, legacy: 585 },
+  single_upright: { keeper: 379, sentinel: 539, legacy: 689 },
+  double_slant: { keeper: 469, sentinel: 669, legacy: 849 },
+  double_upright: { keeper: 529, sentinel: 759, legacy: 969 },
+  grave_ledger: { keeper: 745, sentinel: 1079, legacy: 1389 },
 };
 
 const MAINTENANCE_PLANS: Record<string, string> = {
   keeper: '2 Cleanings / Year',
   sentinel: '3 Cleanings / Year',
   legacy: '4 Cleanings / Year',
-};
-
-const FLOWER_PLAN_PRICES: Record<string, Record<string, number>> = {
-  single_marker: { tribute: 225, remembrance: 413, devotion: 594, eternal: 763 },
-  double_marker: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
-  single_slant: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
-  single_upright: { tribute: 275, remembrance: 508, devotion: 731, eternal: 938 },
-  double_slant: { tribute: 300, remembrance: 555, devotion: 800, eternal: 1025 },
-  double_upright: { tribute: 325, remembrance: 603, devotion: 869, eternal: 1113 },
-  grave_ledger: { tribute: 375, remembrance: 698, devotion: 1006, eternal: 1288 },
-};
-
-const FLOWER_PLANS_LABELS: Record<string, string> = {
-  tribute: '1 Cleaning + 1 Flower Placement / Year',
-  remembrance: '2 Cleanings + 2 Flower Placements / Year',
-  devotion: '3 Cleanings + 3 Flower Placements / Year',
-  eternal: '4 Cleanings + 4 Flower Placements / Year',
 };
 
 const FLOWER_ONLY_PLANS: Record<string, { label: string; price: number }> = {
@@ -179,9 +162,6 @@ serve(async (req) => {
     if (selectedMaintenancePlan && MAINTENANCE_PLAN_PRICES[monumentType]?.[selectedMaintenancePlan]) {
       planPrice = MAINTENANCE_PLAN_PRICES[monumentType][selectedMaintenancePlan];
       planLabel = MAINTENANCE_PLANS[selectedMaintenancePlan] || selectedMaintenancePlan;
-    } else if (selectedFlowerPlan && FLOWER_PLAN_PRICES[monumentType]?.[selectedFlowerPlan]) {
-      planPrice = FLOWER_PLAN_PRICES[monumentType][selectedFlowerPlan];
-      planLabel = FLOWER_PLANS_LABELS[selectedFlowerPlan] || selectedFlowerPlan;
     } else if (selectedFlowerOnly && FLOWER_ONLY_PLANS[selectedFlowerOnly]) {
       planPrice = FLOWER_ONLY_PLANS[selectedFlowerOnly].price;
       planLabel = FLOWER_ONLY_PLANS[selectedFlowerOnly].label;

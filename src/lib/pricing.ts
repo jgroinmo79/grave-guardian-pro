@@ -52,34 +52,30 @@ export const MAINTENANCE_PLANS = {
   legacy: { label: '4 Cleanings / Year', visits: 4, description: '4 cleaning visits per year' },
 };
 
-// Pricing formula: B × {1.9, 2.75, 3.5} for 2/3/4 cleanings per year
+// Per-monument-type pricing for the 3 annual maintenance plans
 export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
-  single_marker: { keeper: 238, sentinel: 344, legacy: 438 },
-  double_marker: { keeper: 285, sentinel: 413, legacy: 525 },
-  single_slant: { keeper: 285, sentinel: 413, legacy: 525 },
-  single_upright: { keeper: 333, sentinel: 481, legacy: 613 },
-  double_slant: { keeper: 380, sentinel: 550, legacy: 700 },
-  double_upright: { keeper: 428, sentinel: 619, legacy: 788 },
-  grave_ledger: { keeper: 523, sentinel: 756, legacy: 963 },
+  single_marker: { keeper: 229, sentinel: 325, legacy: 399 },
+  single_slant: { keeper: 315, sentinel: 445, legacy: 555 },
+  double_marker: { keeper: 329, sentinel: 469, legacy: 585 },
+  single_upright: { keeper: 379, sentinel: 539, legacy: 689 },
+  double_slant: { keeper: 469, sentinel: 669, legacy: 849 },
+  double_upright: { keeper: 529, sentinel: 759, legacy: 969 },
+  grave_ledger: { keeper: 745, sentinel: 1079, legacy: 1389 },
 };
 
-export const FLOWER_PLANS = {
-  tribute: { label: '1 Cleaning + 1 Flower Placement / Year', cleanings: 1, flowers: 1, description: '1 cleaning + 1 flower placement per year' },
-  remembrance: { label: '2 Cleanings + 2 Flower Placements / Year', cleanings: 2, flowers: 2, description: '2 cleanings + 2 flower placements per year' },
-  devotion: { label: '3 Cleanings + 3 Flower Placements / Year', cleanings: 3, flowers: 3, description: '3 cleanings + 3 flower placements per year' },
-  eternal: { label: '4 Cleanings + 4 Flower Placements / Year', cleanings: 4, flowers: 4, description: '4 cleanings + 4 flower placements per year' },
-};
-
-// Combo pricing: cleaningPlanPrice(B, n) + flowerFlatPrice(n) where n in {1,2,3,4}
-// tribute=1+1, remembrance=2+2, devotion=3+3, eternal=4+4
+// DEPRECATED: Combo cleaning + flower plans (tribute/remembrance/devotion/eternal)
+// have been removed. Flower placements will become a per-visit add-on. Empty
+// objects are preserved here so existing iterators (Object.entries) just render
+// nothing instead of crashing while we migrate callers.
+export const FLOWER_PLANS: Record<string, { label: string; cleanings: number; flowers: number; description: string }> = {};
 export const FLOWER_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
-  single_marker: { tribute: 225, remembrance: 413, devotion: 594, eternal: 763 },
-  double_marker: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
-  single_slant: { tribute: 250, remembrance: 460, devotion: 663, eternal: 850 },
-  single_upright: { tribute: 275, remembrance: 508, devotion: 731, eternal: 938 },
-  double_slant: { tribute: 300, remembrance: 555, devotion: 800, eternal: 1025 },
-  double_upright: { tribute: 325, remembrance: 603, devotion: 869, eternal: 1113 },
-  grave_ledger: { tribute: 375, remembrance: 698, devotion: 1006, eternal: 1288 },
+  single_marker: {},
+  double_marker: {},
+  single_slant: {},
+  single_upright: {},
+  double_slant: {},
+  double_upright: {},
+  grave_ledger: {},
 };
 
 export const FLOWER_ONLY_PLANS = [

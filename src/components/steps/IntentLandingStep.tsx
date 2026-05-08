@@ -1,5 +1,5 @@
 import { IntakeFormData, IntentChoice } from "@/lib/pricing";
-import { Sparkles, Flower2, Heart } from "lucide-react";
+import { Sparkles, Flower2 } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
@@ -18,12 +18,6 @@ const OPTIONS: { id: IntentChoice; title: string; subtitle: string; icon: typeof
     title: 'Flower Placement',
     subtitle: 'The Finer Detail placement only',
     icon: Flower2,
-  },
-  {
-    id: 'both',
-    title: 'Both',
-    subtitle: 'Monument care and flower placement together',
-    icon: Heart,
   },
 ];
 
@@ -54,7 +48,7 @@ const IntentLandingStep = ({ data, update }: Props) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
         {OPTIONS.map((opt) => {
           const Icon = opt.icon;
           const selected = data.intent === opt.id;
