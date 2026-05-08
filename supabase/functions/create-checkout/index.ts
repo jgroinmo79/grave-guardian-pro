@@ -397,6 +397,8 @@ serve(async (req) => {
     // the customer can see precisely what distance the fee was calculated from.
     const exactMiles = Number(estimatedMiles || 0);
     const milesLabel = `${exactMiles} mi round trip`;
+    const isAnnualWaiver =
+      !!selectedMaintenancePlan && exactMiles > 25 && exactMiles <= 75;
 
     if (travelFee > 0) {
       lineItems.push({
@@ -407,16 +409,15 @@ serve(async (req) => {
         },
         quantity: 1,
       });
-    } else if (
-      !!selectedMaintenancePlan &&
-      exactMiles > 25 &&
-      exactMiles <= 75
-    ) {
-      // Show waived travel as a $0 line so it appears on the Stripe receipt.
+    } else {
+      // Always show a $0 travel line so the receipt is explicit about distance.
+      const name = isAnnualWaiver
+        ? `Travel Fee — Waived with Annual Plan (${milesLabel})`
+        : `Travel Fee — Included (${milesLabel})`;
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: `Travel Fee — Waived with Annual Plan (${milesLabel})` },
+          product_data: { name },
           unit_amount: 0,
         },
         quantity: 1,
