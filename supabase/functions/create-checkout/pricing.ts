@@ -14,6 +14,7 @@ export const MONUMENT_PRICES: Record<string, { price: number; label: string }> =
 
 export const ADD_ONS: Record<string, { label: string; price: number }> = {
   damage_report: { label: "Damage Documentation Report", price: 65 },
+  holiday_date_lock: { label: "Holiday Date Lock", price: 35 },
   inscription_repainting: { label: "Inscription Repainting", price: 75 },
   weeding: { label: "Weeding & Plot Edging", price: 75 },
   flag_placement: { label: "Flag Placement", price: 35 },

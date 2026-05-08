@@ -28,6 +28,7 @@ const FALLBACK_FREE_TRAVEL = { enabled: true, minMiles: 25, maxMiles: 75 };
 
 const ADD_ONS: Record<string, { label: string; price: number }> = {
   damage_report: { label: "Damage Documentation Report", price: 65 },
+  holiday_date_lock: { label: "Holiday Date Lock", price: 35 },
   inscription_repainting: { label: "Inscription Repainting", price: 75 },
   weeding: { label: "Weeding & Plot Edging", price: 75 },
   flag_placement: { label: "Flag Placement", price: 35 },
