@@ -174,7 +174,13 @@ serve(async (req) => {
 
     // DB enum offer_type only accepts "A" | "B" — coerce any other intent values
     const offer: "A" | "B" = selectedOffer === "B" ? "B" : "A";
-    const basePrice = isVeteran ? Math.round(monument.price * 0.9) : monument.price;
+    // Annual plans (maintenance or flower plan) are all-inclusive — the plan
+    // price replaces the standalone cleaning line item entirely. Match the
+    // in-app review screen logic in CheckoutStep.tsx.
+    const hasAnnualPlan = !!selectedMaintenancePlan || !!selectedFlowerPlan;
+    const showCleaningLine = !hasAnnualPlan;
+    const rawBasePrice = showCleaningLine ? monument.price : 0;
+    const basePrice = isVeteran ? Math.round(rawBasePrice * 0.9) : rawBasePrice;
     const travelFee = await getTravelFee(supabaseAdmin, estimatedMiles || 0, !!selectedMaintenancePlan);
 
     let addOnTotal = 0;
@@ -382,16 +388,18 @@ serve(async (req) => {
     }
 
     // --- Build Stripe line items ---
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      {
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+
+    if (showCleaningLine) {
+      lineItems.push({
         price_data: {
           currency: "usd",
           product_data: { name: `${monument.label} — Cleaning` },
           unit_amount: basePrice * 100,
         },
         quantity: 1,
-      },
-    ];
+      });
+    }
 
     // Use exact (un-rounded) round-trip miles in the Stripe line item names so
     // the customer can see precisely what distance the fee was calculated from.
@@ -460,6 +468,36 @@ serve(async (req) => {
       });
     }
 
+    // --- Server-side total assertion ---
+    // Stripe line-item total MUST match the in-app calculated subtotal.
+    // If they diverge, fail loudly before creating the Stripe session so a
+    // customer never sees a mismatched amount.
+    const lineItemsTotalCents = lineItems.reduce(
+      (sum, li) => sum + (li.price_data?.unit_amount ?? 0) * (li.quantity ?? 1),
+      0,
+    );
+    const expectedTotalCents = subtotal * 100;
+    if (lineItemsTotalCents !== expectedTotalCents) {
+      console.error("[create-checkout] TOTAL MISMATCH", {
+        lineItemsTotalCents,
+        expectedTotalCents,
+        subtotal,
+        basePrice,
+        travelFee,
+        addOnTotal,
+        planPrice,
+        hasAnnualPlan,
+        isVeteran,
+        lineItems: lineItems.map((li) => ({
+          name: li.price_data?.product_data?.name,
+          unit_amount: li.price_data?.unit_amount,
+          quantity: li.quantity,
+        })),
+      });
+      throw new Error(
+        `Checkout total mismatch: stripe=$${lineItemsTotalCents / 100} vs expected=$${subtotal}`,
+      );
+    }
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
