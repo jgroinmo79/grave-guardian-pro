@@ -21,7 +21,7 @@ const CheckoutStep = ({ data }: Props) => {
 
   const resolvedType = data.monumentType as MonumentType | '';
   const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
-  const travelZone = getTravelFee(data.estimatedMiles);
+  const travelZone = getEffectiveTravelFee(data.estimatedMiles, !!data.selectedMaintenancePlan);
   const travelFee = travelZone.fee;
 
   // Plan lookups
