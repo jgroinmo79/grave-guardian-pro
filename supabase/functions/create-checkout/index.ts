@@ -471,18 +471,6 @@ serve(async (req) => {
       }
     }
 
-    // Per-visit flower placement add-ons ($50 each, GD-ADD-FLOWER).
-    for (const a of cleaningFlowerAddons) {
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: `Flower Placement — Visit ${a.visitNumber}` },
-          unit_amount: FLOWER_ADDON_PRICE * 100,
-        },
-        quantity: 1,
-      });
-    }
-
 
     // 4. Save client-uploaded photos as photo_records (skip if reusing — already saved)
     if (photos && photos.length > 0 && !reusable) {
