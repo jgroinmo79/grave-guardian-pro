@@ -26,16 +26,26 @@ export const MONUMENT_PRICES: Record<MonumentType, MonumentPricing> = {
 
 export const TRAVEL_ZONES = [
   { maxMiles: 25, fee: 0, label: 'Zone 1 (0–25 mi)', feeLabel: 'Included' },
-  { maxMiles: 50, fee: 40, label: 'Zone 2 (26–50 mi)', feeLabel: '$40' },
-  { maxMiles: 75, fee: 70, label: 'Zone 3 (51–75 mi)', feeLabel: '$70' },
-  { maxMiles: 100, fee: 100, label: 'Zone 4 (76–100 mi)', feeLabel: '$100' },
-  { maxMiles: 150, fee: 150, label: 'Zone 5 (101–150 mi)', feeLabel: '$150' },
-  { maxMiles: Infinity, fee: 0, label: 'Zone 6 (150+ mi)', feeLabel: 'Custom Quote' },
+  { maxMiles: 75, fee: 65, label: 'Zone 2 (25–75 mi)', feeLabel: '$65' },
+  { maxMiles: 150, fee: 150, label: 'Zone 3 (75–150 mi)', feeLabel: '$150' },
 ];
 
 export function getTravelFee(miles: number) {
   const zone = TRAVEL_ZONES.find(z => miles <= z.maxMiles);
   return zone ?? TRAVEL_ZONES[TRAVEL_ZONES.length - 1];
+}
+
+/**
+ * Annual maintenance plan customers (keeper / sentinel / legacy) within Zone 2
+ * (25–75 mi) get free travel as a plan benefit. Zone 1 is already free; Zone 3
+ * (75–150 mi) still charges the standard flat fee.
+ */
+export function getEffectiveTravelFee(miles: number, hasAnnualPlan: boolean) {
+  const zone = getTravelFee(miles);
+  if (hasAnnualPlan && miles > 25 && miles <= 75) {
+    return { ...zone, fee: 0, feeLabel: 'Included with annual plan' };
+  }
+  return zone;
 }
 
 export const SERVICE_FEATURES = [
