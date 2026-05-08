@@ -50,10 +50,10 @@ const MAINTENANCE_PLANS: Record<string, string> = {
 };
 
 const FLOWER_ONLY_PLANS: Record<string, { label: string; price: number }> = {
-  flower_1: { label: '1 Flower Placement/yr', price: 100 },
-  flower_2: { label: '2 Flower Placements/yr', price: 175 },
-  flower_3: { label: '3 Flower Placements/yr', price: 250 },
-  flower_4: { label: '4 Flower Placements/yr', price: 325 },
+  flower_1: { label: '1 Flower Placement/yr', price: 125 },
+  flower_2: { label: '2 Flower Placements/yr', price: 200 },
+  flower_3: { label: '3 Flower Placements/yr', price: 275 },
+  flower_4: { label: '4 Flower Placements/yr', price: 350 },
 };
 
 const VETERAN_TYPE_MAP: Record<string, string> = {
