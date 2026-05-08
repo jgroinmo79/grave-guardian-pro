@@ -60,7 +60,9 @@ const VETERAN_TYPE_MAP: Record<string, string> = {
   va_niche: "single_marker",
 };
 
-function getTravelFee(miles: number): number {
+function getTravelFee(miles: number, hasAnnualPlan = false): number {
+  // Annual maintenance plan (keeper/sentinel/legacy) waives Zone 2 (25–75 mi) travel fee.
+  if (hasAnnualPlan && miles > 25 && miles <= 75) return 0;
   const zone = TRAVEL_ZONES.find((z) => miles <= z.maxMiles);
   return zone?.fee ?? TRAVEL_ZONES[TRAVEL_ZONES.length - 1].fee;
 }
