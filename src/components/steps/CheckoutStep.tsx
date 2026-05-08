@@ -22,8 +22,20 @@ const CheckoutStep = ({ data }: Props) => {
 
   const resolvedType = data.monumentType as MonumentType | '';
   const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
-  const travelZone = getEffectiveTravelFee(data.estimatedMiles, !!data.selectedMaintenancePlan);
+  const { data: zoneConfig } = useTravelZones();
+  const hasAnnualPlan = !!data.selectedMaintenancePlan;
+  const travelZone = zoneConfig
+    ? resolveTravelFee(data.estimatedMiles, zoneConfig.zones, zoneConfig.settings, hasAnnualPlan)
+    : { label: "", fee: 0, fee_label: "" };
   const travelFee = travelZone.fee;
+  const showFreeTravelCallout = zoneConfig
+    ? isAnnualPlanFreeTravel(data.estimatedMiles, zoneConfig.settings, hasAnnualPlan)
+    : false;
+  const standardZoneFee = (() => {
+    if (!zoneConfig || !showFreeTravelCallout) return 0;
+    const sorted = [...zoneConfig.zones].sort((a, b) => a.max_miles - b.max_miles);
+    return (sorted.find((z) => data.estimatedMiles <= z.max_miles)?.fee) ?? 0;
+  })();
 
   // Plan lookups
   const maintenancePlan = data.selectedMaintenancePlan ? MAINTENANCE_PLANS[data.selectedMaintenancePlan as keyof typeof MAINTENANCE_PLANS] : null;
