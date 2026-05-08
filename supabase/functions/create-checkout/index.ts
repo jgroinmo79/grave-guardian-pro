@@ -175,7 +175,7 @@ serve(async (req) => {
     // DB enum offer_type only accepts "A" | "B" — coerce any other intent values
     const offer: "A" | "B" = selectedOffer === "B" ? "B" : "A";
     const basePrice = isVeteran ? Math.round(monument.price * 0.9) : monument.price;
-    const travelFee = getTravelFee(estimatedMiles || 0, !!selectedMaintenancePlan);
+    const travelFee = await getTravelFee(supabaseAdmin, estimatedMiles || 0, !!selectedMaintenancePlan);
 
     let addOnTotal = 0;
     for (const addonId of addOns) {
