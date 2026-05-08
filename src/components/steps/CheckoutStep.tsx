@@ -51,7 +51,10 @@ const CheckoutStep = ({ data }: Props) => {
   const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
 
   const planPrice = maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0);
-  let subtotal = basePrice + planPrice + travelFee + addOnTotal;
+  const FLOWER_ADDON_PRICE = 50;
+  const cleaningFlowerAddons = data.cleaningFlowerAddons ?? [];
+  const cleaningFlowerAddonTotal = cleaningFlowerAddons.length * FLOWER_ADDON_PRICE;
+  let subtotal = basePrice + planPrice + travelFee + addOnTotal + cleaningFlowerAddonTotal;
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
   // Check if we have flower placements to display
