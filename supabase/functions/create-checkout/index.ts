@@ -20,9 +20,7 @@ const MONUMENT_PRICES: Record<string, { price: number; label: string }> = {
 
 const TRAVEL_ZONES = [
   { maxMiles: 25, fee: 0 },
-  { maxMiles: 50, fee: 40 },
-  { maxMiles: 75, fee: 70 },
-  { maxMiles: 100, fee: 100 },
+  { maxMiles: 75, fee: 65 },
   { maxMiles: 150, fee: 150 },
 ];
 
