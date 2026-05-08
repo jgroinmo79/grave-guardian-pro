@@ -214,6 +214,10 @@ export interface IntakeFormData {
   giftRecipientEmail: string;
   giftRecipientPhone: string;
   giftMessage: string;
+  // Optional flower placements added on top of a one-time cleaning or annual plan.
+  // For one-time cleaning: at most one entry, visitNumber === 1.
+  // For annual plans: 0..N entries (N = plan visit count), each visitNumber unique.
+  cleaningFlowerAddons: { visitNumber: number; arrangementId: string }[];
 }
 
 export const initialFormData: IntakeFormData = {
