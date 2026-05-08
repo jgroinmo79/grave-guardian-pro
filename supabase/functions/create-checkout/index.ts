@@ -18,11 +18,13 @@ const MONUMENT_PRICES: Record<string, { price: number; label: string }> = {
   grave_ledger: { label: "Grave Ledger", price: 275 },
 };
 
-const TRAVEL_ZONES = [
+// Fallback zones if DB read fails. Live config in public.travel_zones.
+const FALLBACK_TRAVEL_ZONES = [
   { maxMiles: 25, fee: 0 },
   { maxMiles: 75, fee: 65 },
   { maxMiles: 150, fee: 150 },
 ];
+const FALLBACK_FREE_TRAVEL = { enabled: true, minMiles: 25, maxMiles: 75 };
 
 const ADD_ONS: Record<string, { label: string; price: number }> = {
   damage_report: { label: "Damage Documentation Report", price: 65 },
