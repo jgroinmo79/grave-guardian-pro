@@ -10,13 +10,13 @@ interface Props {
 }
 
 const MONUMENT_OPTIONS: { value: MonumentType; label: string; price: number }[] = [
-  { value: 'single_marker', label: 'Single Marker', price: 125 },
-  { value: 'double_marker', label: 'Double Marker', price: 150 },
-  { value: 'single_slant', label: 'Single Slant', price: 150 },
-  { value: 'single_upright', label: 'Single Upright', price: 175 },
-  { value: 'double_slant', label: 'Double Slant', price: 200 },
-  { value: 'double_upright', label: 'Double Upright', price: 225 },
-  { value: 'grave_ledger', label: 'Grave Ledger', price: 275 },
+  { value: 'single_marker', label: 'Single Marker', price: 135 },
+  { value: 'double_marker', label: 'Double Marker', price: 195 },
+  { value: 'single_slant', label: 'Single Slant', price: 185 },
+  { value: 'single_upright', label: 'Single Upright', price: 215 },
+  { value: 'double_slant', label: 'Double Slant', price: 265 },
+  { value: 'double_upright', label: 'Double Upright', price: 295 },
+  { value: 'grave_ledger', label: 'Grave Ledger', price: 395 },
 ];
 
 const MATERIALS: { value: MaterialType; label: string }[] = [

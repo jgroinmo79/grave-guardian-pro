@@ -15,13 +15,13 @@ export interface MonumentPricing {
 }
 
 export const MONUMENT_PRICES: Record<MonumentType, MonumentPricing> = {
-  single_marker: { label: 'Single Marker', price: 125, description: 'Ground-level flat marker' },
-  double_marker: { label: 'Double Marker', price: 150, description: 'Wider flat marker for two' },
-  single_slant: { label: 'Single Slant', price: 150, description: 'Angled headstone on a base' },
-  single_upright: { label: 'Single Upright', price: 175, description: 'Standing headstone on a base' },
-  double_slant: { label: 'Double Slant', price: 200, description: 'Wide angled headstone on a base' },
-  double_upright: { label: 'Double Upright', price: 225, description: 'Wide standing headstone on a base' },
-  grave_ledger: { label: 'Grave Ledger', price: 275, description: 'Full-grave flat slab' },
+  single_marker: { label: 'Single Marker', price: 135, description: 'Ground-level flat marker' },
+  double_marker: { label: 'Double Marker', price: 195, description: 'Wider flat marker for two' },
+  single_slant: { label: 'Single Slant', price: 185, description: 'Angled headstone on a base' },
+  single_upright: { label: 'Single Upright', price: 215, description: 'Standing headstone on a base' },
+  double_slant: { label: 'Double Slant', price: 265, description: 'Wide angled headstone on a base' },
+  double_upright: { label: 'Double Upright', price: 295, description: 'Wide standing headstone on a base' },
+  grave_ledger: { label: 'Grave Ledger', price: 395, description: 'Full-grave flat slab' },
 };
 
 export const TRAVEL_ZONES = [
