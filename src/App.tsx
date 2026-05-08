@@ -31,6 +31,7 @@ import FrameBuilder from "./pages/FrameBuilder";
 import AdminMemorials from "./pages/admin/Memorials";
 import FfcScraper from "./pages/admin/FfcScraper";
 import FlowerCatalog from "./pages/admin/FlowerCatalog";
+import AdminAddons from "./pages/admin/Addons";
 import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import LegalDisclosures from "./pages/LegalDisclosures";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="memorials" element={<AdminMemorials />} />
               <Route path="ffc-scraper" element={<FfcScraper />} />
               <Route path="flower-catalog" element={<FlowerCatalog />} />
+              <Route path="addons" element={<AdminAddons />} />
             </Route>
 
             <Route path="/unsubscribe" element={<Unsubscribe />} />

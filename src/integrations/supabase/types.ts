@@ -56,6 +56,95 @@ export type Database = {
         }
         Relationships: []
       }
+      addon_tiers: {
+        Row: {
+          addon_id: string
+          created_at: string
+          id: string
+          max_value: number | null
+          min_value: number | null
+          price: number
+          sort_order: number
+          tier_code: string
+          tier_label: string
+          unit: string
+        }
+        Insert: {
+          addon_id: string
+          created_at?: string
+          id?: string
+          max_value?: number | null
+          min_value?: number | null
+          price?: number
+          sort_order?: number
+          tier_code: string
+          tier_label: string
+          unit?: string
+        }
+        Update: {
+          addon_id?: string
+          created_at?: string
+          id?: string
+          max_value?: number | null
+          min_value?: number | null
+          price?: number
+          sort_order?: number
+          tier_code?: string
+          tier_label?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addon_tiers_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "addons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      addons: {
+        Row: {
+          active: boolean
+          base_price: number
+          code: string
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_tiered: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          base_price?: number
+          code: string
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_tiered?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          base_price?: number
+          code?: string
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_tiered?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       consent_logs: {
         Row: {
           agreed_at: string
@@ -1084,6 +1173,58 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      visit_addons: {
+        Row: {
+          addon_id: string
+          applied_price: number
+          created_at: string
+          id: string
+          selected_options: Json
+          tier_id: string | null
+          visit_id: string
+        }
+        Insert: {
+          addon_id: string
+          applied_price?: number
+          created_at?: string
+          id?: string
+          selected_options?: Json
+          tier_id?: string | null
+          visit_id: string
+        }
+        Update: {
+          addon_id?: string
+          applied_price?: number
+          created_at?: string
+          id?: string
+          selected_options?: Json
+          tier_id?: string | null
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_addons_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "addon_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_addons_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_visits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
