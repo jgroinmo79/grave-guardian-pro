@@ -16,6 +16,7 @@ import HolidayPickerStep from "@/components/steps/HolidayPickerStep";
 
 import FlowerArrangementStep from "@/components/steps/FlowerArrangementStep";
 import FlowerSlotWizardStep from "@/components/steps/FlowerSlotWizardStep";
+import CleaningFlowerAddonStep from "@/components/steps/CleaningFlowerAddonStep";
 import IntentLandingStep from "@/components/steps/IntentLandingStep";
 import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
