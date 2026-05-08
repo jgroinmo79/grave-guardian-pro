@@ -63,6 +63,21 @@ export const MAINTENANCE_PLAN_PRICES: Record<MonumentType, Record<string, number
   grave_ledger: { keeper: 745, sentinel: 1079, legacy: 1389 },
 };
 
+// DEPRECATED: Combo cleaning + flower plans (tribute/remembrance/devotion/eternal)
+// have been removed. Flower placements will become a per-visit add-on. Empty
+// objects are preserved here so existing iterators (Object.entries) just render
+// nothing instead of crashing while we migrate callers.
+export const FLOWER_PLANS: Record<string, { label: string; cleanings: number; flowers: number; description: string }> = {};
+export const FLOWER_PLAN_PRICES: Record<MonumentType, Record<string, number>> = {
+  single_marker: {},
+  double_marker: {},
+  single_slant: {},
+  single_upright: {},
+  double_slant: {},
+  double_upright: {},
+  grave_ledger: {},
+};
+
 export const FLOWER_ONLY_PLANS = [
   { id: 'flower_1', label: '1 Flower Placement', placements: 1, price: 100 },
   { id: 'flower_2', label: '2 Flower Placements', placements: 2, price: 175 },
