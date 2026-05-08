@@ -21,3 +21,5 @@ project_id = "vqgduujezyvoieykzvca"
     verify_jwt = false
   [functions.stripe-webhook]
     verify_jwt = false
+  [functions.request-quote]
+    verify_jwt = false
