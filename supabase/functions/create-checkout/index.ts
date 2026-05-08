@@ -620,11 +620,24 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
+    // Create a one-time 10% off coupon for veterans so the discount applies
+    // proportionally to every line item (cleaning, plan, add-ons, travel).
+    let veteranDiscounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
+    if (isVeteran) {
+      const coupon = await stripe.coupons.create({
+        percent_off: 10,
+        duration: "once",
+        name: "Veteran Discount (10% off)",
+      });
+      veteranDiscounts = [{ coupon: coupon.id }];
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : email,
       line_items: lineItems,
       mode: "payment",
+      discounts: veteranDiscounts,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment-canceled`,
       metadata: {
