@@ -18,6 +18,12 @@ const SectionHeading = ({ title, subtitle }: { title: string; subtitle: string }
 );
 
 const Services = () => {
+  const { data: zoneConfig } = useTravelZones();
+  const travelZones = (zoneConfig?.zones ?? []).map((z) => {
+    const distMatch = z.label.match(/\((.+)\)/);
+    const zoneName = z.label.split(" (")[0] || `Zone ${z.zone_number}`;
+    return [zoneName, distMatch?.[1] ?? "", z.fee_label];
+  });
   const monumentList = Object.entries(MONUMENT_PRICES).map(([, v]) => [v.label, `$${v.price}`]);
 
   const maintenancePlans = Object.entries(MAINTENANCE_PLANS).map(([key, plan]) => ({
