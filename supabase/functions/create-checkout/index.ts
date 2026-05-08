@@ -393,25 +393,30 @@ serve(async (req) => {
       },
     ];
 
+    // Use exact (un-rounded) round-trip miles in the Stripe line item names so
+    // the customer can see precisely what distance the fee was calculated from.
+    const exactMiles = Number(estimatedMiles || 0);
+    const milesLabel = `${exactMiles} mi round trip`;
+
     if (travelFee > 0) {
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: `Travel Fee (${(estimatedMiles || 0).toFixed(0)} mi round trip)` },
+          product_data: { name: `Travel Fee (${milesLabel})` },
           unit_amount: travelFee * 100,
         },
         quantity: 1,
       });
     } else if (
       !!selectedMaintenancePlan &&
-      (estimatedMiles || 0) > 25 &&
-      (estimatedMiles || 0) <= 75
+      exactMiles > 25 &&
+      exactMiles <= 75
     ) {
       // Show waived travel as a $0 line so it appears on the Stripe receipt.
       lineItems.push({
         price_data: {
           currency: "usd",
-          product_data: { name: "Travel Fee — Waived (Annual Plan, Zone 2)" },
+          product_data: { name: `Travel Fee — Waived with Annual Plan (${milesLabel})` },
           unit_amount: 0,
         },
         quantity: 1,
