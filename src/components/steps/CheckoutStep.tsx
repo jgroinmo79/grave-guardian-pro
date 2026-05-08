@@ -263,6 +263,30 @@ const CheckoutStep = ({ data }: Props) => {
             </div>
           )}
 
+          {cleaningFlowerAddons.length > 0 && (
+            <div className="border-t border-border/50 pt-3 space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Flower Add-Ons
+              </p>
+              {cleaningFlowerAddons
+                .slice()
+                .sort((a, b) => a.visitNumber - b.visitNumber)
+                .map((a) => (
+                  <div
+                    key={a.visitNumber}
+                    className="flex justify-between text-xs text-muted-foreground"
+                  >
+                    <span>
+                      Visit {a.visitNumber} — {getArrangementName(a.arrangementId)}
+                    </span>
+                    <span className="font-medium text-foreground">
+                      ${FLOWER_ADDON_PRICE}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          )}
+
           {travelFee > 0 && (
             <div className="flex justify-between text-sm">
               <span>Travel Fee ({travelZone.label})</span>
