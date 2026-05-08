@@ -139,15 +139,10 @@ const ServiceStep = ({ data, update }: Props) => {
         Please go back and select a monument type first.
       </div>
     );
-  } else if (intent === 'both') {
-    plans = buildComboPlans(monument.price);
-    heading = 'Choose Your Care + Flower Plan';
-    subheading = `Pricing based on your ${monument.label} ($${monument.price} base).`;
-    Icon = Flower2;
   } else {
-    plans = buildCleaningOnlyPlans(monument.price);
+    plans = buildCleaningOnlyPlans(effectiveType!);
     heading = 'Choose Your Monument Care Plan';
-    subheading = `Pricing based on your ${monument.label} ($${monument.price} base).`;
+    subheading = `Pricing based on your ${monument.label}.`;
     Icon = Sparkles;
   }
 

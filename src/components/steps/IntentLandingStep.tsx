@@ -1,5 +1,5 @@
 import { IntakeFormData, IntentChoice } from "@/lib/pricing";
-import { Sparkles, Flower2, Heart } from "lucide-react";
+import { Sparkles, Flower2 } from "lucide-react";
 
 interface Props {
   data: IntakeFormData;
@@ -18,12 +18,6 @@ const OPTIONS: { id: IntentChoice; title: string; subtitle: string; icon: typeof
     title: 'Flower Placement',
     subtitle: 'The Finer Detail placement only',
     icon: Flower2,
-  },
-  {
-    id: 'both',
-    title: 'Both',
-    subtitle: 'Monument care and flower placement together',
-    icon: Heart,
   },
 ];
 
