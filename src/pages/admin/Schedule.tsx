@@ -12,7 +12,7 @@ import { CemeteryRouteView } from "@/components/admin/CemeteryRouteView";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { computeSubscriptionVisits } from "@/lib/subscription-schedule";
+
 
 const AdminSchedule = () => {
   const { toast } = useToast();
