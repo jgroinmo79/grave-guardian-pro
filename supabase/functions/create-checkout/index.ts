@@ -572,7 +572,7 @@ serve(async (req) => {
       });
     }
 
-
+    if (isVeteran) {
       lineItems.push({
         price_data: {
           currency: "usd",
