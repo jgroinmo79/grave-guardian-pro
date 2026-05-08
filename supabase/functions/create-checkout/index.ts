@@ -182,8 +182,10 @@ serve(async (req) => {
     // in-app review screen logic in CheckoutStep.tsx.
     const hasAnnualPlan = !!selectedMaintenancePlan || !!selectedFlowerPlan;
     const showCleaningLine = !hasAnnualPlan;
-    const rawBasePrice = showCleaningLine ? monument.price : 0;
-    const basePrice = isVeteran ? Math.round(rawBasePrice * 0.9) : rawBasePrice;
+    // Veteran 10% discount applies to ALL services. We charge full price on
+    // each line item and let Stripe apply a 10% off coupon at checkout so the
+    // discount is visible and proportional across the entire order.
+    const basePrice = showCleaningLine ? monument.price : 0;
     const travelFee = await getTravelFee(supabaseAdmin, estimatedMiles || 0, !!selectedMaintenancePlan);
 
     let addOnTotal = 0;
@@ -233,7 +235,8 @@ serve(async (req) => {
     }
     const cleaningFlowerAddonTotal = cleaningFlowerAddons.length * FLOWER_ADDON_PRICE;
 
-    const subtotal = basePrice + travelFee + addOnTotal + planPrice + cleaningFlowerAddonTotal;
+    const grossSubtotal = basePrice + travelFee + addOnTotal + planPrice + cleaningFlowerAddonTotal;
+    const subtotal = isVeteran ? Math.round(grossSubtotal * 0.9) : grossSubtotal;
 
     const effectiveUserId = userId;
     if (!effectiveUserId) {
@@ -573,30 +576,20 @@ serve(async (req) => {
       });
     }
 
-    if (isVeteran) {
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: "Veteran Discount (10% off cleaning)" },
-          unit_amount: 0,
-        },
-        quantity: 1,
-      });
-    }
-
     // --- Server-side total assertion ---
-    // Stripe line-item total MUST match the in-app calculated subtotal.
-    // If they diverge, fail loudly before creating the Stripe session so a
-    // customer never sees a mismatched amount.
+    // Stripe line items are full-price; the veteran 10% discount is applied
+    // via a Stripe coupon below, so the LINE-ITEM total must equal the
+    // pre-discount gross subtotal.
     const lineItemsTotalCents = lineItems.reduce(
       (sum, li) => sum + (li.price_data?.unit_amount ?? 0) * (li.quantity ?? 1),
       0,
     );
-    const expectedTotalCents = subtotal * 100;
+    const expectedTotalCents = grossSubtotal * 100;
     if (lineItemsTotalCents !== expectedTotalCents) {
       console.error("[create-checkout] TOTAL MISMATCH", {
         lineItemsTotalCents,
         expectedTotalCents,
+        grossSubtotal,
         subtotal,
         basePrice,
         travelFee,
@@ -612,7 +605,7 @@ serve(async (req) => {
         })),
       });
       throw new Error(
-        `Checkout total mismatch: stripe=$${lineItemsTotalCents / 100} vs expected=$${subtotal}`,
+        `Checkout total mismatch: stripe=$${lineItemsTotalCents / 100} vs expected gross=$${grossSubtotal}`,
       );
     }
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -627,11 +620,24 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
+    // Create a one-time 10% off coupon for veterans so the discount applies
+    // proportionally to every line item (cleaning, plan, add-ons, travel).
+    let veteranDiscounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
+    if (isVeteran) {
+      const coupon = await stripe.coupons.create({
+        percent_off: 10,
+        duration: "once",
+        name: "Veteran Discount (10% off)",
+      });
+      veteranDiscounts = [{ coupon: coupon.id }];
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : email,
       line_items: lineItems,
       mode: "payment",
+      discounts: veteranDiscounts,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment-canceled`,
       metadata: {

@@ -77,8 +77,7 @@ export function assembleCheckout(inputs: CheckoutInputs): CheckoutAssembly {
 
   const hasAnnualPlan = !!inputs.selectedMaintenancePlan || !!inputs.selectedFlowerPlan;
   const showCleaningLine = !hasAnnualPlan;
-  const rawBasePrice = showCleaningLine ? monument.price : 0;
-  const basePrice = inputs.isVeteran ? Math.round(rawBasePrice * 0.9) : rawBasePrice;
+  const basePrice = showCleaningLine ? monument.price : 0;
 
   let addOnTotal = 0;
   for (const id of inputs.addOns ?? []) {
@@ -99,7 +98,8 @@ export function assembleCheckout(inputs: CheckoutInputs): CheckoutAssembly {
     planLabel = FLOWER_ONLY_PLANS[inputs.selectedFlowerOnly].label;
   }
 
-  const subtotal = basePrice + inputs.travelFee + addOnTotal + planPrice;
+  const grossSubtotal = basePrice + inputs.travelFee + addOnTotal + planPrice;
+  const subtotal = inputs.isVeteran ? Math.round(grossSubtotal * 0.9) : grossSubtotal;
 
   const lineItems: LineItem[] = [];
   if (showCleaningLine) {
@@ -137,14 +137,6 @@ export function assembleCheckout(inputs: CheckoutInputs): CheckoutAssembly {
 
   if (planPrice > 0) {
     lineItems.push({ name: planLabel, unit_amount: planPrice * 100, quantity: 1 });
-  }
-
-  if (inputs.isVeteran) {
-    lineItems.push({
-      name: "Veteran Discount (10% off cleaning)",
-      unit_amount: 0,
-      quantity: 1,
-    });
   }
 
   const lineItemsTotalCents = lineItems.reduce(
