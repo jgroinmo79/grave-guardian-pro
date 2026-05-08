@@ -99,7 +99,7 @@ export interface SubscriptionVisit {
 
 interface SubscriptionInput {
   id: string;
-  plan: string; // keeper, sentinel, legacy, tribute, remembrance, devotion, eternal
+  plan: string; // keeper, sentinel, legacy
   status: string;
   important_dates: string | null;
   start_date: string;
@@ -113,11 +113,6 @@ const PLAN_CONFIGS: Record<string, { cleanings: number; flowers: number }> = {
   keeper: { cleanings: 2, flowers: 0 },
   sentinel: { cleanings: 3, flowers: 0 },
   legacy: { cleanings: 4, flowers: 0 },
-  // Cleaning + Flower plans — combined trips
-  tribute: { cleanings: 1, flowers: 1 },
-  remembrance: { cleanings: 2, flowers: 2 },
-  devotion: { cleanings: 3, flowers: 3 },
-  eternal: { cleanings: 4, flowers: 4 },
 };
 
 const fmt = (d: Date) => {
