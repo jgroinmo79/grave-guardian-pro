@@ -51,12 +51,18 @@ const CheckoutStep = ({ data }: Props) => {
   const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
 
   const planPrice = maintenancePrice + flowerPlanPrice + (flowerOnly?.price ?? 0);
-  let subtotal = basePrice + planPrice + travelFee + addOnTotal;
+  const FLOWER_ADDON_PRICE = 50;
+  const cleaningFlowerAddons = data.cleaningFlowerAddons ?? [];
+  const cleaningFlowerAddonTotal = cleaningFlowerAddons.length * FLOWER_ADDON_PRICE;
+  let subtotal = basePrice + planPrice + travelFee + addOnTotal + cleaningFlowerAddonTotal;
   if (data.isVeteran) subtotal = Math.round(subtotal * 0.9);
 
   // Check if we have flower placements to display
   const hasFlowerPlacements = (flowerPlan || flowerOnly) && data.selectedHolidays.length > 0;
-  const arrangementIds = Object.values(data.selectedArrangements).filter(Boolean);
+  const arrangementIds = Array.from(new Set([
+    ...Object.values(data.selectedArrangements).filter(Boolean),
+    ...cleaningFlowerAddons.map((a) => a.arrangementId).filter(Boolean),
+  ]));
 
   // Fetch arrangement names for display
   const { data: arrangements = [] } = useQuery({
@@ -163,6 +169,7 @@ const CheckoutStep = ({ data }: Props) => {
           giftRecipientEmail: data.giftRecipientEmail || null,
           giftRecipientPhone: data.giftRecipientPhone || null,
           giftMessage: data.giftMessage || null,
+          cleaningFlowerAddons: cleaningFlowerAddons,
         },
       });
 
@@ -253,6 +260,30 @@ const CheckoutStep = ({ data }: Props) => {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {cleaningFlowerAddons.length > 0 && (
+            <div className="border-t border-border/50 pt-3 space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Flower Add-Ons
+              </p>
+              {cleaningFlowerAddons
+                .slice()
+                .sort((a, b) => a.visitNumber - b.visitNumber)
+                .map((a) => (
+                  <div
+                    key={a.visitNumber}
+                    className="flex justify-between text-xs text-muted-foreground"
+                  >
+                    <span>
+                      Visit {a.visitNumber} — {getArrangementName(a.arrangementId)}
+                    </span>
+                    <span className="font-medium text-foreground">
+                      ${FLOWER_ADDON_PRICE}
+                    </span>
+                  </div>
+                ))}
             </div>
           )}
 

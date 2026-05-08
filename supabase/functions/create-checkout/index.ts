@@ -162,6 +162,8 @@ serve(async (req) => {
       giftMessage,
       // Veteran fields
       veteranMonumentType,
+      // Per-visit flower add-ons (intent === 'monument' flow)
+      cleaningFlowerAddons: rawCleaningFlowerAddons = [],
     } = body;
 
     const email = userEmail || customerEmail || shopperEmail;
@@ -200,7 +202,37 @@ serve(async (req) => {
       planLabel = FLOWER_ONLY_PLANS[selectedFlowerOnly].label;
     }
 
-    const subtotal = basePrice + travelFee + addOnTotal + planPrice;
+    // ---- Cleaning flower add-ons (GD-ADD-FLOWER) ----
+    // Allowed only for the cleaning flow (one-time or annual maintenance).
+    // Standalone flower-only and the legacy "flower plan" path don't accept
+    // these per-visit add-ons.
+    const FLOWER_ADDON_PRICE = 50;
+    const PLAN_VISIT_COUNT: Record<string, number> = {
+      keeper: 2,
+      sentinel: 3,
+      legacy: 4,
+    };
+    const allowedAddonVisits = selectedFlowerOnly || selectedFlowerPlan
+      ? 0
+      : selectedMaintenancePlan
+        ? (PLAN_VISIT_COUNT[selectedMaintenancePlan] ?? 0)
+        : 1;
+    const seenVisits = new Set<number>();
+    const cleaningFlowerAddons: { visitNumber: number; arrangementId: string }[] = [];
+    if (Array.isArray(rawCleaningFlowerAddons)) {
+      for (const entry of rawCleaningFlowerAddons) {
+        const vn = Number(entry?.visitNumber);
+        const aid = String(entry?.arrangementId ?? "").trim();
+        if (!aid) continue;
+        if (!Number.isInteger(vn) || vn < 1 || vn > allowedAddonVisits) continue;
+        if (seenVisits.has(vn)) continue;
+        seenVisits.add(vn);
+        cleaningFlowerAddons.push({ visitNumber: vn, arrangementId: aid });
+      }
+    }
+    const cleaningFlowerAddonTotal = cleaningFlowerAddons.length * FLOWER_ADDON_PRICE;
+
+    const subtotal = basePrice + travelFee + addOnTotal + planPrice + cleaningFlowerAddonTotal;
 
     const effectiveUserId = userId;
     if (!effectiveUserId) {
@@ -328,6 +360,7 @@ serve(async (req) => {
     const orderRecord = { id: orderId };
 
     // 3. Create subscription if annual plan selected — single record per booking
+    let subscriptionId: string | null = null;
     if (selectedMaintenancePlan || selectedFlowerPlan) {
       const importantDatesStr = (selectedHolidays as string[]).map((h: string) => {
         const custom = (holidayCustomDates as Record<string, string>)[h];
@@ -356,18 +389,88 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingSub) {
+        subscriptionId = (existingSub as any).id;
         const { error: subUpdateErr } = await supabaseAdmin
           .from("subscriptions")
           .update(subPayload)
-          .eq("id", existingSub.id);
+          .eq("id", subscriptionId);
         if (subUpdateErr) console.error("[create-checkout] Subscription update error:", subUpdateErr);
       } else {
-        const { error: subError } = await supabaseAdmin
+        const { data: newSub, error: subError } = await supabaseAdmin
           .from("subscriptions")
-          .insert(subPayload);
+          .insert(subPayload)
+          .select("id")
+          .single();
         if (subError) console.error("[create-checkout] Subscription insert error:", subError);
+        else subscriptionId = (newSub as any).id;
       }
     }
+
+    // 3b. Persist visit-level flower add-ons.
+    // scheduled_visits rows are auto-created by DB triggers when an order or
+    // subscription is inserted/updated. Look them up and attach GD-ADD-FLOWER
+    // visit_addons rows. Re-checkouts replace existing flower add-ons for the
+    // same visits so the customer's latest selection wins.
+    if (cleaningFlowerAddons.length > 0) {
+      const { data: addonRow, error: addonErr } = await supabaseAdmin
+        .from("addons")
+        .select("id, base_price")
+        .eq("code", "GD-ADD-FLOWER")
+        .maybeSingle();
+
+      if (addonErr || !addonRow) {
+        console.error("[create-checkout] GD-ADD-FLOWER lookup failed", addonErr);
+      } else {
+        // Resolve the scheduled_visits rows we need to attach to.
+        let visitsQuery = supabaseAdmin
+          .from("scheduled_visits")
+          .select("id, visit_number, order_id, subscription_id");
+        if (subscriptionId) {
+          visitsQuery = visitsQuery.eq("subscription_id", subscriptionId);
+        } else {
+          visitsQuery = visitsQuery.eq("order_id", orderRecord.id);
+        }
+        const { data: visits, error: visitsErr } = await visitsQuery;
+        if (visitsErr) {
+          console.error("[create-checkout] scheduled_visits lookup failed", visitsErr);
+        } else if (visits && visits.length > 0) {
+          const byNumber = new Map<number, string>();
+          for (const v of visits as any[]) {
+            byNumber.set(Number(v.visit_number), v.id as string);
+          }
+          const visitIds = Array.from(byNumber.values());
+
+          // Wipe existing flower add-ons for these visits, then re-insert.
+          const { error: delErr } = await supabaseAdmin
+            .from("visit_addons")
+            .delete()
+            .in("visit_id", visitIds)
+            .eq("addon_id", (addonRow as any).id);
+          if (delErr) console.error("[create-checkout] visit_addons cleanup failed", delErr);
+
+          const rowsToInsert = cleaningFlowerAddons
+            .map((a) => {
+              const visitId = byNumber.get(a.visitNumber);
+              if (!visitId) return null;
+              return {
+                visit_id: visitId,
+                addon_id: (addonRow as any).id,
+                applied_price: FLOWER_ADDON_PRICE,
+                selected_options: { arrangement_id: a.arrangementId },
+              };
+            })
+            .filter(Boolean) as any[];
+
+          if (rowsToInsert.length > 0) {
+            const { error: insErr } = await supabaseAdmin
+              .from("visit_addons")
+              .insert(rowsToInsert);
+            if (insErr) console.error("[create-checkout] visit_addons insert failed", insErr);
+          }
+        }
+      }
+    }
+
 
     // 4. Save client-uploaded photos as photo_records (skip if reusing — already saved)
     if (photos && photos.length > 0 && !reusable) {
@@ -457,6 +560,18 @@ serve(async (req) => {
       });
     }
 
+    // Per-visit flower placement add-ons ($50 each, GD-ADD-FLOWER).
+    for (const a of cleaningFlowerAddons) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: `Flower Placement — Visit ${a.visitNumber}` },
+          unit_amount: FLOWER_ADDON_PRICE * 100,
+        },
+        quantity: 1,
+      });
+    }
+
     if (isVeteran) {
       lineItems.push({
         price_data: {
@@ -486,6 +601,7 @@ serve(async (req) => {
         travelFee,
         addOnTotal,
         planPrice,
+        cleaningFlowerAddonTotal,
         hasAnnualPlan,
         isVeteran,
         lineItems: lineItems.map((li) => ({

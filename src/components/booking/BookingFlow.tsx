@@ -16,6 +16,7 @@ import HolidayPickerStep from "@/components/steps/HolidayPickerStep";
 
 import FlowerArrangementStep from "@/components/steps/FlowerArrangementStep";
 import FlowerSlotWizardStep from "@/components/steps/FlowerSlotWizardStep";
+import CleaningFlowerAddonStep from "@/components/steps/CleaningFlowerAddonStep";
 import IntentLandingStep from "@/components/steps/IntentLandingStep";
 import ScheduleDateStep from "@/components/steps/ScheduleDateStep";
 import ConsentStep from "@/components/steps/ConsentStep";
@@ -117,6 +118,24 @@ const BookingFlow = () => {
         render: (d, u) => <ServiceStep data={d} update={u} />,
         canProceed: (d) => d.selectedOffer !== '' || d.selectedMaintenancePlan !== '' || d.selectedFlowerPlan !== '' || d.selectedFlowerOnly !== '',
       },
+    );
+
+    // Optional flower add-on step for cleaning flows (one-time or annual maintenance).
+    // Skipped entirely for flower-only intent and the legacy combined "flower plan".
+    const hasCleaningSelection =
+      !isFlowerOnly &&
+      !data.selectedFlowerPlan &&
+      (data.selectedOffer === 'cleaning' || !!data.selectedMaintenancePlan);
+    if (hasCleaningSelection) {
+      base.push({
+        id: 'cleaning-flower-addon',
+        render: (d, u) => <CleaningFlowerAddonStep data={d} update={u} />,
+        // Always skippable — empty array is a valid "no thanks" answer.
+        canProceed: () => true,
+      });
+    }
+
+    base.push(
       {
         id: 'intent',
         render: (d, u) => <IntentStep data={d} update={u} />,
@@ -164,7 +183,7 @@ const BookingFlow = () => {
     });
 
     return base;
-  }, [intent, isFlowerOnly, needsFlowerDates, flowerPickLimit]);
+  }, [intent, isFlowerOnly, needsFlowerDates, flowerPickLimit, data.selectedOffer, data.selectedMaintenancePlan, data.selectedFlowerPlan]);
 
   // Track abandoned lead on step changes
   useEffect(() => {
