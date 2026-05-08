@@ -14,10 +14,6 @@ import HistoryTab from "@/components/portal/HistoryTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const RECEIPT_BUNDLE_LABELS: Record<string, string> = {
-  tribute: "1 Cleaning + 1 Flower Placement / Year",
-  remembrance: "2 Cleanings + 2 Flower Placements / Year",
-  devotion: "3 Cleanings + 3 Flower Placements / Year",
-  eternal: "4 Cleanings + 4 Flower Placements / Year",
   flower_1: "1 Flower Placement",
   flower_2: "2 Flower Placements",
   flower_3: "3 Flower Placements",
