@@ -601,6 +601,7 @@ serve(async (req) => {
         travelFee,
         addOnTotal,
         planPrice,
+        cleaningFlowerAddonTotal,
         hasAnnualPlan,
         isVeteran,
         lineItems: lineItems.map((li) => ({
