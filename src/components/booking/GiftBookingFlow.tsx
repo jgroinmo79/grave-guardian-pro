@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-bronze.png";
 import BookingProgress from "./BookingProgress";
 import GiftBuyerStep from "@/components/steps/GiftBuyerStep";
 import GiftHonoreeStep from "@/components/steps/GiftHonoreeStep";
