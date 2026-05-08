@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { IntakeFormData, MONUMENT_PRICES, getEffectiveTravelFee, ADD_ONS, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, MonumentType } from "@/lib/pricing";
+import { IntakeFormData, MONUMENT_PRICES, ADD_ONS, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, MonumentType } from "@/lib/pricing";
+import { useTravelZones, resolveTravelFee, isAnnualPlanFreeTravel } from "@/hooks/useTravelZones";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -21,8 +22,20 @@ const CheckoutStep = ({ data }: Props) => {
 
   const resolvedType = data.monumentType as MonumentType | '';
   const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
-  const travelZone = getEffectiveTravelFee(data.estimatedMiles, !!data.selectedMaintenancePlan);
+  const { data: zoneConfig } = useTravelZones();
+  const hasAnnualPlan = !!data.selectedMaintenancePlan;
+  const travelZone = zoneConfig
+    ? resolveTravelFee(data.estimatedMiles, zoneConfig.zones, zoneConfig.settings, hasAnnualPlan)
+    : { label: "", fee: 0, fee_label: "" };
   const travelFee = travelZone.fee;
+  const showFreeTravelCallout = zoneConfig
+    ? isAnnualPlanFreeTravel(data.estimatedMiles, zoneConfig.settings, hasAnnualPlan)
+    : false;
+  const standardZoneFee = (() => {
+    if (!zoneConfig || !showFreeTravelCallout) return 0;
+    const sorted = [...zoneConfig.zones].sort((a, b) => a.max_miles - b.max_miles);
+    return (sorted.find((z) => data.estimatedMiles <= z.max_miles)?.fee) ?? 0;
+  })();
 
   // Plan lookups
   const maintenancePlan = data.selectedMaintenancePlan ? MAINTENANCE_PLANS[data.selectedMaintenancePlan as keyof typeof MAINTENANCE_PLANS] : null;
@@ -250,12 +263,14 @@ const CheckoutStep = ({ data }: Props) => {
             </div>
           )}
 
-          {!!data.selectedMaintenancePlan && data.estimatedMiles > 25 && data.estimatedMiles <= 75 && (
+          {showFreeTravelCallout && (
             <div className="flex justify-between items-center text-sm rounded-md border border-primary/40 bg-primary/10 px-3 py-2">
               <span className="text-primary font-semibold">
-                ✓ Free travel with annual plan (Zone 2)
+                ✓ Free travel with annual plan
               </span>
-              <span className="text-primary font-semibold line-through opacity-70">$65</span>
+              <span className="text-primary font-semibold line-through opacity-70">
+                ${standardZoneFee}
+              </span>
             </div>
           )}
 

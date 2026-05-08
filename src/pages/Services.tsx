@@ -2,14 +2,13 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
-import { MONUMENT_PRICES, TRAVEL_ZONES, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, SERVICE_FEATURES } from "@/lib/pricing";
+import { MONUMENT_PRICES, MAINTENANCE_PLANS, MAINTENANCE_PLAN_PRICES, FLOWER_PLANS, FLOWER_PLAN_PRICES, FLOWER_ONLY_PLANS, SERVICE_FEATURES } from "@/lib/pricing";
+import { useTravelZones } from "@/hooks/useTravelZones";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0 },
 };
-
-const travelZones = TRAVEL_ZONES.map(z => [z.label.split(" ")[0] + " " + z.label.split(" ")[1], z.label.match(/\((.+)\)/)?.[1] ?? "", z.feeLabel]);
 
 const SectionHeading = ({ title, subtitle }: { title: string; subtitle: string }) => (
   <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6 }} className="max-w-4xl mx-auto text-center mb-12">
@@ -19,6 +18,12 @@ const SectionHeading = ({ title, subtitle }: { title: string; subtitle: string }
 );
 
 const Services = () => {
+  const { data: zoneConfig } = useTravelZones();
+  const travelZones = (zoneConfig?.zones ?? []).map((z) => {
+    const distMatch = z.label.match(/\((.+)\)/);
+    const zoneName = z.label.split(" (")[0] || `Zone ${z.zone_number}`;
+    return [zoneName, distMatch?.[1] ?? "", z.fee_label];
+  });
   const monumentList = Object.entries(MONUMENT_PRICES).map(([, v]) => [v.label, `$${v.price}`]);
 
   const maintenancePlans = Object.entries(MAINTENANCE_PLANS).map(([key, plan]) => ({
