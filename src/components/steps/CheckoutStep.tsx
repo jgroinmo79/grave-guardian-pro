@@ -314,9 +314,9 @@ const CheckoutStep = ({ data }: Props) => {
 
           {data.isVeteran && (
             <div className="flex justify-between text-sm text-primary">
-              <span>Veteran Discount (10%)</span>
+              <span>Veteran Discount (10% off all services)</span>
               <span className="font-semibold">
-                -${Math.round((basePrice + planPrice + travelFee + addOnTotal) * 0.1)}
+                -${Math.round((basePrice + planPrice + travelFee + addOnTotal + cleaningFlowerAddonTotal) * 0.1)}
               </span>
             </div>
           )}
