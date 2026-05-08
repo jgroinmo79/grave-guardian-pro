@@ -310,19 +310,19 @@ const AdminSchedule = () => {
             )}
           </div>
 
-          {/* Flower Placements (from active annual plan subscriptions) */}
+          {/* Plan Visits (from active annual subscriptions, persisted) */}
           <div className="space-y-4">
             <h2 className="text-lg font-display font-semibold flex items-center gap-2">
               <Flower2 className="w-5 h-5 text-primary" />
-              Upcoming Flower Placements
+              Upcoming Plan Visits
             </h2>
-            {!flowerVisits.length ? (
+            {!planVisits?.length ? (
               <div className="rounded-xl border border-border bg-card p-6 text-center">
-                <p className="text-sm text-muted-foreground">No upcoming flower placements.</p>
+                <p className="text-sm text-muted-foreground">No upcoming plan visits.</p>
               </div>
             ) : (
               <div className="grid gap-3">
-                {flowerVisits.map((v) => {
+                {planVisits.map((v) => {
                   const [y, mo, d] = v.date.split("-").map(Number);
                   const placedDate = new Date(y, mo - 1, d);
                   return (
@@ -343,7 +343,7 @@ const AdminSchedule = () => {
                         <p className="text-xs text-muted-foreground">
                           {v.monumentType?.replace(/_/g, " ") ?? "monument"}
                           {v.monumentMaterial ? ` · ${v.monumentMaterial}` : ""}
-                          {" · "}plan: {v.plan}
+                          {" · "}plan: {v.plan} · visit {v.visitNumber}
                         </p>
                         {v.holidayNotes && (
                           <p className="text-xs text-muted-foreground italic">
@@ -353,7 +353,7 @@ const AdminSchedule = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
-                          flower placement
+                          plan visit
                         </span>
                         <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                           <CalendarDays className="w-3 h-3" />
