@@ -263,12 +263,14 @@ const CheckoutStep = ({ data }: Props) => {
             </div>
           )}
 
-          {!!data.selectedMaintenancePlan && data.estimatedMiles > 25 && data.estimatedMiles <= 75 && (
+          {showFreeTravelCallout && (
             <div className="flex justify-between items-center text-sm rounded-md border border-primary/40 bg-primary/10 px-3 py-2">
               <span className="text-primary font-semibold">
-                ✓ Free travel with annual plan (Zone 2)
+                ✓ Free travel with annual plan
               </span>
-              <span className="text-primary font-semibold line-through opacity-70">$65</span>
+              <span className="text-primary font-semibold line-through opacity-70">
+                ${standardZoneFee}
+              </span>
             </div>
           )}
 
