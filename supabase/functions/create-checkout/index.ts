@@ -182,8 +182,10 @@ serve(async (req) => {
     // in-app review screen logic in CheckoutStep.tsx.
     const hasAnnualPlan = !!selectedMaintenancePlan || !!selectedFlowerPlan;
     const showCleaningLine = !hasAnnualPlan;
-    const rawBasePrice = showCleaningLine ? monument.price : 0;
-    const basePrice = isVeteran ? Math.round(rawBasePrice * 0.9) : rawBasePrice;
+    // Veteran 10% discount applies to ALL services. We charge full price on
+    // each line item and let Stripe apply a 10% off coupon at checkout so the
+    // discount is visible and proportional across the entire order.
+    const basePrice = showCleaningLine ? monument.price : 0;
     const travelFee = await getTravelFee(supabaseAdmin, estimatedMiles || 0, !!selectedMaintenancePlan);
 
     let addOnTotal = 0;
