@@ -576,30 +576,20 @@ serve(async (req) => {
       });
     }
 
-    if (isVeteran) {
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: "Veteran Discount (10% off cleaning)" },
-          unit_amount: 0,
-        },
-        quantity: 1,
-      });
-    }
-
     // --- Server-side total assertion ---
-    // Stripe line-item total MUST match the in-app calculated subtotal.
-    // If they diverge, fail loudly before creating the Stripe session so a
-    // customer never sees a mismatched amount.
+    // Stripe line items are full-price; the veteran 10% discount is applied
+    // via a Stripe coupon below, so the LINE-ITEM total must equal the
+    // pre-discount gross subtotal.
     const lineItemsTotalCents = lineItems.reduce(
       (sum, li) => sum + (li.price_data?.unit_amount ?? 0) * (li.quantity ?? 1),
       0,
     );
-    const expectedTotalCents = subtotal * 100;
+    const expectedTotalCents = grossSubtotal * 100;
     if (lineItemsTotalCents !== expectedTotalCents) {
       console.error("[create-checkout] TOTAL MISMATCH", {
         lineItemsTotalCents,
         expectedTotalCents,
+        grossSubtotal,
         subtotal,
         basePrice,
         travelFee,
@@ -615,7 +605,7 @@ serve(async (req) => {
         })),
       });
       throw new Error(
-        `Checkout total mismatch: stripe=$${lineItemsTotalCents / 100} vs expected=$${subtotal}`,
+        `Checkout total mismatch: stripe=$${lineItemsTotalCents / 100} vs expected gross=$${grossSubtotal}`,
       );
     }
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
