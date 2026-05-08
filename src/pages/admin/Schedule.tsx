@@ -12,7 +12,7 @@ import { CemeteryRouteView } from "@/components/admin/CemeteryRouteView";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { computeSubscriptionVisits } from "@/lib/subscription-schedule";
+
 
 const AdminSchedule = () => {
   const { toast } = useToast();
@@ -70,94 +70,54 @@ const AdminSchedule = () => {
     },
   });
 
-  // Active annual plan subscriptions — used to surface flower placement visits
-  const { data: subscriptions } = useQuery({
-    queryKey: ["admin-schedule-subscriptions"],
+  // Upcoming subscription plan visits — read directly from persisted scheduled_visits
+  const { data: planVisits } = useQuery({
+    queryKey: ["admin-schedule-plan-visits"],
     queryFn: async () => {
-      const { data: subs, error } = await supabase
-        .from("subscriptions")
-        .select(`
-          id, plan, status, important_dates, start_date, user_id, monument_id,
-          monuments (cemetery_name, monument_type, material, section, lot_number)
-        `)
-        .eq("status", "active");
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { data: visits, error } = await supabase
+        .from("scheduled_visits")
+        .select("id, subscription_id, visit_date, visit_number, status")
+        .eq("source", "subscription")
+        .eq("status", "scheduled")
+        .gte("visit_date", today)
+        .order("visit_date", { ascending: true });
       if (error) throw error;
-      if (!subs?.length) return [];
-      const userIds = [...new Set(subs.map((s) => s.user_id).filter(Boolean))];
+      if (!visits?.length) return [];
+
+      const subIds = [...new Set(visits.map((v) => v.subscription_id!).filter(Boolean))];
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select(`id, plan, important_dates, user_id, monuments (cemetery_name, monument_type, material, section, lot_number)`)
+        .in("id", subIds);
+      const userIds = [...new Set((subs || []).map((s: any) => s.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, full_name, email")
         .in("user_id", userIds);
-      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
-      return subs.map((s: any) => ({
-        ...s,
-        customerName:
-          profileMap.get(s.user_id)?.full_name ||
-          profileMap.get(s.user_id)?.email ||
-          "Customer",
-      }));
+      const profMap = new Map((profiles || []).map((p: any) => [p.user_id, p.full_name || p.email || "Customer"]));
+      const subMap = new Map((subs || []).map((s: any) => [s.id, s]));
+
+      return visits.map((v) => {
+        const s: any = subMap.get(v.subscription_id!);
+        const m = s?.monuments;
+        return {
+          id: v.id,
+          subscriptionId: v.subscription_id!,
+          date: v.visit_date,
+          visitNumber: v.visit_number,
+          customerName: profMap.get(s?.user_id) || "Customer",
+          cemeteryName: m?.cemetery_name ?? "Unknown",
+          monumentType: m?.monument_type ?? null,
+          monumentMaterial: m?.material ?? null,
+          section: m?.section ?? null,
+          lotNumber: m?.lot_number ?? null,
+          plan: s?.plan ?? "",
+          holidayNotes: s?.important_dates ?? null,
+        };
+      });
     },
   });
-
-  // Derive flower placement visits (cleaning_flowers type) from active subscriptions
-  const flowerVisits = useMemo(() => {
-    if (!subscriptions?.length) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const years = [today.getFullYear(), today.getFullYear() + 1];
-    const visits: Array<{
-      id: string;
-      subscriptionId: string;
-      date: string;
-      customerName: string;
-      cemeteryName: string;
-      monumentType: string | null;
-      monumentMaterial: string | null;
-      section: string | null;
-      lotNumber: string | null;
-      plan: string;
-      holidayNotes: string | null;
-    }> = [];
-    for (const sub of subscriptions) {
-      const m = sub.monuments as any;
-      const importantDates = sub.important_dates as string | null;
-      for (const year of years) {
-        const computed = computeSubscriptionVisits(
-          {
-            id: sub.id,
-            plan: sub.plan,
-            status: sub.status,
-            important_dates: importantDates,
-            start_date: sub.start_date,
-            customerName: sub.customerName,
-            cemeteryName: m?.cemetery_name ?? "Unknown",
-          },
-          year
-        );
-        for (const v of computed) {
-          if (v.type !== "cleaning_flowers") continue;
-          const [y, mo, d] = v.date.split("-").map(Number);
-          if (new Date(y, mo - 1, d) < today) continue;
-          if (visits.find((x) => x.id === v.id)) continue;
-          visits.push({
-            id: v.id,
-            subscriptionId: sub.id,
-            date: v.date,
-            customerName: sub.customerName,
-            cemeteryName: m?.cemetery_name ?? "Unknown",
-            monumentType: m?.monument_type ?? null,
-            monumentMaterial: m?.material ?? null,
-            section: m?.section ?? null,
-            lotNumber: m?.lot_number ?? null,
-            plan: sub.plan,
-            holidayNotes: importantDates,
-          });
-        }
-      }
-    }
-    visits.sort((a, b) => a.date.localeCompare(b.date));
-    return visits;
-  }, [subscriptions]);
 
   const scheduleOrder = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
@@ -219,6 +179,8 @@ const AdminSchedule = () => {
       toast({ title: "Order scheduled" });
       // Background-refresh calendar view
       queryClient.invalidateQueries({ queryKey: ["admin-calendar-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-calendar-visits"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-schedule-plan-visits"] });
       queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
     },
   });
@@ -350,19 +312,19 @@ const AdminSchedule = () => {
             )}
           </div>
 
-          {/* Flower Placements (from active annual plan subscriptions) */}
+          {/* Plan Visits (from active annual subscriptions, persisted) */}
           <div className="space-y-4">
             <h2 className="text-lg font-display font-semibold flex items-center gap-2">
               <Flower2 className="w-5 h-5 text-primary" />
-              Upcoming Flower Placements
+              Upcoming Plan Visits
             </h2>
-            {!flowerVisits.length ? (
+            {!planVisits?.length ? (
               <div className="rounded-xl border border-border bg-card p-6 text-center">
-                <p className="text-sm text-muted-foreground">No upcoming flower placements.</p>
+                <p className="text-sm text-muted-foreground">No upcoming plan visits.</p>
               </div>
             ) : (
               <div className="grid gap-3">
-                {flowerVisits.map((v) => {
+                {planVisits.map((v) => {
                   const [y, mo, d] = v.date.split("-").map(Number);
                   const placedDate = new Date(y, mo - 1, d);
                   return (
@@ -383,7 +345,7 @@ const AdminSchedule = () => {
                         <p className="text-xs text-muted-foreground">
                           {v.monumentType?.replace(/_/g, " ") ?? "monument"}
                           {v.monumentMaterial ? ` · ${v.monumentMaterial}` : ""}
-                          {" · "}plan: {v.plan}
+                          {" · "}plan: {v.plan} · visit {v.visitNumber}
                         </p>
                         {v.holidayNotes && (
                           <p className="text-xs text-muted-foreground italic">
@@ -393,7 +355,7 @@ const AdminSchedule = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
-                          flower placement
+                          plan visit
                         </span>
                         <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                           <CalendarDays className="w-3 h-3" />
