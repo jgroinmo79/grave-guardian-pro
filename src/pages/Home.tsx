@@ -69,7 +69,7 @@ const Home = () => {
             <img
               src={logo}
               alt="Grave Detail Cleaning & Preservation"
-              className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto"
+              className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto text-[#c99669] text-9xl"
             />
           </h1>
           <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>
