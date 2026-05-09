@@ -34,7 +34,7 @@ const PublicNavbar = () => {
     <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "#141414", borderBottom: "1px solid #2C2C2C" }}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
         <Link to="/" className="flex items-center">
-          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 sm:h-14 w-auto" />
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 sm:h-14 w-auto text-[#c99669]" />
         </Link>
 
         {/* Desktop nav */}
