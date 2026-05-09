@@ -617,12 +617,22 @@ serve(async (req) => {
     );
     const expectedTotalCents = subtotal * 100;
     if (lineItemsTotalCents !== expectedTotalCents) {
-...
+      console.error("[create-checkout] Stripe line item total mismatch", {
+        lineItemsTotalCents,
+        expectedTotalCents,
+        orderId: orderRecord.id,
+      });
+      throw new Error("Checkout total mismatch. Please review your order and try again.");
+    }
+
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : email,
+      customer_email: email,
       line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
