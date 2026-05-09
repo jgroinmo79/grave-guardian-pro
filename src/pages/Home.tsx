@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
 import cemeteryBg from "@/assets/cemetery-bg.jpg";
-import logo from "@/assets/logo-main.png";
+import logo from "@/assets/logo-bronze.png";
 
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
@@ -69,7 +69,7 @@ const Home = () => {
             <img
               src={logo}
               alt="Grave Detail Cleaning & Preservation"
-              className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto text-[#c99669] text-9xl"
+              className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto"
             />
           </h1>
           <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>

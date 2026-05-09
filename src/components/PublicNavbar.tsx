@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import logo from "@/assets/logo-main.png";
+import logo from "@/assets/logo-bronze.png";
 
 const NAV_LINKS = [
   { label: "Home", hash: "", route: "/home" },
@@ -34,7 +34,7 @@ const PublicNavbar = () => {
     <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "#141414", borderBottom: "1px solid #2C2C2C" }}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
         <Link to="/" className="flex items-center">
-          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 sm:h-14 w-auto text-[#c99669]" />
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 sm:h-14 w-auto" />
         </Link>
 
         {/* Desktop nav */}

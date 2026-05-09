@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { Loader2, ArrowLeft, Mail } from "lucide-react";
-import logo from "@/assets/logo-main.png";
+import logo from "@/assets/logo-bronze.png";
 
 type AuthMode = "login" | "signup" | "forgot" | "magic-link";
 
@@ -113,7 +113,7 @@ const Auth = () => {
         {/* Logo */}
         <div className="text-center">
           <div
-            className="w-full max-w-sm mx-auto mb-1 aspect-square text-[#c99669]"
+            className="w-full max-w-sm mx-auto mb-1 aspect-square"
             style={{
               backgroundColor: '#C9976B',
               WebkitMaskImage: `url(${logo})`,

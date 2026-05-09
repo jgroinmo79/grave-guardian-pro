@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import logo from "@/assets/logo-main.png";
+import logo from "@/assets/logo-bronze.png";
 import BookingProgress from "./BookingProgress";
 import CemeteryStep from "@/components/steps/CemeteryStep";
 import ContactStep from "@/components/steps/ContactStep";
