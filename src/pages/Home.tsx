@@ -66,20 +66,10 @@ const Home = () => {
           className="max-w-3xl mx-auto relative z-10"
         >
           <h1 className="mb-6">
-            <div
-              aria-label="Grave Detail Cleaning & Preservation"
-              className="w-full max-w-[400px] sm:max-w-[500px] h-32 sm:h-40 mx-auto"
-              style={{
-                backgroundColor: "#C9976B",
-                WebkitMaskImage: `url(${logo})`,
-                maskImage: `url(${logo})`,
-                WebkitMaskRepeat: "no-repeat",
-                maskRepeat: "no-repeat",
-                WebkitMaskPosition: "center",
-                maskPosition: "center",
-                WebkitMaskSize: "contain",
-                maskSize: "contain",
-              }}
+            <img
+              src={logo}
+              alt="Grave Detail Cleaning & Preservation"
+              className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto"
             />
           </h1>
           <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>

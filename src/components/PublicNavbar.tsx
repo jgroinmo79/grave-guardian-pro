@@ -34,21 +34,7 @@ const PublicNavbar = () => {
     <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "#141414", borderBottom: "1px solid #2C2C2C" }}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
         <Link to="/" className="flex items-center">
-          <div
-            aria-label="Grave Detail Cleaning & Preservation"
-            className="h-12 sm:h-14 w-32 sm:w-40"
-            style={{
-              backgroundColor: "#C9976B",
-              WebkitMaskImage: `url(${logo})`,
-              maskImage: `url(${logo})`,
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-            }}
-          />
+          <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 sm:h-14 w-auto" />
         </Link>
 
         {/* Desktop nav */}
