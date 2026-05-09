@@ -182,9 +182,9 @@ serve(async (req) => {
     // in-app review screen logic in CheckoutStep.tsx.
     const hasAnnualPlan = !!selectedMaintenancePlan || !!selectedFlowerPlan;
     const showCleaningLine = !hasAnnualPlan;
-    // Veteran 10% discount applies to ALL services. We charge full price on
-    // each line item and let Stripe apply a 10% off coupon at checkout so the
-    // discount is visible and proportional across the entire order.
+    // Veteran 10% discount applies to ALL services. Do not use Stripe coupons
+    // here because this account uses a restricted key without coupon-write
+    // permissions; the discount is applied inline to each Stripe line item.
     const basePrice = showCleaningLine ? monument.price : 0;
     const travelFee = await getTravelFee(supabaseAdmin, estimatedMiles || 0, !!selectedMaintenancePlan);
 
@@ -617,12 +617,22 @@ serve(async (req) => {
     );
     const expectedTotalCents = subtotal * 100;
     if (lineItemsTotalCents !== expectedTotalCents) {
-...
+      console.error("[create-checkout] Stripe line item total mismatch", {
+        lineItemsTotalCents,
+        expectedTotalCents,
+        orderId: orderRecord.id,
+      });
+      throw new Error("Checkout total mismatch. Please review your order and try again.");
+    }
+
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : email,
+      customer_email: email,
       line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
