@@ -197,9 +197,14 @@ serve(async (req) => {
     // Resolve plan price
     let planPrice = 0;
     let planLabel = '';
-    if (selectedMaintenancePlan && MAINTENANCE_PLAN_PRICES[monumentType]?.[selectedMaintenancePlan]) {
-      planPrice = MAINTENANCE_PLAN_PRICES[monumentType][selectedMaintenancePlan];
+    if (selectedMaintenancePlan) {
+      planPrice = MAINTENANCE_PLAN_PRICES[monumentType]?.[selectedMaintenancePlan] ?? 0;
       planLabel = MAINTENANCE_PLANS[selectedMaintenancePlan] || selectedMaintenancePlan;
+      if (planPrice <= 0) {
+        throw new Error(
+          `Plan price lookup failed for monumentType="${monumentType}" plan="${selectedMaintenancePlan}". Refusing to checkout at $0.`
+        );
+      }
     } else if (selectedFlowerOnly && FLOWER_ONLY_PLANS[selectedFlowerOnly]) {
       planPrice = FLOWER_ONLY_PLANS[selectedFlowerOnly].price;
       planLabel = FLOWER_ONLY_PLANS[selectedFlowerOnly].label;
