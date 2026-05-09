@@ -113,7 +113,7 @@ const Auth = () => {
         {/* Logo */}
         <div className="text-center">
           <div
-            className="w-full max-w-sm mx-auto mb-1 aspect-square"
+            className="w-full max-w-sm mx-auto mb-1 aspect-square text-[#c99669]"
             style={{
               backgroundColor: '#C9976B',
               WebkitMaskImage: `url(${logo})`,
