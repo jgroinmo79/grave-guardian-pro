@@ -20,7 +20,14 @@ const CheckoutStep = ({ data }: Props) => {
   const [loading, setLoading] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
 
-  const resolvedType = data.monumentType as MonumentType | '';
+  const VETERAN_TO_BASE: Record<string, MonumentType> = {
+    va_upright: 'single_upright',
+    va_flat: 'single_marker',
+    va_niche: 'single_marker',
+  };
+  const resolvedType: MonumentType | '' = data.isVeteran
+    ? (data.veteranMonumentType ? (VETERAN_TO_BASE[data.veteranMonumentType] ?? '') : '')
+    : (data.monumentType as MonumentType | '');
   const monument = resolvedType ? MONUMENT_PRICES[resolvedType] : null;
   const { data: zoneConfig } = useTravelZones();
   const hasAnnualPlan = !!data.selectedMaintenancePlan;
