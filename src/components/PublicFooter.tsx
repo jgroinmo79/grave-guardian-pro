@@ -16,7 +16,7 @@ const PublicFooter = () => (
         <p className="font-cinzel tracking-[0.2em] font-bold text-2xl text-primary" style={{ color: "#E8E4DF" }}>
           GRAVE DETAIL
         </p>
-        <p className="font-garamond italic text-2xl font-medium text-destructive-foreground" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond italic text-2xl font-medium text-destructive-foreground text-[#c99669] shadow-none">
           Time Takes a Toll. We Take It Back.
         </p>
         <p className="font-garamond text-lg text-secondary-foreground" style={{ color: "#6B6B6B" }}>
