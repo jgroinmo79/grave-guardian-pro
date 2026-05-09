@@ -55,6 +55,14 @@ const MonumentStep = ({ data, update }: Props) => {
         
         <h2 className="text-3xl font-display font-bold mb-2 mt-2">Monument Details</h2>
         <p className="text-muted-foreground">Tell us about the monument</p>
+        <a
+          href="/monument-types"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block mt-3 text-sm text-accent underline underline-offset-4 hover:text-accent/80"
+        >
+          Not sure which type you have? View the Monument Type Guide →
+        </a>
       </div>
 
       <div className="max-w-xl mx-auto space-y-6">
