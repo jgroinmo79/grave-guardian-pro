@@ -10,7 +10,7 @@ const NAV_LINKS = [
 
 const PublicFooter = () => (
   <footer style={{ backgroundColor: "#141414", borderTop: "1px solid #2C2C2C" }}>
-    <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
+    <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
       {/* Col 1 — Brand */}
       <div className="space-y-3">
         <p className="font-cinzel tracking-[0.2em] font-bold text-2xl text-primary" style={{ color: "#E8E4DF" }}>
@@ -77,6 +77,22 @@ const PublicFooter = () => (
         >
           Instagram @Grave_Detail
         </a>
+      </div>
+
+      {/* Col 4 — Resources */}
+      <div className="space-y-3">
+        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 font-bold text-2xl" style={{ color: "#E8E4DF" }}>
+          Resources
+        </p>
+        <Link
+          to="/monument-types"
+          className="block font-garamond transition-colors text-xl"
+          style={{ color: "#6B6B6B" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+        >
+          Monument Type Guide
+        </Link>
       </div>
     </div>
 
