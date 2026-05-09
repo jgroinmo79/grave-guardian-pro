@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
 import cemeteryBg from "@/assets/cemetery-bg.jpg";
-import logo from "@/assets/logo-bronze.png";
+import logo from "@/assets/logo-main.png";
 
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";
