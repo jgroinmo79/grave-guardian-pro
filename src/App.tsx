@@ -36,7 +36,6 @@ import SharedReport from "./pages/SharedReport";
 import About from "./pages/About";
 import LegalDisclosures from "./pages/LegalDisclosures";
 import Services from "./pages/Services";
-import MonumentTypes from "./pages/MonumentTypes";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
 import ReceiptPreview from "./pages/ReceiptPreview";
@@ -72,7 +71,6 @@ const App = () => (
             <Route path="/" element={<ComingSoon />} />
             <Route path="/home" element={<Home />} />
             <Route path="/services" element={<Services />} />
-            <Route path="/monument-types" element={<MonumentTypes />} />
             <Route path="/about" element={<About />} />
             <Route path="/legal" element={<LegalDisclosures />} />
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
