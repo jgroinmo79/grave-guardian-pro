@@ -102,18 +102,18 @@ const Services = () => {
                 )}
                 <h3 className="font-cinzel tracking-[0.1em] uppercase mb-1 text-xl font-semibold" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
                 <p className="font-cinzel text-xl font-semibold text-primary mb-1" style={{ color: "#C9976B" }}>{plan.price}</p>
-                <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
-                <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
+                <p className="font-garamond leading-relaxed text-2xl" style={{ color: "#6B6B6B" }}>{plan.visits}</p>
+                <p className="font-garamond italic mb-3 text-lg" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
-                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select Plan →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase font-normal text-2xl" style={{ color: "#C9976B" }}>Select Plan →</p>
               </Link>
             </motion.div>
           ))}
         </div>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
-            <p className="font-garamond leading-relaxed text-lg italic text-center" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-2xl italic text-center" style={{ color: "#6B6B6B" }}>
             All plans include damage documentation, condition reports, and priority scheduling. Visits are spaced evenly throughout the year for year-round preservation.
           </p>
         </motion.div>
@@ -130,18 +130,18 @@ const Services = () => {
                 style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
                 <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
                 <p className="font-cinzel text-xl font-semibold text-primary mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
-                <p className="font-garamond leading-relaxed text-lg mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
-                <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
+                <p className="font-garamond leading-relaxed text-2xl mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
+                <p className="font-garamond italic mb-3 text-lg" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
-                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select Plan →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase font-normal text-2xl" style={{ color: "#C9976B" }}>Select Plan →</p>
               </Link>
             </motion.div>
           ))}
         </div>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-          <p className="font-garamond leading-relaxed text-lg italic text-center" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond leading-relaxed text-2xl italic text-center" style={{ color: "#6B6B6B" }}>
             Choose placement dates from: Easter, Memorial Day, Mother's Day, Father's Day, Christmas, Deceased's Birthday, or Deceased's Anniversary. Cleaning visits are paired with flower placements when possible.
           </p>
         </motion.div>
@@ -159,7 +159,7 @@ const Services = () => {
                 <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
                 <p className="font-cinzel text-lg font-bold" style={{ color: "#C9976B" }}>${plan.price}</p>
                 <p className="font-garamond text-xs mt-2 mb-3" style={{ color: "#6B6B6B" }}>{plan.placements} placement{plan.placements > 1 ? "s" : ""}/year</p>
-                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase font-normal text-2xl" style={{ color: "#C9976B" }}>Select →</p>
               </Link>
             </motion.div>
           ))}
