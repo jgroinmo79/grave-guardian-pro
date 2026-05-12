@@ -172,17 +172,6 @@ const ComingSoon = () => {
           Founder-operated · CCUS-certified · Fully insured
         </motion.p>
 
-        <motion.div {...fade(0.6)} className="pt-4">
-          <Link
-            to="/home"
-            className="text-xs uppercase tracking-[0.15em] transition-colors hover:underline"
-            style={{ fontFamily: "Cinzel, serif", color: "#6B6B6B" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
-          >
-            Enter Site →
-          </Link>
-        </motion.div>
       </div>
     </div>
   );
