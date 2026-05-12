@@ -113,7 +113,7 @@ const Services = () => {
         </div>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}>
-            <p className="font-garamond leading-relaxed text-lg italic text-center" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-2xl italic text-center" style={{ color: "#6B6B6B" }}>
             All plans include damage documentation, condition reports, and priority scheduling. Visits are spaced evenly throughout the year for year-round preservation.
           </p>
         </motion.div>
