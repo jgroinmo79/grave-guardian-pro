@@ -13,10 +13,27 @@ const fade = (delay: number) => ({
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ComingSoon = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Hidden access: type "austin" anywhere on the page to enter the site.
+  useEffect(() => {
+    const SECRET = "austin";
+    let buffer = "";
+    const handler = (e: KeyboardEvent) => {
+      // Ignore typing inside form fields so visitors can't trigger it accidentally.
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (e.key.length !== 1) return;
+      buffer = (buffer + e.key.toLowerCase()).slice(-SECRET.length);
+      if (buffer === SECRET) navigate("/home");
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
