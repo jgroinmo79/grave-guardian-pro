@@ -141,7 +141,7 @@ const Services = () => {
         </div>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-4xl mx-auto mt-10 rounded-lg p-6" style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
-          <p className="font-garamond leading-relaxed text-lg italic text-center" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond leading-relaxed text-2xl italic text-center" style={{ color: "#6B6B6B" }}>
             Choose placement dates from: Easter, Memorial Day, Mother's Day, Father's Day, Christmas, Deceased's Birthday, or Deceased's Anniversary. Cleaning visits are paired with flower placements when possible.
           </p>
         </motion.div>
