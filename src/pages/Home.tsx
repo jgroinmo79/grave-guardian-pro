@@ -124,7 +124,7 @@ const Home = () => {
               <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
                 {card.title}
               </h3>
-              <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
+              <p className="font-garamond leading-relaxed text-2xl" style={{ color: "#6B6B6B" }}>
                 {card.desc}
               </p>
             </motion.div>
