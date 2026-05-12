@@ -159,7 +159,7 @@ const Services = () => {
                 <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl mb-1" style={{ color: "#E8E4DF" }}>{plan.label}</h3>
                 <p className="font-cinzel text-lg font-bold" style={{ color: "#C9976B" }}>${plan.price}</p>
                 <p className="font-garamond text-xs mt-2 mb-3" style={{ color: "#6B6B6B" }}>{plan.placements} placement{plan.placements > 1 ? "s" : ""}/year</p>
-                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase font-normal text-2xl" style={{ color: "#C9976B" }}>Select →</p>
               </Link>
             </motion.div>
           ))}
