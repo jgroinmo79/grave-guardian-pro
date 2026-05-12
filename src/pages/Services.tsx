@@ -130,11 +130,11 @@ const Services = () => {
                 style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}>
                 <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl mb-1" style={{ color: "#E8E4DF" }}>{plan.name}</h3>
                 <p className="font-cinzel text-xl font-semibold text-primary mb-2" style={{ color: "#C9976B" }}>{plan.price}</p>
-                <p className="font-garamond leading-relaxed text-lg mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
-                <p className="font-garamond text-xs italic mb-3" style={{ color: "#6B6B6B" }}>
+                <p className="font-garamond leading-relaxed text-2xl mb-3" style={{ color: "#6B6B6B" }}>{plan.desc}</p>
+                <p className="font-garamond italic mb-3 text-lg" style={{ color: "#6B6B6B" }}>
                   Price shown for Single Upright. Prices vary by monument type.
                 </p>
-                <p className="font-cinzel tracking-[0.15em] uppercase text-lg font-normal" style={{ color: "#C9976B" }}>Select Plan →</p>
+                <p className="font-cinzel tracking-[0.15em] uppercase font-normal text-2xl" style={{ color: "#C9976B" }}>Select Plan →</p>
               </Link>
             </motion.div>
           ))}
