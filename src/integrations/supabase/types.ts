@@ -505,6 +505,24 @@ export type Database = {
           },
         ]
       }
+      launch_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       memorial_locations: {
         Row: {
           cemetery_name: string
