@@ -77,11 +77,11 @@ const CheckoutStep = ({ data }: Props) => {
     queryFn: async () => {
       if (arrangementIds.length === 0) return [];
       const { data: rows, error } = await supabase
-        .from("flower_arrangements")
+        .from("flower_arrangements_public" as any)
         .select("id, name")
         .in("id", arrangementIds);
       if (error) throw error;
-      return rows;
+      return ((rows as unknown) as Array<{ id: string; name: string }>) ?? [];
     },
     enabled: arrangementIds.length > 0,
   });

@@ -30,9 +30,10 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth: verify_jwt = true validates the JWT signature at the gateway, but we
+// must additionally enforce that the caller is either the service role (called
+// from other edge functions) or an authenticated admin. Without this, any
+// visitor with the public anon key could trigger outbound emails.
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -42,8 +43,9 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
     console.error('Missing required environment variables')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
@@ -52,6 +54,40 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // Enforce admin-or-service-role access
+  const authHeader = req.headers.get('Authorization') || ''
+  const token = authHeader.replace(/^Bearer\s+/i, '')
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
+  if (token !== supabaseServiceKey) {
+    const authClient = createClient(supabaseUrl, supabaseAnonKey)
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token)
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const userId = claimsData.claims.sub as string
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: isAdmin } = await adminClient.rpc('has_role', {
+      _user_id: userId,
+      _role: 'admin',
+    })
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
   }
 
   // Parse request body
