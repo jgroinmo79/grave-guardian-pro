@@ -50,7 +50,7 @@ const ReceiptPreview = () => {
       <div
         style={{
           padding: "12px 16px",
-          backgroundColor: "#141414",
+          backgroundColor: "hsl(var(--background))",
           display: "flex",
           alignItems: "center",
           gap: 16,
