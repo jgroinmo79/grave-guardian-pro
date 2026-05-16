@@ -81,7 +81,7 @@ const CheckoutStep = ({ data }: Props) => {
         .select("id, name")
         .in("id", arrangementIds);
       if (error) throw error;
-      return (rows ?? []) as Array<{ id: string; name: string }>;
+      return ((rows as unknown) as Array<{ id: string; name: string }>) ?? [];
     },
     enabled: arrangementIds.length > 0,
   });
