@@ -31,7 +31,7 @@ const PublicNavbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full" style={{ backgroundColor: "#141414", borderBottom: "1px solid #2C2C2C" }}>
+    <nav className="sticky top-0 z-50 w-full bg-background border-b border-card">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
         <Link to="/" className="flex items-center">
           <img src={logo} alt="Grave Detail Cleaning & Preservation" className="h-12 sm:h-14 w-auto" />
@@ -43,49 +43,39 @@ const PublicNavbar = () => {
             <button
               key={l.label}
               onClick={() => handleNavClick(l)}
-              className="font-cinzel tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer text-sm"
-              style={{ color: "#6B6B6B" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+              className="font-cinzel tracking-[0.15em] uppercase transition-colors bg-transparent border-0 cursor-pointer text-sm text-granite hover:text-bronze"
             >
               {l.label}
             </button>
           ))}
           <Link
             to="/auth"
-            className="font-cinzel tracking-[0.15em] uppercase transition-colors text-sm"
-            style={{ color: "#6B6B6B" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+            className="font-cinzel tracking-[0.15em] uppercase transition-colors text-sm text-granite hover:text-bronze"
           >
             Log In
           </Link>
           <Link
             to="/auth"
-            className="font-cinzel text-xs tracking-[0.15em] uppercase px-5 py-2 rounded transition-colors"
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#7A5C3E")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#C9976B")}
+            className="font-cinzel text-xs tracking-[0.15em] uppercase px-5 py-2 rounded transition-colors bg-bronze text-background hover:bg-patina"
           >
             Book Now
           </Link>
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden bg-transparent border-0" onClick={() => setOpen(!open)} style={{ color: "#E8E4DF" }}>
+        <button className="md:hidden bg-transparent border-0 text-foreground" onClick={() => setOpen(!open)}>
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden px-6 pb-6 space-y-4" style={{ backgroundColor: "#141414" }}>
+        <div className="md:hidden px-6 pb-6 space-y-4 bg-background">
           {NAV_LINKS.map((l) => (
             <button
               key={l.label}
               onClick={() => handleNavClick(l)}
-              className="block font-cinzel text-sm tracking-[0.15em] uppercase bg-transparent border-0 cursor-pointer"
-              style={{ color: "#6B6B6B" }}
+              className="block font-cinzel text-sm tracking-[0.15em] uppercase bg-transparent border-0 cursor-pointer text-granite"
             >
               {l.label}
             </button>
@@ -93,16 +83,14 @@ const PublicNavbar = () => {
           <Link
             to="/auth"
             onClick={() => setOpen(false)}
-            className="block font-cinzel text-sm tracking-[0.15em] uppercase"
-            style={{ color: "#C9976B" }}
+            className="block font-cinzel text-sm tracking-[0.15em] uppercase text-bronze"
           >
             Log In
           </Link>
           <Link
             to="/auth"
             onClick={() => setOpen(false)}
-            className="block text-center font-cinzel text-sm tracking-[0.15em] uppercase px-5 py-2 rounded"
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
+            className="block text-center font-cinzel text-sm tracking-[0.15em] uppercase px-5 py-2 rounded bg-bronze text-background"
           >
             Book Now
           </Link>
