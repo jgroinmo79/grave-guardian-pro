@@ -29,9 +29,9 @@ const BookingProgress = ({ currentStep }: Props) => (
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold transition-all duration-300 ${
                   isCompleted
-                    ? "bg-[#7A5C3E] text-white"
+                    ? "bg-patina text-white"
                     : isCurrent
-                    ? "border-2 border-[#C9976B] text-[#C9976B]"
+                    ? "border-2 border-bronze text-bronze"
                     : "border border-muted-foreground/30 text-muted-foreground"
                 }`}
               >
@@ -39,7 +39,7 @@ const BookingProgress = ({ currentStep }: Props) => (
               </div>
               <span
                 className={`text-[9px] font-medium hidden sm:block ${
-                  isCurrent ? "text-[#C9976B]" : isCompleted ? "text-foreground" : "text-muted-foreground"
+                  isCurrent ? "text-bronze" : isCompleted ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {label}
@@ -49,7 +49,7 @@ const BookingProgress = ({ currentStep }: Props) => (
               <div className="flex-1 mx-1">
                 <div
                   className={`h-px transition-all duration-300 ${
-                    isCompleted ? "bg-[#7A5C3E]" : "bg-border"
+                    isCompleted ? "bg-patina" : "bg-border"
                   }`}
                 />
               </div>
