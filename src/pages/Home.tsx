@@ -57,7 +57,7 @@ const Home = () => {
             backgroundPosition: "center",
           }}
         />
-        <div className="absolute inset-0 z-0" style={{ backgroundColor: "rgba(20,20,20,0.75)" }} />
+        <div className="absolute inset-0 z-0 bg-background/75" />
         <motion.div
           initial="hidden"
           animate="visible"
@@ -72,18 +72,15 @@ const Home = () => {
               className="w-full max-w-[400px] sm:max-w-[500px] h-auto mx-auto"
             />
           </h1>
-          <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6" style={{ color: "#C9976B" }}>
+          <p className="font-cinzel text-xl sm:text-2xl lg:text-3xl tracking-wide mb-6 text-bronze">
             Time Takes a Toll. We Take It Back.
           </p>
-          <p className="font-garamond text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto text-secondary-foreground" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto text-granite">
             Owner-operated cemetery monument cleaning and preservation serving Missouri, Illinois, Arkansas, Tennessee, and Kentucky.
           </p>
           <Link
             to="/auth"
-            className="inline-block font-cinzel text-sm tracking-[0.15em] uppercase px-8 py-4 rounded transition-colors"
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#7A5C3E")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#C9976B")}
+            className="inline-block font-cinzel text-sm tracking-[0.15em] uppercase px-8 py-4 rounded transition-colors bg-bronze text-background hover:bg-patina"
           >
             Book a Cleaning
           </Link>
@@ -91,21 +88,21 @@ const Home = () => {
       </section>
 
       {/* Three-card feature section */}
-      <section id="about" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(44,44,44,0.85)" }}>
+      <section id="about" className="px-6 py-20 sm:py-28 bg-card/85">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              icon: <Award className="w-8 h-8" style={{ color: "#C9976B" }} />,
+              icon: <Award className="w-8 h-8 text-bronze" />,
               title: "CCUS-Certified Methods",
               desc: "Industry-standard preservation techniques that protect your monument.",
             },
             {
-              icon: <UserCheck className="w-8 h-8" style={{ color: "#C9976B" }} />,
+              icon: <UserCheck className="w-8 h-8 text-bronze" />,
               title: "Owner-Operated",
               desc: "Every stone is personally cleaned by the business owner. No contractors, no shortcuts.",
             },
             {
-              icon: <Shield className="w-8 h-8" style={{ color: "#C9976B" }} />,
+              icon: <Shield className="w-8 h-8 text-bronze" />,
               title: "Fully Insured",
               desc: "Protected by $2,000,000 in general liability coverage.",
             },
@@ -117,14 +114,13 @@ const Home = () => {
               viewport={{ once: true }}
               variants={fadeUp}
               transition={{ duration: 0.6 }}
-              className="rounded-lg p-8 text-center space-y-4"
-              style={{ backgroundColor: "#141414", border: "1px solid #3a3a3a" }}
+              className="rounded-lg p-8 text-center space-y-4 bg-background border border-border"
             >
               <div className="flex justify-center">{card.icon}</div>
-              <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
+              <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl text-foreground">
                 {card.title}
               </h3>
-              <p className="font-garamond leading-relaxed text-2xl" style={{ color: "#6B6B6B" }}>
+              <p className="font-garamond leading-relaxed text-2xl text-granite">
                 {card.desc}
               </p>
             </motion.div>
@@ -133,9 +129,9 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
+      <section id="how-it-works" className="px-6 py-20 sm:py-28 bg-background/85">
         <div className="max-w-4xl mx-auto text-center mb-14">
-          <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl text-foreground">
             How It Works
           </h2>
         </div>
@@ -154,16 +150,13 @@ const Home = () => {
               transition={{ duration: 0.6, delay: Number(step.num) * 0.15 }}
               className="text-center space-y-3"
             >
-              <span
-                className="inline-flex items-center justify-center w-12 h-12 rounded-full font-cinzel text-lg font-bold"
-                style={{ backgroundColor: "#C9976B", color: "#141414" }}
-              >
+              <span className="inline-flex items-center justify-center w-12 h-12 rounded-full font-cinzel text-lg font-bold bg-bronze text-background">
                 {step.num}
               </span>
-              <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
+              <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl text-foreground">
                 {step.title}
               </h3>
-              <p className="font-garamond leading-relaxed text-2xl" style={{ color: "#6B6B6B" }}>
+              <p className="font-garamond leading-relaxed text-2xl text-granite">
                 {step.desc}
               </p>
             </motion.div>
@@ -172,12 +165,12 @@ const Home = () => {
       </section>
 
       {/* Gallery */}
-      <section id="gallery" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
+      <section id="gallery" className="px-6 py-20 sm:py-28 bg-background/85">
         <div className="max-w-4xl mx-auto text-center mb-14">
-          <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-3xl font-bold mb-4 sm:text-7xl text-foreground">
             Our Work
           </h2>
-          <p className="font-garamond text-2xl font-semibold" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond text-2xl font-semibold text-granite">
             Before &amp; after — every stone tells a story.
           </p>
         </div>
@@ -190,8 +183,7 @@ const Home = () => {
               viewport={{ once: true }}
               variants={fadeUp}
               transition={{ duration: 0.6, delay: (i % 3) * 0.15 }}
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid #3a3a3a" }}
+              className="rounded-lg overflow-hidden border border-border"
             >
               <img src={img.src} alt={img.alt} className="w-full h-auto" loading="lazy" />
             </motion.div>
@@ -200,7 +192,7 @@ const Home = () => {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="px-6 py-20 sm:py-28" style={{ backgroundColor: "rgba(20,20,20,0.85)" }}>
+      <section id="contact" className="px-6 py-20 sm:py-28 bg-background/85">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -209,29 +201,23 @@ const Home = () => {
           transition={{ duration: 0.8 }}
           className="max-w-3xl mx-auto text-center space-y-6"
         >
-          <h2 className="font-cinzel text-3xl font-bold sm:text-5xl" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-3xl font-bold sm:text-5xl text-foreground">
             Get in Touch
           </h2>
-          <p className="font-garamond leading-relaxed text-lg" style={{ color: "#6B6B6B" }}>
+          <p className="font-garamond leading-relaxed text-lg text-granite">
             Have questions or ready to schedule? Reach out anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <a
               href="tel:+15735455759"
-              className="font-garamond transition-colors text-xl"
-              style={{ color: "#C9976B" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#7A5C3E")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#C9976B")}
+              className="font-garamond transition-colors text-xl text-bronze hover:text-patina"
             >
               (573) 545-5759
             </a>
-            <span className="hidden sm:inline font-garamond" style={{ color: "#3a3a3a" }}>·</span>
+            <span className="hidden sm:inline font-garamond text-border">·</span>
             <a
               href="mailto:info@gravedetail.net"
-              className="font-garamond transition-colors text-xl"
-              style={{ color: "#C9976B" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#7A5C3E")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#C9976B")}
+              className="font-garamond transition-colors text-xl text-bronze hover:text-patina"
             >
               info@gravedetail.net
             </a>
@@ -240,7 +226,7 @@ const Home = () => {
       </section>
 
       {/* CTA Banner */}
-      <section className="px-6 py-20" style={{ backgroundColor: "rgba(44,44,44,0.85)" }}>
+      <section className="px-6 py-20 bg-card/85">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -249,15 +235,12 @@ const Home = () => {
           transition={{ duration: 0.8 }}
           className="max-w-3xl mx-auto text-center space-y-8"
         >
-          <h2 className="font-cinzel text-2xl sm:text-3xl font-bold" style={{ color: "#E8E4DF" }}>
+          <h2 className="font-cinzel text-2xl sm:text-3xl font-bold text-foreground">
             Ready to restore what time has taken?
           </h2>
           <Link
             to="/auth"
-            className="inline-block font-cinzel text-sm tracking-[0.15em] uppercase px-8 py-4 rounded transition-colors"
-            style={{ backgroundColor: "#C9976B", color: "#141414" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#7A5C3E")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#C9976B")}
+            className="inline-block font-cinzel text-sm tracking-[0.15em] uppercase px-8 py-4 rounded transition-colors bg-bronze text-background hover:bg-patina"
           >
             Get Started
           </Link>
