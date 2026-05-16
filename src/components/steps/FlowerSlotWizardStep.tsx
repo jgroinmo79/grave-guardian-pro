@@ -66,12 +66,12 @@ const FlowerSlotWizardStep = ({ data, update, totalSlots, onComplete }: Props) =
     queryKey: ["flower_arrangements_active_v2"],
     queryFn: async () => {
       const { data: rows, error } = await supabase
-        .from("flower_arrangements")
+        .from("flower_arrangements_public" as any)
         .select("id, name, description, retail_price, image_url, image_url_2, image_url_3, image_url_4, image_url_5, arrangement_type, occasion_tags, is_active")
         .eq("is_active", true)
         .order("retail_price", { ascending: true });
       if (error) throw error;
-      return rows || [];
+      return ((rows as unknown) as any[]) ?? [];
     },
   });
 
