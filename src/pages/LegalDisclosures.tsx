@@ -9,39 +9,39 @@ const fadeUp = {
 
 const Section = ({ heading, children }: { heading: string; children: React.ReactNode }) => (
   <div className="mt-12 first:mt-0">
-    <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mb-8" style={{ color: "#E8E4DF" }}>
+    <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mb-8 text-foreground">
       {heading}
     </h2>
-    <div className="font-garamond text-xl leading-relaxed space-y-6" style={{ color: "#E8E4DF" }}>
+    <div className="font-garamond text-xl leading-relaxed space-y-6 text-foreground">
       {children}
     </div>
   </div>
 );
 
 const SubHeading = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="font-cinzel tracking-[0.1em] uppercase text-lg mt-6" style={{ color: "#C9976B" }}>
+  <h3 className="font-cinzel tracking-[0.1em] uppercase text-lg mt-6 text-bronze">
     {children}
   </h3>
 );
 
 const LegalDisclosures = () => (
-  <div className="min-h-screen" style={{ backgroundColor: "#141414" }}>
+  <div className="min-h-screen bg-background">
     <PublicNavbar />
 
     {/* Hero */}
-    <section className="px-6 py-24 sm:py-32 text-center" style={{ backgroundColor: "#141414" }}>
+    <section className="px-6 py-24 sm:py-32 text-center bg-background">
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
-        <h1 className="font-cinzel text-4xl sm:text-5xl font-bold mb-6" style={{ color: "#E8E4DF" }}>
+        <h1 className="font-cinzel text-4xl sm:text-5xl font-bold mb-6 text-foreground">
           Legal Disclosures
         </h1>
-        <p className="font-garamond text-xl sm:text-2xl italic" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond text-xl sm:text-2xl italic text-granite">
           Version 1.0 — Effective May 3, 2026
         </p>
       </motion.div>
     </section>
 
     {/* Body */}
-    <section className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#2C2C2C" }}>
+    <section className="px-6 py-20 sm:py-28 bg-card">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
 
         <Section heading="Terms of Service">
