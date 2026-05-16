@@ -10,28 +10,28 @@ const fadeUp = {
 };
 
 const About = () => (
-  <div className="min-h-screen" style={{ backgroundColor: "#141414" }}>
+  <div className="min-h-screen bg-background">
     <PublicNavbar />
 
     {/* Hero */}
-    <section className="px-6 py-24 sm:py-32 text-center" style={{ backgroundColor: "#141414" }}>
+    <section className="px-6 py-24 sm:py-32 text-center bg-background">
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
-        <h1 className="font-cinzel text-4xl sm:text-5xl font-bold mb-6" style={{ color: "#E8E4DF" }}>
+        <h1 className="font-cinzel text-4xl sm:text-5xl font-bold mb-6 text-foreground">
           About Grave Detail
         </h1>
-        <p className="font-garamond text-xl sm:text-2xl italic" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond text-xl sm:text-2xl italic text-granite">
           ​
         </p>
       </motion.div>
     </section>
 
     {/* Our Story */}
-    <section className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#2C2C2C" }}>
+    <section className="px-6 py-20 sm:py-28 bg-card">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto">
-        <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mb-8" style={{ color: "#E8E4DF" }}>
+        <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mb-8 text-foreground">
           Why This Exists.
         </h2>
-        <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
+        <p className="font-garamond text-2xl leading-relaxed text-foreground">
           Grave Detail began with a loss. In 2022, following the passing of a very close family member, I found myself making visit after visit to the cemetery — and noticing things most people walk right past. Bird droppings eating into the stone. Water deposits leaving permanent staining. Grass clippings packed against the base, trapping moisture. Air pollution slowly darkening surfaces that were once sharp and clear. The more I looked, the more I saw — and the more I researched the science behind what I was seeing, the clearer it became that these monuments were losing the fight quietly, visit by visit, season by season.
           <br /><br />
           Over time, those visits turned into something more. I started cleaning — first my own family's stones, then those of friends who had loved ones nearby. What started as simple attention became careful work, and the work turned out to be something I couldn't stop thinking about. There's a particular kind of satisfaction in watching decades of grime lift off a stone and reveal the name and craft underneath — sharp, legible, present again. That feeling sent me down a serious path of study into preservation methods, stone chemistry, and professional technique. What began as grief turned into purpose.
@@ -41,10 +41,10 @@ const About = () => (
           Every cleaning is performed personally by the business owner using CCUS-certified preservation methods. No contractors. No rushed jobs. No shortcuts. Just careful, methodical work that honors the stone and the story it carries.
         </p>
 
-        <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mt-16 mb-8" style={{ color: "#E8E4DF" }}>
+        <h2 className="font-cinzel text-3xl font-bold sm:text-5xl mt-16 mb-8 text-foreground">
           More Than a Memorial
         </h2>
-        <p className="font-garamond text-2xl leading-relaxed" style={{ color: "#E8E4DF" }}>
+        <p className="font-garamond text-2xl leading-relaxed text-foreground">
           Cemeteries are one of the most undervalued cultural resources we have. They're open-air archives — recording family names, migration patterns, ethnic communities, religious traditions, and the social fabric of towns that may no longer exist in any other form. Genealogists, historians, and researchers depend on legible stones to piece together stories that would otherwise be lost permanently. When a stone becomes unreadable, that chapter closes forever.
           <br /><br />
           Every monument is also a record of the person who made it. Monument carvers and folk artists left their mark in the lettering styles, decorative motifs, and carving techniques unique to their hands and their era. A preserved stone isn't just a tribute to the person buried beneath it — it's a surviving example of a craft tradition, often from artists whose names we'll never know but whose work deserves to outlast them.
@@ -55,7 +55,7 @@ const About = () => (
     </section>
 
     {/* Values */}
-    <section className="px-6 py-20 sm:py-28" style={{ backgroundColor: "#141414" }}>
+    <section className="px-6 py-20 sm:py-28 bg-background">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
           { title: "Do No Harm", desc: "We follow cemetery preservation standards that protect the monument. No pressure washing. No harsh chemicals. Only proven, safe methods." },
@@ -69,13 +69,12 @@ const About = () => (
             viewport={{ once: true }}
             variants={fadeUp}
             transition={{ duration: 0.6 }}
-            className="rounded-lg p-8 text-center space-y-4"
-            style={{ backgroundColor: "#2C2C2C", border: "1px solid #3a3a3a" }}
+            className="rounded-lg p-8 text-center space-y-4 bg-card border border-border"
           >
-            <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl" style={{ color: "#E8E4DF" }}>
+            <h3 className="font-cinzel tracking-[0.1em] uppercase text-2xl text-foreground">
               {card.title}
             </h3>
-            <p className="font-garamond leading-relaxed text-2xl" style={{ color: "#6B6B6B" }}>
+            <p className="font-garamond leading-relaxed text-2xl text-granite">
               {card.desc}
             </p>
           </motion.div>
@@ -84,24 +83,21 @@ const About = () => (
     </section>
 
     {/* Credentials strip */}
-    <div className="px-6 py-6" style={{ borderTop: "1px solid #6B6B6B", backgroundColor: "#141414" }}>
-      <p className="max-w-5xl mx-auto text-center font-cinzel tracking-[0.15em] uppercase text-base" style={{ color: "#6B6B6B" }}>
+    <div className="px-6 py-6 bg-background border-t border-granite">
+      <p className="max-w-5xl mx-auto text-center font-cinzel tracking-[0.15em] uppercase text-base text-granite">
         CCUS-Certified Methods · Endurance Gravestone &amp; Monument Cleaner · $2,000,000 Liability Coverage · Serving Missouri, Arkansas, Illinois, Kentucky and Tennessee
       </p>
     </div>
 
     {/* CTA Banner */}
-    <section className="px-6 py-20" style={{ backgroundColor: "#2C2C2C" }}>
+    <section className="px-6 py-20 bg-card">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto text-center space-y-8">
-        <h2 className="font-cinzel text-2xl sm:text-3xl font-bold" style={{ color: "#E8E4DF" }}>
+        <h2 className="font-cinzel text-2xl sm:text-3xl font-bold text-foreground">
           See what we can do.
         </h2>
         <Link
           to="/#gallery"
-          className="inline-block font-cinzel text-sm tracking-[0.15em] uppercase px-8 py-4 rounded transition-colors"
-          style={{ backgroundColor: "#C9976B", color: "#141414" }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#7A5C3E")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#C9976B")}
+          className="inline-block font-cinzel text-sm tracking-[0.15em] uppercase px-8 py-4 rounded transition-colors bg-bronze text-background hover:bg-patina"
         >
           View Services
         </Link>
