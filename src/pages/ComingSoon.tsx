@@ -56,10 +56,7 @@ const ComingSoon = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden"
-      style={{ backgroundColor: "#141414" }}
-    >
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden bg-background">
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -73,34 +70,21 @@ const ComingSoon = () => {
       <div className="relative z-10 w-full max-w-2xl text-center space-y-8">
         <motion.h1
           {...fade(0)}
-          className="uppercase font-bold text-[32px] sm:text-[48px] leading-tight"
-          style={{
-            fontFamily: "Cinzel, serif",
-            color: "#E8E4DF",
-            letterSpacing: "0.15em",
-          }}
+          className="uppercase font-bold text-[32px] sm:text-[48px] leading-tight font-cinzel text-foreground tracking-[0.15em]"
         >
           Launching Summer 2026
         </motion.h1>
 
         <motion.p
           {...fade(0.15)}
-          className="italic text-[22px]"
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            color: "#C9976B",
-            marginTop: "16px",
-          }}
+          className="italic text-[22px] font-garamond text-bronze mt-4"
         >
           Be the first to know when we open the gates.
         </motion.p>
 
-        <motion.div {...fade(0.3)} style={{ marginTop: "32px" }} className="min-h-[64px] flex items-center justify-center">
+        <motion.div {...fade(0.3)} className="mt-8 min-h-[64px] flex items-center justify-center">
           {success ? (
-            <p
-              className="italic text-lg"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: "#C9976B" }}
-            >
+            <p className="italic text-lg font-garamond text-bronze">
               You're on the list. We'll be in touch.
             </p>
           ) : (
@@ -114,36 +98,12 @@ const ComingSoon = () => {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full sm:w-[320px] outline-none"
-                style={{
-                  backgroundColor: "#2C2C2C",
-                  border: "1px solid #6B6B6B",
-                  color: "#E8E4DF",
-                  padding: "14px 18px",
-                  borderRadius: "2px",
-                  fontFamily: "'Cormorant Garamond', serif",
-                }}
+                className="w-full sm:w-[320px] outline-none bg-card border border-granite text-foreground font-garamond rounded-sm px-[18px] py-[14px]"
               />
               <button
                 type="submit"
                 disabled={submitting}
-                className="uppercase font-semibold transition-colors disabled:opacity-60 w-full sm:w-auto"
-                style={{
-                  backgroundColor: "#C9976B",
-                  color: "#141414",
-                  fontFamily: "Cinzel, serif",
-                  letterSpacing: "0.1em",
-                  padding: "14px 28px",
-                  borderRadius: "2px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7A5C3E";
-                  e.currentTarget.style.color = "#E8E4DF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#C9976B";
-                  e.currentTarget.style.color = "#141414";
-                }}
+                className="uppercase font-semibold transition-colors disabled:opacity-60 w-full sm:w-auto bg-bronze text-background hover:bg-patina hover:text-foreground font-cinzel tracking-[0.1em] rounded-sm px-7 py-[14px]"
               >
                 {submitting ? "..." : "Notify Me"}
               </button>
@@ -152,22 +112,14 @@ const ComingSoon = () => {
         </motion.div>
 
         {error && !success && (
-          <p
-            className="text-sm"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "#C9976B" }}
-          >
+          <p className="text-sm font-garamond text-bronze">
             {error}
           </p>
         )}
 
         <motion.p
           {...fade(0.45)}
-          className="text-[14px]"
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            color: "#6B6B6B",
-            marginTop: "24px",
-          }}
+          className="text-[14px] font-garamond text-granite mt-6"
         >
           Founder-operated · CCUS-certified · Fully insured
         </motion.p>

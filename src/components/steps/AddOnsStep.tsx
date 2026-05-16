@@ -205,7 +205,7 @@ const AddOnsStep = ({ data, update }: Props) => {
             <Button
               onClick={submitQuote}
               disabled={submitting}
-              className="bg-[#7A5C3E] hover:bg-[#C9976B] text-white"
+              className="bg-patina hover:bg-bronze text-white"
             >
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Send request

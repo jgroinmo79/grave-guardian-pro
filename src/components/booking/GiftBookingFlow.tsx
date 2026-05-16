@@ -154,7 +154,7 @@ const GiftBookingFlow = () => {
 
           {safeIndex < totalSteps - 1 && (
             <Button
-              className="bg-[#7A5C3E] hover:bg-[#C9976B] text-white"
+              className="bg-patina hover:bg-bronze text-white"
               onClick={() => goToStep(Math.min(totalSteps - 1, safeIndex + 1))}
               disabled={!currentStep.canProceed(data)}
             >

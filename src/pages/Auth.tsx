@@ -115,7 +115,7 @@ const Auth = () => {
           <div
             className="w-full max-w-sm mx-auto mb-1 aspect-square"
             style={{
-              backgroundColor: '#C9976B',
+              backgroundColor: 'hsl(var(--bronze))',
               WebkitMaskImage: `url(${logo})`,
               maskImage: `url(${logo})`,
               WebkitMaskRepeat: 'no-repeat',

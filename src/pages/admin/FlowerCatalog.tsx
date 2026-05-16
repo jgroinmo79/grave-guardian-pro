@@ -229,7 +229,7 @@ export default function FlowerCatalog() {
                   <div className="font-bold truncate">{a.name}</div>
                   <div className="text-xs flex flex-wrap gap-x-3 gap-y-0.5">
                     {a.gd_code && (
-                      <span style={{ color: "#C9976B" }}>GD: {a.gd_code}</span>
+                      <span className="text-bronze">GD: {a.gd_code}</span>
                     )}
                     {a.ffc_code && (
                       <span className="text-muted-foreground">FFC: {a.ffc_code}</span>

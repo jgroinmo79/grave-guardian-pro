@@ -50,7 +50,7 @@ const ReceiptPreview = () => {
       <div
         style={{
           padding: "12px 16px",
-          backgroundColor: "#141414",
+          backgroundColor: "hsl(var(--background))",
           display: "flex",
           alignItems: "center",
           gap: 16,
@@ -60,7 +60,7 @@ const ReceiptPreview = () => {
           document={<ReceiptDocument {...sample} />}
           fileName="GraveDetail_Receipt_GD-0247.pdf"
           style={{
-            backgroundColor: "#C9976B",
+            backgroundColor: "hsl(var(--bronze))",
             color: "#FAF8F5",
             padding: "8px 16px",
             borderRadius: 4,

@@ -9,34 +9,31 @@ const NAV_LINKS = [
 ];
 
 const PublicFooter = () => (
-  <footer style={{ backgroundColor: "#141414", borderTop: "1px solid #2C2C2C" }}>
+  <footer className="bg-background border-t border-card">
     <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
       {/* Col 1 — Brand */}
       <div className="space-y-3">
-        <p className="font-cinzel tracking-[0.2em] font-bold text-2xl text-primary" style={{ color: "#E8E4DF" }}>
+        <p className="font-cinzel tracking-[0.2em] font-bold text-2xl text-foreground">
           GRAVE DETAIL
         </p>
-        <p className="font-garamond italic text-2xl font-medium text-destructive-foreground" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond italic text-2xl font-medium text-granite">
           Time Takes a Toll. We Take It Back.
         </p>
-        <p className="font-garamond text-lg text-secondary-foreground" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond text-lg text-granite">
           Benton, Missouri
         </p>
       </div>
 
       {/* Col 2 — Nav */}
       <div className="space-y-3">
-        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 text-secondary-foreground text-2xl font-bold" style={{ color: "#E8E4DF" }}>
+        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 text-foreground text-2xl font-bold">
           Navigation
         </p>
         {NAV_LINKS.map((l) => (
           <Link
             key={l.label}
             to={l.to}
-            className="block font-garamond transition-colors text-secondary-foreground text-xl"
-            style={{ color: "#6B6B6B" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+            className="block font-garamond transition-colors text-xl text-granite hover:text-bronze"
           >
             {l.label}
           </Link>
@@ -45,24 +42,18 @@ const PublicFooter = () => (
 
       {/* Col 3 — Contact */}
       <div className="space-y-3">
-        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 font-bold text-2xl" style={{ color: "#E8E4DF" }}>
+        <p className="font-cinzel tracking-[0.2em] uppercase mb-4 font-bold text-2xl text-foreground">
           Contact
         </p>
         <a
           href="tel:+15735455759"
-          className="block font-garamond transition-colors text-xl"
-          style={{ color: "#6B6B6B" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+          className="block font-garamond transition-colors text-xl text-granite hover:text-bronze"
         >
           (573) 545-5759
         </a>
         <a
           href="mailto:info@gravedetail.net"
-          className="block font-garamond transition-colors text-xl"
-          style={{ color: "#6B6B6B" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+          className="block font-garamond transition-colors text-xl text-granite hover:text-bronze"
         >
           info@gravedetail.net
         </a>
@@ -70,10 +61,7 @@ const PublicFooter = () => (
           href="https://instagram.com/Grave_Detail"
           target="_blank"
           rel="noopener noreferrer"
-          className="block font-garamond transition-colors text-xl"
-          style={{ color: "#6B6B6B" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#C9976B")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6B6B")}
+          className="block font-garamond transition-colors text-xl text-granite hover:text-bronze"
         >
           Instagram @Grave_Detail
         </a>
@@ -81,12 +69,12 @@ const PublicFooter = () => (
     </div>
 
     {/* Bottom bar */}
-    <div className="border-t px-6 py-6" style={{ borderColor: "#2C2C2C" }}>
+    <div className="border-t border-card px-6 py-6">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-        <p className="font-garamond text-xs" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond text-xs text-granite">
           © 2026 Grave Detail Cleaning &amp; Preservation
         </p>
-        <p className="font-garamond text-xs" style={{ color: "#6B6B6B" }}>
+        <p className="font-garamond text-xs text-granite">
           Fully Insured · CCUS Certified
         </p>
       </div>

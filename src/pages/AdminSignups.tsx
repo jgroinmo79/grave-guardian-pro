@@ -50,8 +50,8 @@ const AdminSignups = () => {
 
   if (loading || roleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#141414" }}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "#C9976B" }} />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bronze" />
       </div>
     );
   }
@@ -60,44 +60,40 @@ const AdminSignups = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen px-4 py-12" style={{ backgroundColor: "#141414" }}>
+    <div className="min-h-screen px-4 py-12 bg-background">
       <div className="max-w-2xl mx-auto">
-        <h1
-          className="text-2xl font-bold mb-2"
-          style={{ fontFamily: "Cinzel, serif", color: "#E8E4DF" }}
-        >
+        <h1 className="text-2xl font-bold mb-2 font-cinzel text-foreground">
           Email Signups
         </h1>
-        <p className="text-sm mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", color: "#6B6B6B" }}>
+        <p className="text-sm mb-6 font-garamond text-granite">
           {signups.length} total signup{signups.length !== 1 ? "s" : ""}
         </p>
 
         {isLoading ? (
-          <p style={{ color: "#6B6B6B" }}>Loading…</p>
+          <p className="text-granite">Loading…</p>
         ) : signups.length === 0 ? (
-          <p style={{ color: "#6B6B6B" }}>No signups yet.</p>
+          <p className="text-granite">No signups yet.</p>
         ) : (
-          <div className="rounded-lg overflow-hidden" style={{ border: "1px solid #6B6B6B" }}>
-            <table className="w-full text-sm" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+          <div className="rounded-lg overflow-hidden border border-granite">
+            <table className="w-full text-sm font-garamond">
               <thead>
-                <tr style={{ backgroundColor: "#2C2C2C" }}>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: "#C9976B", fontFamily: "Cinzel, serif", fontSize: "11px", letterSpacing: "0.1em" }}>Email</th>
-                  <th className="text-left px-4 py-3 font-semibold" style={{ color: "#C9976B", fontFamily: "Cinzel, serif", fontSize: "11px", letterSpacing: "0.1em" }}>Date</th>
+                <tr className="bg-card">
+                  <th className="text-left px-4 py-3 font-semibold text-bronze font-cinzel text-[11px] tracking-[0.1em]">Email</th>
+                  <th className="text-left px-4 py-3 font-semibold text-bronze font-cinzel text-[11px] tracking-[0.1em]">Date</th>
                   <th className="w-12" />
                 </tr>
               </thead>
               <tbody>
                 {signups.map((s) => (
-                  <tr key={s.id} style={{ borderTop: "1px solid #2C2C2C" }}>
-                    <td className="px-4 py-3" style={{ color: "#E8E4DF" }}>{s.email}</td>
-                    <td className="px-4 py-3" style={{ color: "#6B6B6B" }}>
+                  <tr key={s.id} className="border-t border-card">
+                    <td className="px-4 py-3 text-foreground">{s.email}</td>
+                    <td className="px-4 py-3 text-granite">
                       {new Date(s.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => deleteMutation.mutate(s.id)}
-                        className="hover:text-red-400 transition-colors"
-                        style={{ color: "#6B6B6B" }}
+                        className="hover:text-red-400 transition-colors text-granite"
                         aria-label="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
