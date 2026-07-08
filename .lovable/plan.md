@@ -1,24 +1,39 @@
-Generate a branded PDF price sheet (Granite & Bronze theme) saved to `/mnt/documents/grave-detail-price-sheet.pdf` and delivered as a downloadable artifact.
+## Plan: Business Info section + 3 legal pages on Coming Soon
 
-## Contents
+### 1. Update `src/pages/ComingSoon.tsx`
+Add a new "Business Info" section below the existing hero block (still inside the overlay container), plus a footer with three legal links. No changes to hidden `austin` shortcut, email signup, background, or animations.
 
-1. **Cover / Header** — Grave Detail, "Products & Services Price Sheet", contact info (info@gravedetail.net, (573) 545-5759).
-2. **One-Time Monument Cleaning** — table of all 7 monument types with prices:
-   - Single Marker $135, Double Marker $195, Single Slant $185, Single Upright $215, Double Slant $265, Double Upright $295, Grave Ledger $395
-   - "What's included" bullet list (SERVICE_FEATURES).
-3. **Annual Maintenance Plans** — 2/3/4 cleanings per year. Full price matrix per monument type (from `MAINTENANCE_PLAN_PRICES`).
-4. **Flower-Only Plans** — 1/2/3/4 placements: $125 / $200 / $275 / $350.
-5. **Add-Ons** — full list from `ADD_ONS` (Damage Report $65, Holiday Date Lock $35, Inscription Repainting $75–$150, Weeding $75+, Flag Placement $35, plus quoted items).
-6. **Travel Zones** — pulled live from the `travel_zones` table (Zone 1/2/3 with fees).
-7. **Footer** — preservation notes, Benton MO origin, generated date.
+Structure appended after the existing `<motion.p>` "Founder-operated..." line:
 
-## Technical
+- **Business Info section** — bordered card using `bg-card` (#2C2C2C) with Cinzel heading and Cormorant Garamond body:
+  - Business name (Cinzel, bronze accent)
+  - Service description paragraph (verbatim)
+  - Pricing paragraph (verbatim) + "Request a Quote" button → `mailto:info@gravedetail.net?subject=Quote Request`
+  - Contact block: phone (`tel:5735455759`) and email (`mailto:info@gravedetail.net`) as bronze links
+- **Footer** — thin top border, granite text, centered links to `/privacy-policy`, `/terms-of-service`, `/refund-policy` separated by `·`
 
-- Python + `reportlab` (Platypus) for layout.
-- Source pricing constants from `src/lib/pricing.ts` (transcribed into the script — no TS runtime needed).
-- Fetch travel zones via `psql` using the existing `PG*` env vars.
-- Bronze (#C9976B) headings, dark text on white for print legibility.
-- QA: render each page to JPEG with `pdftoppm`, inspect for overflow/clipping, iterate.
-- Final output: `<presentation-artifact>` tag pointing at the PDF.
+### 2. Create three new page components (verbatim content)
+All use the shared layout: dark background, max-w-3xl container, "← Back" link to `/`, Cinzel h1, Cormorant Garamond body, bronze sub-labels, granite "Last updated" line. No shared component extracted — each page is self-contained to keep scope isolated.
 
-No source files in the project will be modified.
+- `src/pages/legal/PrivacyPolicy.tsx`
+- `src/pages/legal/TermsOfService.tsx`
+- `src/pages/legal/RefundPolicy.tsx`
+
+Content is pasted exactly as provided, with the labeled leads ("Information I collect:", "Services:", etc.) rendered as Cinzel uppercase bronze sub-headings above each paragraph for readability. No paraphrasing of body text.
+
+### 3. Register routes in `src/App.tsx`
+Add three imports and three `<Route>` entries alongside existing public routes:
+- `/privacy-policy` → `PrivacyPolicy`
+- `/terms-of-service` → `TermsOfService`
+- `/refund-policy` → `RefundPolicy`
+
+No changes to any other route, admin layout, Supabase config, or existing pages/components.
+
+### Design tokens used
+- Bg `bg-background` (#141414), card `bg-card` (#2C2C2C), text `text-foreground` (#E8E4DF), accent `text-bronze` (#C9976B)
+- Fonts: `font-cinzel` headings, `font-garamond` body — already loaded globally
+
+### Out of scope
+- No schema/RLS/edge-function changes
+- No edits to Home, About, Services, LegalDisclosures, or any other existing page
+- No new colors, fonts, or design tokens
