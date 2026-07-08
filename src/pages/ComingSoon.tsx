@@ -126,6 +126,64 @@ const ComingSoon = () => {
         </motion.p>
 
       </div>
+
+      {/* Business Info */}
+      <div className="relative z-10 w-full max-w-2xl mt-16 sm:mt-20">
+        <motion.div
+          {...fade(0.6)}
+          className="bg-card/90 border border-granite/40 rounded-sm p-8 sm:p-10 text-left space-y-6"
+        >
+          <div>
+            <p className="font-cinzel tracking-[0.15em] uppercase text-xs text-bronze mb-2">Business</p>
+            <h2 className="font-cinzel text-2xl sm:text-3xl font-bold text-foreground">
+              Grave Detail Cleaning &amp; Preservation
+            </h2>
+          </div>
+
+          <div>
+            <p className="font-cinzel tracking-[0.15em] uppercase text-xs text-bronze mb-2">Services</p>
+            <p className="font-garamond text-lg leading-relaxed text-foreground">
+              Professional cemetery monument cleaning and preservation services, performed personally by the owner-operator, using preservation methods aligned with NPS Preservation Brief 48 and the Secretary of the Interior's Standards for the Treatment of Historic Properties. Serving a 150-mile radius across Missouri, Illinois, Arkansas, Tennessee, and Kentucky.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-cinzel tracking-[0.15em] uppercase text-xs text-bronze mb-2">Pricing</p>
+            <p className="font-garamond text-lg leading-relaxed text-foreground">
+              Pricing is determined per monument based on size, condition, and required treatment, and provided as a custom quote before any work begins.
+            </p>
+            <a
+              href="mailto:info@gravedetail.net?subject=Quote%20Request"
+              className="inline-block mt-4 uppercase font-semibold bg-bronze text-background hover:bg-patina hover:text-foreground font-cinzel tracking-[0.1em] rounded-sm px-6 py-3 transition-colors"
+            >
+              Request a Quote
+            </a>
+          </div>
+
+          <div>
+            <p className="font-cinzel tracking-[0.15em] uppercase text-xs text-bronze mb-2">Contact</p>
+            <p className="font-garamond text-lg text-foreground">
+              Phone:{" "}
+              <a href="tel:5735455759" className="text-bronze underline">573-545-5759</a>
+            </p>
+            <p className="font-garamond text-lg text-foreground">
+              Email:{" "}
+              <a href="mailto:info@gravedetail.net" className="text-bronze underline">info@gravedetail.net</a>
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 w-full max-w-2xl mt-12 pt-6 border-t border-granite/30">
+        <p className="text-center font-garamond text-sm text-granite">
+          <Link to="/privacy-policy" className="hover:text-bronze">Privacy Policy</Link>
+          <span className="mx-2">·</span>
+          <Link to="/terms-of-service" className="hover:text-bronze">Terms of Service</Link>
+          <span className="mx-2">·</span>
+          <Link to="/refund-policy" className="hover:text-bronze">Refund Policy</Link>
+        </p>
+      </div>
     </div>
   );
 };
