@@ -56,13 +56,14 @@ const ComingSoon = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden bg-background">
+    <div className="min-h-screen flex flex-col items-center px-4 py-12 relative overflow-hidden bg-background">
       <div
         className="absolute inset-0 z-0"
         style={{
           backgroundImage: `url(${cemeteryBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          backgroundAttachment: "fixed",
         }}
       />
       <div className="absolute inset-0 z-0 bg-black/75" />
